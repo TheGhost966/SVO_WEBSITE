@@ -191,6 +191,135 @@ export async function getNewsAllLocaleSlugs(
   }
 }
 
+export const getEventCategories = unstable_cache(
+  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'categories',
+        where: { type: { equals: 'event' } },
+        sort: 'name',
+        depth: 0,
+        limit: 50,
+      })
+      return result.docs.map((d: any) => ({ id: d.id, name: d.name, slug: d.slug }))
+    } catch {
+      return []
+    }
+  },
+  ['event-categories'],
+  { revalidate: 3600, tags: ['categories'] },
+)
+
+export const getUpcomingEventsPaged = unstable_cache(
+  async (locale: string, page = 1, categorySlug?: string): Promise<PaginatedResult<EventDoc>> => {
+    try {
+      const payload = await getPayloadClient()
+      const now = new Date().toISOString()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const where: any = {
+        and: [
+          { reviewStatus: { equals: 'published' } },
+          { startDate: { greater_than: now } },
+        ],
+      }
+      if (categorySlug) where.and.push({ 'category.slug': { equals: categorySlug } })
+      const result = await payload.find({
+        collection: 'events',
+        where,
+        sort: 'startDate',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+        limit: 9,
+        page,
+      })
+      return result as unknown as PaginatedResult<EventDoc>
+    } catch {
+      return empty<EventDoc>()
+    }
+  },
+  ['upcoming-events-paged'],
+  { revalidate: 60, tags: [tags.events()] },
+)
+
+export const getPastEvents = unstable_cache(
+  async (locale: string, page = 1, categorySlug?: string): Promise<PaginatedResult<EventDoc>> => {
+    try {
+      const payload = await getPayloadClient()
+      const now = new Date().toISOString()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const where: any = {
+        and: [
+          { reviewStatus: { equals: 'published' } },
+          { startDate: { less_than: now } },
+        ],
+      }
+      if (categorySlug) where.and.push({ 'category.slug': { equals: categorySlug } })
+      const result = await payload.find({
+        collection: 'events',
+        where,
+        sort: '-startDate', // most recent past first
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+        limit: 9,
+        page,
+      })
+      return result as unknown as PaginatedResult<EventDoc>
+    } catch {
+      return empty<EventDoc>()
+    }
+  },
+  ['past-events'],
+  { revalidate: 60, tags: [tags.events()] },
+)
+
+export const getEventBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<EventDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'events',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 3,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as EventDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['event-by-slug'],
+  { revalidate: 60, tags: [tags.events()] },
+)
+
+export async function getEventAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'events',
+      id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      locale: 'all' as any,
+      depth: 0,
+    })
+    const slugField = (doc as any)?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 export const getServicePillars = unstable_cache(

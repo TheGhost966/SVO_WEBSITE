@@ -5,16 +5,25 @@ type Props = {
   currentSlug?: string
   allLabel: string
   basePath: string
+  /** Additional query params appended to every link (e.g. { view: 'past' }) */
+  extraParams?: Record<string, string>
 }
 
-export function CategoryFilter({ categories, currentSlug, allLabel, basePath }: Props) {
+function buildUrl(basePath: string, catSlug?: string, extra?: Record<string, string>): string {
+  const sp = new URLSearchParams(extra)
+  if (catSlug) sp.set('cat', catSlug)
+  const qs = sp.toString()
+  return qs ? `${basePath}?${qs}` : basePath
+}
+
+export function CategoryFilter({ categories, currentSlug, allLabel, basePath, extraParams }: Props) {
   return (
     <nav aria-label={allLabel} className="mb-8">
       <ul className="flex flex-wrap gap-2" role="list">
         {/* "All" tab */}
         <li>
           <a
-            href={basePath}
+            href={buildUrl(basePath, undefined, extraParams)}
             className={`inline-block px-4 py-2 rounded-control text-sm font-medium transition-colors ${
               !currentSlug
                 ? 'bg-brand-blue text-white'
@@ -31,7 +40,7 @@ export function CategoryFilter({ categories, currentSlug, allLabel, basePath }: 
           return (
             <li key={cat.id}>
               <a
-                href={cat.slug ? `${basePath}?cat=${cat.slug}` : basePath}
+                href={buildUrl(basePath, cat.slug ?? undefined, extraParams)}
                 className={`inline-block px-4 py-2 rounded-control text-sm font-medium transition-colors ${
                   active
                     ? 'bg-brand-blue text-white'
