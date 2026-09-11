@@ -1,0 +1,108 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "about": "من نحن",
+    "news": "أخبار",
+    "events": "فعاليات",
+    "services": "خدمات",
+    "contact": "اتصل بنا",
+    "partners": "الشركاء",
+    "menu": "القائمة",
+    "closeMenu": "إغلاق القائمة"
+  },
+  "common": {
+    "readMore": "اقرأ المزيد",
+    "backToNews": "العودة إلى الأخبار",
+    "backToEvents": "العودة إلى الفعاليات",
+    "backToServices": "العودة إلى الخدمات",
+    "backToPartners": "رجوع",
+    "noContent": "هذا المحتوى متوفر باللغة الألمانية. الترجمة قادمة قريبًا.",
+    "loading": "جارٍ التحميل…",
+    "notFound": "الصفحة غير موجودة",
+    "notFoundDesc": "الصفحة المطلوبة غير موجودة أو تم نقلها.",
+    "backToHome": "العودة إلى الرئيسية",
+    "skipToContent": "انتقل إلى المحتوى",
+    "languageSwitcher": "تغيير اللغة"
+  },
+  "home": {
+    "latestNews": "آخر الأخبار",
+    "allNews": "جميع الأخبار",
+    "upcomingEvents": "الفعاليات القادمة",
+    "allEvents": "جميع الفعاليات",
+    "ourServices": "خدماتنا",
+    "allServices": "جميع الخدمات"
+  },
+  "news": {
+    "title": "أخبار",
+    "filterAll": "جميع الفئات",
+    "noResults": "لا توجد أخبار.",
+    "by": "بقلم",
+    "published": "نُشر في"
+  },
+  "events": {
+    "title": "فعاليات",
+    "upcoming": "الفعاليات القادمة",
+    "past": "الفعاليات الماضية",
+    "online": "عبر الإنترنت",
+    "free": "مجاني",
+    "paid": "مدفوع",
+    "register": "سجّل الآن",
+    "location": "المكان",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "noUpcoming": "لا توجد فعاليات مجدولة حاليًا.",
+    "noPast": "لا توجد فعاليات سابقة."
+  },
+  "services": {
+    "title": "الخدمات والعروض",
+    "intro": "يدعم الاتحاد السوري في النمسا المجتمع السوري في أربعة مجالات.",
+    "learnMore": "اعرف المزيد"
+  },
+  "contact": {
+    "title": "اتصل بنا",
+    "name": "الاسم",
+    "namePlaceholder": "اسمك الكامل",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "بريدك@example.com",
+    "subject": "الموضوع",
+    "subjectPlaceholder": "عن ماذا تسأل؟",
+    "category": "الفئة",
+    "categoryPlaceholder": "اختر فئة",
+    "message": "الرسالة",
+    "messagePlaceholder": "رسالتك…",
+    "consent": "أوافق على معالجة بياناتي وفقًا لـ<privacyLink>سياسة الخصوصية</privacyLink>. تُستخدم بياناتي فقط للرد على استفساري.",
+    "send": "إرسال",
+    "sending": "جارٍ الإرسال…",
+    "success": "شكرًا! تم إرسال رسالتك. سنرد عليك قريبًا.",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى أو التواصل معنا عبر البريد الإلكتروني مباشرةً.",
+    "required": "حقل إلزامي",
+    "address": "العنوان",
+    "phone": "الهاتف",
+    "openingHours": "ساعات العمل"
+  },
+  "partners": {
+    "title": "الشركاء والداعمون",
+    "intro": "يشكر الاتحاد السوري في النمسا شركاءه وداعميه على دعمهم."
+  },
+  "legal": {
+    "impressum": "Impressum",
+    "datenschutz": "Datenschutzerklärung",
+    "barrierefreiheit": "Barrierefreiheitserklärung",
+    "placeholder": "[[AR]] هذا المحتوى يقدمه فريق الاتحاد. يرجى التواصل مع مجلس الإدارة.",
+    "legalNotice": "ملاحظات قانونية"
+  },
+  "footer": {
+    "rights": "جميع الحقوق محفوظة",
+    "builtWith": "بكل ❤ للمجتمع السوري في النمسا."
+  },
+  "cookies": {
+    "title": "إعدادات الخصوصية",
+    "description": "يستخدم هذا الموقع ملفات تعريف الارتباط الضرورية للتشغيل. لن يتم تحميل الخدمات الاختيارية إلا بعد موافقتك.",
+    "accept": "قبول الكل",
+    "reject": "الضرورية فقط",
+    "manage": "إدارة الإعدادات",
+    "necessary": "ضروري",
+    "necessaryDescription": "مطلوب تقنيًا لتشغيل الموقع. لا يمكن تعطيله.",
+    "readMore": "اعرف المزيد"
+  }
+}

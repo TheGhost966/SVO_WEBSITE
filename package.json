@@ -1,0 +1,45 @@
+{
+  "name": "svo-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "generate:types": "payload generate:types",
+    "generate:schema": "payload generate:graphQLSchema",
+    "db:migrate": "payload migrate",
+    "db:migrate:create": "payload migrate:create",
+    "seed": "tsx seed/index.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.88.0",
+    "@payloadcms/email-nodemailer": "3.88.0",
+    "@payloadcms/next": "3.88.0",
+    "@payloadcms/richtext-lexical": "3.88.0",
+    "graphql": "^16.9.0",
+    "next": "16.3.4",
+    "next-intl": "4.14.2",
+    "nodemailer": "^6.9.0",
+    "payload": "3.88.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.0",
+    "vanilla-cookieconsent": "^3.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^22.0.0",
+    "@types/nodemailer": "^6.4.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.3.4",
+    "prettier": "^3.4.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0"
+  }
+}

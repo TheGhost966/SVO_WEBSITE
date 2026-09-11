@@ -1,0 +1,108 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About us",
+    "news": "News",
+    "events": "Events",
+    "services": "Services",
+    "contact": "Contact",
+    "partners": "Partners",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
+  },
+  "common": {
+    "readMore": "Read more",
+    "backToNews": "Back to News",
+    "backToEvents": "Back to Events",
+    "backToServices": "Back to Services",
+    "backToPartners": "Back",
+    "noContent": "This content is available in German. An English translation is coming soon.",
+    "loading": "Loading…",
+    "notFound": "Page not found",
+    "notFoundDesc": "The page you requested does not exist or has been moved.",
+    "backToHome": "Back to homepage",
+    "skipToContent": "Skip to content",
+    "languageSwitcher": "Change language"
+  },
+  "home": {
+    "latestNews": "Latest news",
+    "allNews": "All news",
+    "upcomingEvents": "Upcoming events",
+    "allEvents": "All events",
+    "ourServices": "Our services",
+    "allServices": "All services"
+  },
+  "news": {
+    "title": "News",
+    "filterAll": "All categories",
+    "noResults": "No news found.",
+    "by": "By",
+    "published": "Published on"
+  },
+  "events": {
+    "title": "Events",
+    "upcoming": "Upcoming events",
+    "past": "Past events",
+    "online": "Online",
+    "free": "Free",
+    "paid": "Paid",
+    "register": "Register",
+    "location": "Location",
+    "date": "Date",
+    "time": "Time",
+    "noUpcoming": "No events are currently scheduled.",
+    "noPast": "No past events."
+  },
+  "services": {
+    "title": "Services & Support",
+    "intro": "SVÖ supports the Syrian community in Austria across four areas.",
+    "learnMore": "Learn more"
+  },
+  "contact": {
+    "title": "Contact",
+    "name": "Name",
+    "namePlaceholder": "Your full name",
+    "email": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "subject": "Subject",
+    "subjectPlaceholder": "What is your enquiry about?",
+    "category": "Category",
+    "categoryPlaceholder": "Please select",
+    "message": "Message",
+    "messagePlaceholder": "Your message…",
+    "consent": "I consent to the processing of my data in accordance with the <privacyLink>Privacy Policy</privacyLink>. My data will only be used to respond to my enquiry.",
+    "send": "Send message",
+    "sending": "Sending…",
+    "success": "Thank you! Your message has been sent. We will be in touch shortly.",
+    "error": "Something went wrong. Please try again or contact us directly by email.",
+    "required": "Required",
+    "address": "Address",
+    "phone": "Phone",
+    "openingHours": "Opening hours"
+  },
+  "partners": {
+    "title": "Partners & Supporters",
+    "intro": "SVÖ thanks its partners and supporters for their continued support."
+  },
+  "legal": {
+    "impressum": "Impressum",
+    "datenschutz": "Datenschutzerklärung",
+    "barrierefreiheit": "Barrierefreiheitserklärung",
+    "placeholder": "[[EN]] This content is provided by the SVÖ team. Please contact the board.",
+    "legalNotice": "Legal notices"
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "builtWith": "Built with ❤ for the Syrian community in Austria."
+  },
+  "cookies": {
+    "title": "Privacy settings",
+    "description": "This website uses necessary cookies to function. Optional services (e.g. embedded content) are only loaded after your consent.",
+    "accept": "Accept all",
+    "reject": "Necessary only",
+    "manage": "Manage settings",
+    "necessary": "Necessary",
+    "necessaryDescription": "Technically required for the website to function. Cannot be disabled.",
+    "readMore": "Learn more"
+  }
+}

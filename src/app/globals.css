@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colours */
+  --color-brand-blue: #0B4EA2;
+  --color-brand-navy: #062E57;
+  --color-brand-green: #4FA845;
+  --color-brand-green-dk: #3B8A33;
+  --color-brand-green-lt: #EAF4E7;
+  --color-cream: #F7F6F1;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E6E0;
+  --color-ink: #0E1D2B;
+  --color-ink-70: #4A5C6B;
+  --color-ink-50: #8493A0;
+
+  /* Type scale (px values expressed as rem) */
+  --font-size-2xs: 0.75rem;    /* 12px */
+  --font-size-xs:  0.875rem;   /* 14px */
+  --font-size-sm:  1rem;       /* 16px */
+  --font-size-md:  1.125rem;   /* 18px */
+  --font-size-lg:  1.3125rem;  /* 21px */
+  --font-size-xl:  1.625rem;   /* 26px */
+  --font-size-2xl: 2rem;       /* 32px */
+  --font-size-3xl: 2.375rem;   /* 38px */
+  --font-size-4xl: 3.25rem;    /* 52px */
+
+  /* Border radii */
+  --radius-control: 10px;
+  --radius-card:    14px;
+  --radius-card-lg: 18px;
+  --radius-panel:   20px;
+
+  /* Font families — variables populated by next/font/local at runtime */
+  --font-sans:    var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-arabic:  var(--font-cairo), var(--font-inter), ui-sans-serif, sans-serif;
+
+  /* Layout */
+  --max-w-content: 1200px;
+  --gutter-desktop: 120px;
+  --gutter-mobile:  24px;
+
+  /* Section spacing */
+  --section-y-desktop: 84px;
+  --section-y-mobile:  48px;
+}
+
+/* Base resets */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    color: var(--color-ink);
+    background-color: var(--color-cream);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  /* Arabic locale: wider line-height and arabic font stack */
+  html[lang="ar"] {
+    font-family: var(--font-arabic);
+    line-height: 1.8;
+  }
+
+  /* Focus ring — visible, brand-coloured */
+  :focus-visible {
+    outline: 3px solid var(--color-brand-blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Skip-to-content link */
+  .skip-to-content {
+    position: absolute;
+    inset-inline-start: -9999px;
+    top: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: var(--color-brand-blue);
+    color: #fff;
+    border-radius: var(--radius-control);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .skip-to-content:focus {
+    inset-inline-start: 1rem;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  p,
+  li {
+    max-width: 72ch;
+  }
+}

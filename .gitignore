@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Payload generated files
+src/payload-types.ts
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Media uploads (volume-mounted in production)
+public/media/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript incremental build
+*.tsbuildinfo
+
+# Migrations (commit these — they're like DB schema history)
+# migrations/ — do NOT gitignore

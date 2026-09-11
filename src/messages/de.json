@@ -1,0 +1,108 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "news": "Nachrichten",
+    "events": "Veranstaltungen",
+    "services": "Leistungen",
+    "contact": "Kontakt",
+    "partners": "Partner",
+    "menu": "Menü",
+    "closeMenu": "Menü schließen"
+  },
+  "common": {
+    "readMore": "Mehr lesen",
+    "backToNews": "Zurück zu Nachrichten",
+    "backToEvents": "Zurück zu Veranstaltungen",
+    "backToServices": "Zurück zu Leistungen",
+    "backToPartners": "Zurück",
+    "noContent": "Dieser Inhalt ist auf Deutsch verfügbar. Eine Übersetzung folgt in Kürze.",
+    "loading": "Wird geladen…",
+    "notFound": "Seite nicht gefunden",
+    "notFoundDesc": "Die angeforderte Seite existiert nicht oder wurde verschoben.",
+    "backToHome": "Zur Startseite",
+    "skipToContent": "Zum Inhalt springen",
+    "languageSwitcher": "Sprache wechseln"
+  },
+  "home": {
+    "latestNews": "Aktuelle Nachrichten",
+    "allNews": "Alle Nachrichten",
+    "upcomingEvents": "Kommende Veranstaltungen",
+    "allEvents": "Alle Veranstaltungen",
+    "ourServices": "Unsere Leistungen",
+    "allServices": "Alle Leistungen"
+  },
+  "news": {
+    "title": "Nachrichten",
+    "filterAll": "Alle Kategorien",
+    "noResults": "Keine Nachrichten gefunden.",
+    "by": "Von",
+    "published": "Veröffentlicht am"
+  },
+  "events": {
+    "title": "Veranstaltungen",
+    "upcoming": "Bevorstehende Veranstaltungen",
+    "past": "Vergangene Veranstaltungen",
+    "online": "Online",
+    "free": "Kostenlos",
+    "paid": "Kostenpflichtig",
+    "register": "Zur Anmeldung",
+    "location": "Ort",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "noUpcoming": "Derzeit sind keine Veranstaltungen geplant.",
+    "noPast": "Keine vergangenen Veranstaltungen."
+  },
+  "services": {
+    "title": "Leistungen & Angebote",
+    "intro": "Der SVÖ unterstützt die syrische Gemeinschaft in Österreich in vier Bereichen.",
+    "learnMore": "Mehr erfahren"
+  },
+  "contact": {
+    "title": "Kontakt",
+    "name": "Name",
+    "namePlaceholder": "Ihr vollständiger Name",
+    "email": "E-Mail-Adresse",
+    "emailPlaceholder": "ihre@email.at",
+    "subject": "Betreff",
+    "subjectPlaceholder": "Worum geht es?",
+    "category": "Kategorie",
+    "categoryPlaceholder": "Bitte wählen",
+    "message": "Nachricht",
+    "messagePlaceholder": "Ihre Nachricht…",
+    "consent": "Ich stimme der Verarbeitung meiner Daten gemäß der <privacyLink>Datenschutzerklärung</privacyLink> zu. Meine Daten werden ausschließlich zur Bearbeitung meiner Anfrage genutzt.",
+    "send": "Absenden",
+    "sending": "Wird gesendet…",
+    "success": "Vielen Dank! Ihre Nachricht wurde gesendet. Wir melden uns in Kürze.",
+    "error": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt per E-Mail.",
+    "required": "Pflichtfeld",
+    "address": "Adresse",
+    "phone": "Telefon",
+    "openingHours": "Öffnungszeiten"
+  },
+  "partners": {
+    "title": "Partner & Förderer",
+    "intro": "Der SVÖ dankt seinen Partnern und Förderern für ihre Unterstützung."
+  },
+  "legal": {
+    "impressum": "Impressum",
+    "datenschutz": "Datenschutzerklärung",
+    "barrierefreiheit": "Barrierefreiheitserklärung",
+    "placeholder": "[[DE]] Dieser Inhalt wird vom SVÖ-Team bereitgestellt. Bitte wenden Sie sich an den Vorstand.",
+    "legalNotice": "Rechtliche Hinweise"
+  },
+  "footer": {
+    "rights": "Alle Rechte vorbehalten",
+    "builtWith": "Mit ❤ für die syrische Gemeinschaft in Österreich."
+  },
+  "cookies": {
+    "title": "Datenschutzeinstellungen",
+    "description": "Diese Website verwendet notwendige Cookies für den Betrieb. Optionale Dienste (z.B. eingebettete Inhalte) werden erst nach Ihrer Zustimmung geladen.",
+    "accept": "Alle akzeptieren",
+    "reject": "Nur notwendige",
+    "manage": "Einstellungen verwalten",
+    "necessary": "Notwendig",
+    "necessaryDescription": "Technisch erforderlich für den Betrieb der Website. Können nicht deaktiviert werden.",
+    "readMore": "Mehr erfahren"
+  }
+}
