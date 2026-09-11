@@ -141,6 +141,56 @@ export const getUpcomingEvents = unstable_cache(
   { revalidate: 60, tags: [tags.events()] },
 )
 
+export const getNewsCategories = unstable_cache(
+  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'categories',
+        where: { type: { equals: 'news' } },
+        sort: 'name',
+        depth: 0,
+        limit: 50,
+      })
+      return result.docs.map((d: any) => ({ id: d.id, name: d.name, slug: d.slug }))
+    } catch {
+      return []
+    }
+  },
+  ['news-categories'],
+  { revalidate: 3600, tags: ['categories'] },
+)
+
+/**
+ * Fetch a news document with ALL locales so the caller can extract
+ * per-locale slugs for hreflang links.
+ * Returns `null` on any error.
+ */
+export async function getNewsAllLocaleSlugs(
+  id: string,
+): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'news',
+      id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      locale: 'all' as any,
+      depth: 0,
+    })
+    // With locale:'all', localised fields come back as { de: '...', ar: '...', en: '...' }
+    const slugField = (doc as any)?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([ , v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 export const getServicePillars = unstable_cache(

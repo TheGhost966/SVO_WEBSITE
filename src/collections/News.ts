@@ -7,6 +7,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
+import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
 
 export const News: CollectionConfig = {
   slug: 'news',
@@ -111,6 +112,7 @@ export const News: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
+    afterChange: [makeRevalidateOnPublish('news')],
   },
   access: {
     read: readPublishedOrLoggedIn,
