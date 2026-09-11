@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
+import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
 
 export const ServicePillars: CollectionConfig = {
   slug: 'service-pillars',
@@ -55,6 +56,9 @@ export const ServicePillars: CollectionConfig = {
       label: { de: 'Reihenfolge', ar: 'الترتيب', en: 'Display order' },
     },
   ],
+  hooks: {
+    afterChange: [makeRevalidateOnPublish('service-pillars')],
+  },
   access: {
     read: () => true,
     create: isEditorOrAbove,

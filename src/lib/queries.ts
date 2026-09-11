@@ -1,6 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, PageDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -321,6 +321,150 @@ export async function getEventAllLocaleSlugs(id: string): Promise<Record<string,
 }
 
 // ─── Services ─────────────────────────────────────────────────────────────────
+
+// ─── Services (detailed queries) ──────────────────────────────────────────────
+
+export const getPillarBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<ServicePillarDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'service-pillars',
+        where: { slug: { equals: slug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as ServicePillarDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['pillar-by-slug'],
+  { revalidate: 3600, tags: [tags.services()] },
+)
+
+export const getServicesByPillar = unstable_cache(
+  async (pillarSlug: string, locale: string): Promise<ServiceDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      // Step 1: resolve pillar ID from slug
+      const pillarResult = await payload.find({
+        collection: 'service-pillars',
+        where: { slug: { equals: pillarSlug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 1,
+      })
+      const pillar = pillarResult.docs[0]
+      if (!pillar) return []
+
+      // Step 2: find all published services for that pillar
+      const result = await payload.find({
+        collection: 'services',
+        where: {
+          and: [
+            { pillar: { equals: pillar.id } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        sort: 'title',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+        limit: 50,
+      })
+      return result.docs as unknown as ServiceDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['services-by-pillar'],
+  { revalidate: 60, tags: [tags.services()] },
+)
+
+export const getServiceBySlug = unstable_cache(
+  async (pillarSlug: string, serviceSlug: string, locale: string): Promise<ServiceDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      // Step 1: resolve pillar ID
+      const pillarResult = await payload.find({
+        collection: 'service-pillars',
+        where: { slug: { equals: pillarSlug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 1,
+      })
+      const pillar = pillarResult.docs[0]
+      if (!pillar) return null
+
+      // Step 2: find service within that pillar
+      const result = await payload.find({
+        collection: 'services',
+        where: {
+          and: [
+            { slug: { equals: serviceSlug } },
+            { pillar: { equals: pillar.id } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 3,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as ServiceDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['service-by-slug'],
+  { revalidate: 60, tags: [tags.services()] },
+)
+
+/** Fetch a service with ALL locales to extract per-locale slugs for hreflang */
+export async function getServiceAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'services',
+      id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      locale: 'all' as any,
+      depth: 0,
+    })
+    const slugField = (doc as any)?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+/** Fetch a pillar with ALL locales to extract per-locale slugs for hreflang */
+export async function getPillarAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'service-pillars',
+      id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      locale: 'all' as any,
+      depth: 0,
+    })
+    const slugField = (doc as any)?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
 
 export const getServicePillars = unstable_cache(
   async (locale: string): Promise<PaginatedResult<ServicePillarDoc>> => {

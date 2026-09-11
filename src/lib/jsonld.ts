@@ -73,6 +73,30 @@ export function breadcrumbSchema(
   }
 }
 
+export function serviceSchemaLD({
+  name,
+  description,
+  url,
+}: {
+  name: string
+  description?: string | null
+  url: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name,
+    ...(description ? { description } : {}),
+    provider: {
+      '@type': 'Organization',
+      name: 'SVÖ — Syrischer Verband in Österreich',
+      url: BASE_URL,
+    },
+    areaServed: { '@type': 'Country', name: 'Austria' },
+    url,
+  }
+}
+
 export function eventSchema({
   title,
   description,

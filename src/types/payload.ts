@@ -157,6 +157,26 @@ export type PageBlock =
   | LogoGridBlock
   | TimelineBlock
 
+export type ServiceDoc = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  pillar?: ServicePillarDoc | string | null
+  summary?: string | null
+  body?: unknown
+  icon?: string | null
+  image?: ResolvedMedia | string | null
+  targetAudience?: string | null
+  relatedServices?: Array<{ id: string; title?: string | null; slug?: string | null; pillar?: ServicePillarDoc | string | null } | string> | null
+  reviewStatus?: string | null
+  seo?: {
+    title?: string | null
+    description?: string | null
+    ogImage?: ResolvedMedia | string | null
+    noIndex?: boolean | null
+  } | null
+}
+
 export type PageDoc = {
   id: string
   title?: string | null
