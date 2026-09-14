@@ -6,6 +6,8 @@
     "events": "Veranstaltungen",
     "services": "Leistungen",
     "guide": "Österreich-Guide",
+    "guideMenu": "Wegweiser",
+    "roadmaps": "Anleitungen",
     "contact": "Kontakt",
     "partners": "Partner",
     "menu": "Menü",
@@ -65,6 +67,17 @@
     "empty": "Noch keine Guide-Themen mit Inhalten verfügbar.",
     "viewArticles": "Artikel ansehen",
     "noArticlesInTopic": "In diesem Thema sind noch keine Artikel verfügbar."
+  },
+  "roadmaps": {
+    "title": "Anleitungen",
+    "intro": "Schritt-für-Schritt-Anleitungen für die wichtigsten Behördenwege in Österreich.",
+    "empty": "Noch keine Anleitungen verfügbar.",
+    "viewSteps": "Schritte ansehen",
+    "responsibleAuthority": "Zuständige Behörde",
+    "timing": "Frist",
+    "requiredDocuments": "Benötigte Unterlagen",
+    "links": "Weiterführende Links",
+    "step": "Schritt"
   },
   "contact": {
     "title": "Kontakt",

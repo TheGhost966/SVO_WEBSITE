@@ -44,6 +44,7 @@ export function Footer() {
                   { href: '/events' as const, key: 'events' as const },
                   { href: '/services' as const, key: 'services' as const },
                   { href: '/guide' as const, key: 'guide' as const },
+                  { href: '/roadmaps' as const, key: 'roadmaps' as const },
                   { href: '/contact' as const, key: 'contact' as const },
                   { href: '/partners' as const, key: 'partners' as const },
                 ]

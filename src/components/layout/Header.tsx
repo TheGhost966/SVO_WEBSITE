@@ -1,24 +1,89 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/navigation'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
 type Props = { locale: string }
 
-// "guide" stands alone for now; per BRIEF-AMENDMENT-01 §2.9 it becomes a
-// combined "Guide + Roadmaps" entry once Roadmaps ships (Slice 2), rather
-// than adding a fifth top-level item and overflowing the header.
-const navKeys = ['news', 'events', 'services', 'guide', 'contact'] as const
+// Guide + Roadmaps combine under one "Wegweiser" dropdown entry per
+// BRIEF-AMENDMENT-01 §2.9 — a fifth and sixth top-level item would overflow
+// the header in German.
+const navKeys = ['news', 'events', 'services', 'contact'] as const
 
 const navHrefs = {
   news: '/news',
   events: '/events',
   services: '/services',
-  guide: '/guide',
   contact: '/contact',
 } as const
+
+const guideMenuItems = [
+  { href: '/guide', key: 'guide' },
+  { href: '/roadmaps', key: 'roadmaps' },
+] as const
+
+function GuideMenu({ pathname }: { pathname: string }) {
+  const t = useTranslations('nav')
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const isActive = guideMenuItems.some((item) => pathname.startsWith(`/${item.key}`))
+
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e: PointerEvent) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={`px-4 py-2 rounded-control text-sm font-medium transition-colors inline-flex items-center gap-1 ${
+          isActive ? 'bg-brand-green-lt text-brand-green-dk' : 'text-ink-70 hover:text-ink hover:bg-cream'
+        }`}
+      >
+        {t('guideMenu')}
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <ul
+          role="menu"
+          className="absolute top-full mt-1 min-w-[180px] bg-surface border border-border rounded-control shadow-md py-1 z-50 start-0"
+        >
+          {guideMenuItems.map((item) => (
+            <li key={item.key} role="none">
+              <Link
+                role="menuitem"
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 text-sm text-ink hover:bg-cream transition-colors"
+              >
+                {t(item.key)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 export function Header({ locale }: Props) {
   const t = useTranslations('nav')
@@ -42,17 +107,19 @@ export function Header({ locale }: Props) {
             const href = navHrefs[key]
             const isActive = pathname.startsWith(`/${key}`)
             return (
-              <Link
-                key={key}
-                href={href}
-                className={`px-4 py-2 rounded-control text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-brand-green-lt text-brand-green-dk'
-                    : 'text-ink-70 hover:text-ink hover:bg-cream'
-                }`}
-              >
-                {t(key)}
-              </Link>
+              <span key={key} className="contents">
+                <Link
+                  href={href}
+                  className={`px-4 py-2 rounded-control text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-brand-green-lt text-brand-green-dk'
+                      : 'text-ink-70 hover:text-ink hover:bg-cream'
+                  }`}
+                >
+                  {t(key)}
+                </Link>
+                {key === 'services' && <GuideMenu pathname={pathname} />}
+              </span>
             )
           })}
         </nav>
@@ -94,14 +161,26 @@ export function Header({ locale }: Props) {
           {navKeys.map((key) => {
             const href = navHrefs[key]
             return (
-              <Link
-                key={key}
-                href={href}
-                className="block py-3 text-sm font-medium text-ink border-b border-border last:border-0"
-                onClick={() => setMenuOpen(false)}
-              >
-                {t(key)}
-              </Link>
+              <span key={key} className="contents">
+                <Link
+                  href={href}
+                  className="block py-3 text-sm font-medium text-ink border-b border-border last:border-0"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {t(key)}
+                </Link>
+                {key === 'services' &&
+                  guideMenuItems.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      className="block py-3 ps-4 text-sm font-medium text-ink-70 border-b border-border last:border-0"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t(item.key)}
+                    </Link>
+                  ))}
+              </span>
             )
           })}
         </nav>

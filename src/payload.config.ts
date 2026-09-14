@@ -19,6 +19,7 @@ import { Services } from '@/collections/Services'
 import { ServicePillars } from '@/collections/ServicePillars'
 import { GuideTopics } from '@/collections/GuideTopics'
 import { GuideArticles } from '@/collections/GuideArticles'
+import { Roadmaps } from '@/collections/Roadmaps'
 import { BoardMembers } from '@/collections/BoardMembers'
 import { Partners } from '@/collections/Partners'
 import { Pages } from '@/collections/Pages'
@@ -105,6 +106,7 @@ export default buildConfig({
     ServicePillars,
     GuideTopics,
     GuideArticles,
+    Roadmaps,
     BoardMembers,
     Partners,
     Pages,

@@ -6,6 +6,8 @@
     "events": "Events",
     "services": "Services",
     "guide": "Austria Guide",
+    "guideMenu": "Guides",
+    "roadmaps": "Roadmaps",
     "contact": "Contact",
     "partners": "Partners",
     "menu": "Menu",
@@ -65,6 +67,17 @@
     "empty": "No guide topics have any articles yet.",
     "viewArticles": "View articles",
     "noArticlesInTopic": "No articles in this topic yet."
+  },
+  "roadmaps": {
+    "title": "Roadmaps",
+    "intro": "Step-by-step guides for the most important official procedures in Austria.",
+    "empty": "No roadmaps available yet.",
+    "viewSteps": "View steps",
+    "responsibleAuthority": "Responsible authority",
+    "timing": "Timing",
+    "requiredDocuments": "Required documents",
+    "links": "Further links",
+    "step": "Step"
   },
   "contact": {
     "title": "Contact",

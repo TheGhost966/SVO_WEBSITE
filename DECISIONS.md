@@ -107,6 +107,44 @@ Tracks that written consent for photos of identifiable people has been documente
 **Impressum and Datenschutzerklärung ship as placeholder pages with visible build-time warning.**
 Legal text is never generated or invented. Content must come from the SVÖ board or their lawyer.
 
+## Roadmaps slice (BRIEF-AMENDMENT-01 Slice 2)
+
+**Route segments: `/anleitungen` (de) / `/roadmaps` (ar, en) for the collection itself — not `/wegweiser`.**
+The amendment's §2.9 suggests "Wegweiser" as the name for the *combined Guide+Roadmaps nav entry*,
+not as the Roadmaps collection's own URL. Using it for both would mean a nav button labelled
+"Wegweiser" opens a menu containing an item also labelled "Wegweiser" pointing at `/wegweiser` —
+confusing. "Wegweiser" is reserved for the nav dropdown button (`nav.guideMenu`); the route itself
+is `/anleitungen` ("guides/instructions"), distinct from Guide's `/oesterreich-guide`.
+
+**Nav grouping implemented as a real dropdown (`GuideMenu` in `Header.tsx`), not a static combined link.**
+Keeps `Header`'s top-level item count at 5 (was 5 before Guide/Roadmaps existed as separate items),
+satisfying §2.9's overflow concern. Keyboard/pointer accessible: `aria-haspopup`/`aria-expanded` on
+the trigger button, `role="menu"`/`role="menuitem"` on the panel, closes on outside pointerdown and
+on Escape. Mobile menu skips the dropdown entirely and just lists both links flatly under the
+"Leistungen" item — no overflow problem exists at mobile width, so no need for the extra interaction cost.
+
+**Roadmaps is a flat collection, no parent "roadmap topics."** Unlike Guide's topic→article nesting,
+the amendment's schema (§3) describes each roadmap as one complete procedure with an ordered
+`steps` array — there's no intermediate grouping level to model.
+
+**`responsibleAuthority` and `timing` on each step are localized text, not a fixed enum.** Authority
+names (AMS, ÖGK, MA 35...) are mostly stable across locales, but the field also needs to carry
+free text ("or the district office responsible for your address"), which an enum can't express.
+
+**Added `HowTo` JSON-LD to Roadmap detail pages** (`roadmapSchema` in `lib/jsonld.ts`) — steps map
+directly onto `HowToStep`, and this is genuinely how these pages should appear in search (step-by-step
+official procedures), consistent with the existing one-schema-per-content-type convention.
+
+**Bug found and fixed while building this slice: `makeRevalidateOnPublish` never had a case for
+`guide-topics` or `guide-articles`.** The Guide slice's collections were passing their own collection
+name into the hook, but the `bust()` switch statement inside `revalidateOnPublish.ts` only had cases
+for `news`/`events`/`services`/`service-pillars`/`pages` — publishing a GuideArticle never actually
+called `revalidateTag(tags.guide())`. It happened to look like it worked during Guide slice testing
+because Next dev's per-request caching is weak enough that the change showed up anyway; it would not
+have reliably worked in production. Fixed by adding `guide-topics`/`guide-articles` cases (both bust
+`tags.guide()`) and a new `roadmaps` case, and by adding the `afterChange` hook to `GuideTopics`
+entirely — it had none before, so editing a topic's title/order never busted anything.
+
 ## Known issues
 
 **Every standalone Payload CLI-adjacent command — `npm run seed`, `generate:types`, `generate:importmap`, `db:migrate` — currently crashes.** None of these are bugs in this project's schema/config; all three are `tsx`/Node ESM-CJS interop friction between Payload's dependencies and however each command loads `payload.config.ts`:

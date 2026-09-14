@@ -55,6 +55,13 @@ These pages contain legally required content in Austria. **Never generate or inv
 - [ ] AR/EN translations of topic titles/descriptions and article content — currently German-only test content falls back correctly on `/ar` and `/en` index pages, but **detail pages 404 for any topic/article whose slug isn't also filled in for that locale** (see DECISIONS.md "Known issues" — untranslated localized slugs 404 on non-default locales). Until AR/EN slugs are filled in, Arabic/English users can only reach the Guide index pages, not individual articles.
 - [ ] A board process for who reviews articles past their `reviewIntervalMonths` (the admin list can be sorted by `lastReviewedAt`, but nothing currently proactively surfaces overdue reviews — same gap noted for Jobs review in BRIEF-AMENDMENT-01 §4)
 
+## Roadmaps (Anleitungen)
+
+- [ ] Real roadmaps beyond the "Meldezettel" test record — per BRIEF-AMENDMENT-01 §2.6 scope, at minimum: Anerkennung ausländischer Abschlüsse, Aufenthaltstitel-Verlängerung, ÖGK-Anmeldung
+- [ ] Each roadmap's steps filled in with real `responsibleAuthority`, `timing`, `requiredDocuments`, and — where relevant — a `linkedGuideArticle`
+- [ ] AR/EN translations — same caveat as Guide: detail pages 404 for locales without a translated slug (see DECISIONS.md "Known issues")
+- [ ] A board process for who reviews Roadmaps and Guide articles past their `reviewIntervalMonths` — same open question noted under Guide above; one answer should cover both collections since they share the same freshness fields
+
 ## About page
 
 - [ ] Mission statement (DE/AR/EN)

@@ -51,6 +51,13 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
         case 'pages':
           bust(tags.pages())
           break
+        case 'guide-topics':
+        case 'guide-articles':
+          bust(tags.guide())
+          break
+        case 'roadmaps':
+          bust(tags.roadmaps())
+          break
       }
 
       // Blow per-slug caches across all locales

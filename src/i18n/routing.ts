@@ -83,6 +83,16 @@ export const routing = defineRouting({
       ar: '/guide/[topic]/[article]',
       en: '/guide/[topic]/[article]',
     },
+    '/roadmaps': {
+      de: '/anleitungen',
+      ar: '/roadmaps',
+      en: '/roadmaps',
+    },
+    '/roadmaps/[roadmap]': {
+      de: '/anleitungen/[roadmap]',
+      ar: '/roadmaps/[roadmap]',
+      en: '/roadmaps/[roadmap]',
+    },
     '/contact': {
       de: '/kontakt',
       ar: '/contact',

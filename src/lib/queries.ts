@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -17,7 +17,7 @@ function empty<T>(): PaginatedResult<T> {
  * Re-fetches with `fallbackLocale: false` to see the raw, un-fallen-back value.
  */
 async function isLocaleFallback(
-  collection: 'news' | 'events' | 'services' | 'guide-articles',
+  collection: 'news' | 'events' | 'services' | 'guide-articles' | 'roadmaps',
   id: string,
   locale: string,
 ): Promise<boolean> {
@@ -682,6 +682,80 @@ export async function getGuideTopicAllLocaleSlugs(id: string): Promise<Record<st
     const payload = await getPayloadClient()
     const doc = await payload.findByID({
       collection: 'guide-topics',
+      id,
+      locale: 'all',
+      depth: 0,
+    })
+    const slugField = (doc as { slug?: unknown })?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+// ─── Roadmaps ──────────────────────────────────────────────────────────────────
+
+/** Published roadmaps only — a flat list, no parent (BRIEF-AMENDMENT-01 §2.8 empty-state principle). */
+export const getRoadmaps = unstable_cache(
+  async (locale: string): Promise<RoadmapDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'roadmaps',
+        where: { reviewStatus: { equals: 'published' } },
+        sort: 'title',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 100,
+      })
+      return result.docs as unknown as RoadmapDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['roadmaps'],
+  { revalidate: 3600, tags: [tags.roadmaps()] },
+)
+
+export const getRoadmapBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<RoadmapDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'roadmaps',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+        limit: 1,
+      })
+      const doc = result.docs[0] as unknown as RoadmapDoc | undefined
+      if (!doc) return null
+      doc._isFallback = await isLocaleFallback('roadmaps', doc.id, locale)
+      return doc
+    } catch {
+      return null
+    }
+  },
+  ['roadmap-by-slug'],
+  { revalidate: 60, tags: [tags.roadmaps()] },
+)
+
+/** Fetch a roadmap with ALL locales to extract per-locale slugs for hreflang */
+export async function getRoadmapAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'roadmaps',
       id,
       locale: 'all',
       depth: 0,

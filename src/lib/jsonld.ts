@@ -92,6 +92,38 @@ export function guideArticleSchema({
   }
 }
 
+export function roadmapSchema({
+  title,
+  description,
+  dateModified,
+  url,
+  locale,
+  steps,
+}: {
+  title: string
+  description?: string | null
+  dateModified?: string | null
+  url: string
+  locale: string
+  steps: { name: string; text: string }[]
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: title,
+    ...(description ? { description } : {}),
+    ...(dateModified ? { dateModified } : {}),
+    step: steps.map((s, i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
+    url,
+    inLanguage: locale,
+  }
+}
+
 export function breadcrumbSchema(
   items: { name: string; url: string }[],
 ) {

@@ -87,9 +87,39 @@ export type GuideArticleDoc = {
   reviewIntervalMonths?: number | null
   officialSourceUrl?: string | null
   relatedServices?: Array<ServiceDoc | string> | null
+  relatedRoadmaps?: Array<RoadmapDoc | string> | null
   reviewStatus?: string | null
   seo?: SeoField
   /** Set by `getGuideArticleBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
+}
+
+export type RoadmapStepLink = { label?: string | null; url?: string | null }
+
+export type RoadmapStep = {
+  id?: string
+  title?: string | null
+  description?: string | null
+  responsibleAuthority?: string | null
+  timing?: string | null
+  requiredDocuments?: Array<{ id?: string; document?: string | null }> | null
+  linkedGuideArticle?: GuideArticleDoc | string | null
+  links?: RoadmapStepLink[] | null
+}
+
+export type RoadmapDoc = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  description?: string | null
+  icon?: string | null
+  lastReviewedAt?: string | null
+  reviewIntervalMonths?: number | null
+  officialSourceUrl?: string | null
+  steps?: RoadmapStep[] | null
+  reviewStatus?: string | null
+  seo?: SeoField
+  /** Set by `getRoadmapBySlug` — true when this locale had no translation and fell back to German. */
   _isFallback?: boolean
 }
 
