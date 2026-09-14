@@ -33,6 +33,7 @@ export const Categories: CollectionConfig = {
         { label: { de: 'Nachrichten', ar: 'أخبار', en: 'News' }, value: 'news' },
         { label: { de: 'Veranstaltungen', ar: 'فعاليات', en: 'Events' }, value: 'event' },
         { label: { de: 'Leistungen', ar: 'خدمات', en: 'Services' }, value: 'service' },
+        { label: { de: 'Expert:innen', ar: 'الخبراء', en: 'Experts' }, value: 'expert' },
       ],
       admin: {
         description: {

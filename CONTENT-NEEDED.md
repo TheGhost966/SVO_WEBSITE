@@ -62,6 +62,23 @@ These pages contain legally required content in Austria. **Never generate or inv
 - [ ] AR/EN translations — same caveat as Guide: detail pages 404 for locales without a translated slug (see DECISIONS.md "Known issues")
 - [ ] A board process for who reviews Roadmaps and Guide articles past their `reviewIntervalMonths` — same open question noted under Guide above; one answer should cover both collections since they share the same freshness fields
 
+## Experts network (Expert:innen)
+
+- [ ] **Board decision needed before launch:** who is responsible for verifying that an applicant is
+      actually registered with the relevant chamber/authority (Rechtsanwaltskammer, Ärztekammer,
+      etc.) before setting `verificationStatus` to "Verified" and publishing their listing? Not a
+      code question — see DECISIONS.md.
+- [ ] Fields of expertise to seed as `Categories` with `type: expert` (e.g. Rechtsberatung, Medizin,
+      Übersetzung, Psychotherapie) — the public application form only shows a category dropdown once
+      at least one exists
+- [ ] Real expert listings beyond the "Dr. Layla Hassan" test record, sourced through the public
+      "Als Expert:in eintragen" form or entered directly by the board
+- [ ] Confirm `CONTACT_FORWARD_EMAIL`/`BOARD_NOTIFICATION_EMAIL` (or `SiteSettings.boardNotificationEmails`)
+      is set in production — this is what actually delivers the "new expert application" email;
+      without it, applications only surface by checking the admin panel
+- [ ] Datenschutzerklärung's real legal text needs to describe the Experts removal/delisting path
+      (see DECISIONS.md) once written by the board/lawyer
+
 ## About page
 
 - [ ] Mission statement (DE/AR/EN)

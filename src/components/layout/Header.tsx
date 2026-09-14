@@ -7,9 +7,11 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 
 type Props = { locale: string }
 
-// Guide + Roadmaps combine under one "Wegweiser" dropdown entry per
-// BRIEF-AMENDMENT-01 §2.9 — a fifth and sixth top-level item would overflow
-// the header in German.
+// Guide + Roadmaps + Experts combine under one "Ressourcen" dropdown entry
+// per BRIEF-AMENDMENT-01 §2.9 — adding each as its own top-level item would
+// overflow the header in German. Renamed from "Wegweiser" (Guide+Roadmaps
+// only, Slice 2) to "Ressourcen" when Experts joined in Slice 3 — see
+// DECISIONS.md.
 const navKeys = ['news', 'events', 'services', 'contact'] as const
 
 const navHrefs = {
@@ -22,6 +24,7 @@ const navHrefs = {
 const guideMenuItems = [
   { href: '/guide', key: 'guide' },
   { href: '/roadmaps', key: 'roadmaps' },
+  { href: '/experts', key: 'experts' },
 ] as const
 
 function GuideMenu({ pathname }: { pathname: string }) {

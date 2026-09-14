@@ -112,6 +112,22 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
+      name: 'expertApplicationRetentionMonths',
+      type: 'number',
+      defaultValue: 12,
+      label: {
+        de: 'Aufbewahrungsfrist unveröffentlichte Expert:innen-Anträge (Monate)',
+        ar: 'مدة الاحتفاظ بطلبات الخبراء غير المنشورة (أشهر)',
+        en: 'Unpublished expert application retention (months)',
+      },
+      admin: {
+        description: {
+          de: 'DSGVO: Anträge, die nie veröffentlicht werden, werden nach dieser Anzahl Monate automatisch gelöscht.',
+          en: 'GDPR: Expert applications that never reach published are automatically deleted after this many months.',
+        },
+      },
+    },
+    {
       name: 'boardNotificationEmails',
       type: 'array',
       label: { de: 'E-Mail-Empfänger für Überprüfungs-Benachrichtigungen', ar: 'مستلمو البريد الإلكتروني للمراجعة', en: 'Review notification email recipients' },

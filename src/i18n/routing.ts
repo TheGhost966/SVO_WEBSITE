@@ -93,6 +93,21 @@ export const routing = defineRouting({
       ar: '/roadmaps/[roadmap]',
       en: '/roadmaps/[roadmap]',
     },
+    '/experts': {
+      de: '/experten',
+      ar: '/experts',
+      en: '/experts',
+    },
+    '/experts/[slug]': {
+      de: '/experten/[slug]',
+      ar: '/experts/[slug]',
+      en: '/experts/[slug]',
+    },
+    '/experts/apply': {
+      de: '/experten/eintragen',
+      ar: '/experts/apply',
+      en: '/experts/apply',
+    },
     '/contact': {
       de: '/kontakt',
       ar: '/contact',

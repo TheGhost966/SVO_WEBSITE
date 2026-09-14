@@ -145,6 +145,79 @@ have reliably worked in production. Fixed by adding `guide-topics`/`guide-articl
 `tags.guide()`) and a new `roadmaps` case, and by adding the `afterChange` hook to `GuideTopics`
 entirely — it had none before, so editing a topic's title/order never busted anything.
 
+## Experts slice (BRIEF-AMENDMENT-01 Slice 3 — security-sensitive)
+
+**Public write path (§2.1):** `Experts.access.create` stays `isEditorOrAbove` — it is never opened to
+the public. The only way an anonymous applicant's data reaches the database is
+`src/lib/expertApplicationAction.ts`, a Next.js Server Action that calls `payload.create` with
+`overrideAccess: true` and an explicit field whitelist (name, bio, city, languages, contactEmail,
+contactPhone, website, categories, consent — nothing else). `formData` is never spread into the
+`data` object. `photo` is deliberately not in the whitelist or the public form at all — the board
+adds it after verification, admin-only. A honeypot field (`company`, visually hidden via CSS
+positioning, not `type="hidden"`, and excluded from the tab order) silently no-ops the submit if
+filled. Per-IP throttling (3/hour) is a bare in-memory limiter (`src/lib/rateLimit.ts`) — good
+enough for this site's traffic and single-instance deployment; revisit if that ever changes.
+
+**Applications reach a human (§2.2):** the server action hardcodes `reviewStatus: 'in_review'` —
+never user-controlled, never `'draft'` — so `notifyBoardOnReview` fires on every application.
+Verified empirically: submitting through the live form produced a record with `reviewStatus:
+"in_review"` and triggered the board notification email (which failed only because this dev
+environment's SMTP credentials aren't real — see `notifyBoardOnReview`'s own try/catch, unrelated
+to this slice).
+
+**Slugs, but intentionally NOT localized (§2.3):** `name` and `slug` are plain (non-`localized`)
+text fields — a person's name and their listing URL don't change per language, only `bio` does.
+This was a deliberate deviation from Guide/Roadmaps/Services (where slug *is* localized) because it
+completely sidesteps the untranslated-locale-slug-404 bug documented above: `getExpertBySlug`
+doesn't need a locale-scoped WHERE match to find the right document, so `/ar/experts/<slug>` and
+`/en/experts/<slug>` resolve correctly today with zero extra work, verified in the browser. Slugs
+are generated server-side from the applicant's name via `src/lib/slug.ts` (`uniqueSlug`, ASCII
+slugify + `-2`/`-3` collision suffix) since applicants never type a URL segment themselves.
+
+**Field-level access on `verificationStatus`/`verifiedAt` (§2.1):** collection-level `create`/`update`
+access can't gate an individual field's value on insert (an editor with create access can still set
+any field's initial value). Added a `FieldAccess`-typed `boardOrAdminOnly` and applied it as
+`access: { create, update }` directly on both fields, so only `admin`/`board` roles can ever set
+them — a plain `editor` cannot self-verify a listing, on create or update.
+
+**No Person JSON-LD (§2.7):** the Experts detail page emits no `<script type="application/ld+json">`
+at all (verified in-browser: zero such tags on `/de/experten/[slug]`) — simplest way to guarantee no
+third-party contact details are ever pushed into structured data / rich search results.
+
+**Verification ownership — open question, not resolved by this slice.** §2.7 asks to record who
+owns confirming an applicant is actually registered with the relevant chamber (Rechtsanwaltskammer,
+Ärztekammer, etc.). That's a board staffing decision, not a code decision — flagged in
+`CONTENT-NEEDED.md` rather than invented here. Until it's answered, treat every `unverified` listing
+as unconfirmed even if published; the code does not block publishing on `verificationStatus` (same
+as every other collection, publishing is an editorial judgment call, not a system-enforced gate) —
+the board should verify *before* publishing, by process, not by a hard technical constraint.
+
+**Removal path (§2.7):** operationally, an expert asks to be delisted via the existing contact form
+(or direct email); the board then sets `reviewStatus` to `archived` (keeps the record for audit) or
+deletes it outright via the admin panel. No new code needed — this reuses the existing moderation
+UI. The Datenschutzerklärung's real legal text (still a placeholder — see `CONTENT-NEEDED.md`) needs
+to describe this path explicitly once written.
+
+**Retention (§2.7):** added `SiteSettings.expertApplicationRetentionMonths` (default 12), following
+the exact precedent of `submissionRetentionMonths` for `ContactSubmissions` — which is itself a
+documented-but-**not-yet-enforced** setting (no scheduled-task runner exists in this repo; the tsx
+CLI is broken — see "Known issues" below). Same gap, tracked together: whoever eventually builds the
+retention job for `ContactSubmissions` should build it for expired/unpublished `Experts` records in
+the same pass.
+
+**Nav dropdown renamed "Wegweiser" → "Ressourcen"** (`Header.tsx`'s `GuideMenu`) now that it holds
+three items (Guide, Roadmaps, Experts) instead of two — "Wegweiser" (signpost) fit a
+navigate-a-procedure pairing but strains to cover a directory of people. "Ressourcen"/"Resources"/
+"موارد" reads naturally for all three and needed no further redesign of the dropdown itself.
+
+**Dev-server note for future slices:** mid-slice, the long-running `next dev` process became
+unresponsive to *all* requests (not just new ones) after many back-to-back collection-schema edits —
+each edit makes Payload's dev-mode "pull schema from database" step re-run, and these apparently
+piled up until something (most likely DB connection/pool contention, not a CPU-bound loop — the
+process was idle, not spinning) wedged the whole process. Fix was simply restarting `next dev`.
+If a session doing heavy schema iteration sees requests mysteriously hang site-wide (not just on the
+route you just edited), suspect this before assuming a code bug — restart the dev server first.
+
 ## Known issues
 
 **Every standalone Payload CLI-adjacent command — `npm run seed`, `generate:types`, `generate:importmap`, `db:migrate` — currently crashes.** None of these are bugs in this project's schema/config; all three are `tsx`/Node ESM-CJS interop friction between Payload's dependencies and however each command loads `payload.config.ts`:

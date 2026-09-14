@@ -88,10 +88,27 @@ export type GuideArticleDoc = {
   officialSourceUrl?: string | null
   relatedServices?: Array<ServiceDoc | string> | null
   relatedRoadmaps?: Array<RoadmapDoc | string> | null
+  relatedExperts?: Array<ExpertDoc | string> | null
   reviewStatus?: string | null
   seo?: SeoField
   /** Set by `getGuideArticleBySlug` — true when this locale had no translation and fell back to German. */
   _isFallback?: boolean
+}
+
+export type ExpertDoc = {
+  id: string
+  name?: string | null
+  slug?: string | null
+  categories?: Array<CategoryRef | string> | null
+  bio?: string | null
+  city?: string | null
+  languages?: Array<{ id?: string; language?: string | null }> | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  website?: string | null
+  photo?: ResolvedMedia | string | null
+  verificationStatus?: string | null
+  reviewStatus?: string | null
 }
 
 export type RoadmapStepLink = { label?: string | null; url?: string | null }

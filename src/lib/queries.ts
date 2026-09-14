@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc, ExpertDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -771,6 +771,93 @@ export async function getRoadmapAllLocaleSlugs(id: string): Promise<Record<strin
     return {}
   }
 }
+
+// ─── Experts ───────────────────────────────────────────────────────────────────
+
+export const getExpertCategories = unstable_cache(
+  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'categories',
+        where: { type: { equals: 'expert' } },
+        sort: 'name',
+        depth: 0,
+        limit: 50,
+      })
+      return result.docs.map((d: { id: string | number; name?: string | null; slug?: string | null }) => ({
+        id: String(d.id),
+        name: d.name,
+        slug: d.slug,
+      }))
+    } catch {
+      return []
+    }
+  },
+  ['expert-categories'],
+  { revalidate: 3600, tags: ['categories'] },
+)
+
+/** Published + verified experts only, optionally filtered by category slug. */
+export const getExperts = unstable_cache(
+  async (locale: string, categorySlug?: string): Promise<ExpertDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const conditions: Where[] = [{ reviewStatus: { equals: 'published' } }]
+
+      if (categorySlug) {
+        const catResult = await payload.find({
+          collection: 'categories',
+          where: { and: [{ slug: { equals: categorySlug } }, { type: { equals: 'expert' } }] },
+          depth: 0,
+          limit: 1,
+        })
+        const cat = catResult.docs[0]
+        if (!cat) return []
+        conditions.push({ categories: { equals: cat.id } })
+      }
+
+      const result = await payload.find({
+        collection: 'experts',
+        where: { and: conditions },
+        sort: 'name',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit: 100,
+      })
+      return result.docs as unknown as ExpertDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['experts'],
+  { revalidate: 3600, tags: [tags.experts()] },
+)
+
+export const getExpertBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<ExpertDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'experts',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as ExpertDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['expert-by-slug'],
+  { revalidate: 60, tags: [tags.experts()] },
+)
 
 // ─── Site settings + Partners ─────────────────────────────────────────────────
 

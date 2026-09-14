@@ -100,8 +100,6 @@ export const GuideArticles: CollectionConfig = {
       },
     },
     // ── Cross-links (BRIEF-AMENDMENT-01 §3) ─────────────────────────────────
-    // relatedExperts is added once the Experts collection exists (Slice 3) —
-    // a relationship can't target a collection that isn't registered yet.
     {
       name: 'relatedServices',
       type: 'relationship',
@@ -115,6 +113,13 @@ export const GuideArticles: CollectionConfig = {
       relationTo: 'roadmaps',
       hasMany: true,
       label: { de: 'Verwandte Wegweiser', ar: 'خرائط طريق ذات صلة', en: 'Related roadmaps' },
+    },
+    {
+      name: 'relatedExperts',
+      type: 'relationship',
+      relationTo: 'experts',
+      hasMany: true,
+      label: { de: 'Verwandte Expert:innen', ar: 'خبراء ذوو صلة', en: 'Related experts' },
     },
     {
       name: 'reviewStatus',
