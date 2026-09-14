@@ -32,30 +32,28 @@ export default async function LocaleLayout({ children, params }: Props) {
   const isRtl = isRtlLocale(locale)
 
   return (
-    <>
-      {/*
-        Sets lang and dir on the root <html> element synchronously before
-        React hydration — prevents a flash of wrong text direction on Arabic.
-        suppressHydrationWarning on <html> (in root layout) prevents the mismatch warning.
-      */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `document.documentElement.lang='${locale}';document.documentElement.dir='${isRtl ? 'rtl' : 'ltr'}';`,
-        }}
-      />
-      <NextIntlClientProvider messages={messages} locale={locale}>
-        <div className="min-h-screen flex flex-col bg-cream text-ink font-sans">
-          <a href="#main-content" className="skip-to-content">
-            {locale === 'ar' ? 'انتقل إلى المحتوى' : locale === 'en' ? 'Skip to content' : 'Zum Inhalt springen'}
-          </a>
-          <Header locale={locale} />
-          <main id="main-content" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <CookieConsent locale={locale} />
-        </div>
-      </NextIntlClientProvider>
-    </>
+    // This route group provides its own complete document (Next.js "multiple
+    // root layouts" pattern) because the sibling (payload) group needs its
+    // own — Payload's admin RootLayout renders its own <html>/<body>, so a
+    // shared app/layout.tsx above both groups would nest <html> inside
+    // <body>. lang/dir are known server-side from the route param, so they're
+    // set directly here rather than patched in via a pre-hydration script.
+    <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'} suppressHydrationWarning>
+      <body>
+        <NextIntlClientProvider messages={messages} locale={locale}>
+          <div className="min-h-screen flex flex-col bg-cream text-ink font-sans">
+            <a href="#main-content" className="skip-to-content">
+              {locale === 'ar' ? 'انتقل إلى المحتوى' : locale === 'en' ? 'Skip to content' : 'Zum Inhalt springen'}
+            </a>
+            <Header locale={locale} />
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+            <Footer />
+            <CookieConsent locale={locale} />
+          </div>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   )
 }

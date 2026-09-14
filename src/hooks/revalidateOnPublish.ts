@@ -22,10 +22,18 @@ function bust(tag: string) {
  */
 export function makeRevalidateOnPublish(collection: string): CollectionAfterChangeHook {
   return ({ doc, previousDoc }) => {
-    const wasPublished = previousDoc?.reviewStatus === 'published'
-    const isPublished = doc?.reviewStatus === 'published'
-
-    if (wasPublished === isPublished) return doc
+    // Collections without a reviewStatus field (e.g. service-pillars — no
+    // draft/publish workflow, always publicly readable) have nothing to
+    // "transition" — always revalidate on any change. Collections that do
+    // have the field only need a cache bust when publish status actually
+    // changes; without this check, `undefined === undefined` would always
+    // be true and the hook would never revalidate at all for those.
+    const hasReviewStatus = Boolean(doc && 'reviewStatus' in doc)
+    if (hasReviewStatus) {
+      const wasPublished = previousDoc?.reviewStatus === 'published'
+      const isPublished = doc?.reviewStatus === 'published'
+      if (wasPublished === isPublished) return doc
+    }
 
     try {
       // Blow the collection list cache

@@ -8,6 +8,7 @@ import { en } from '@payloadcms/translations/languages/en'
 import { de } from '@payloadcms/translations/languages/de'
 import { ar } from '@payloadcms/translations/languages/ar'
 import nodemailer from 'nodemailer'
+import sharp from 'sharp'
 
 import { Users } from '@/collections/Users'
 import { Media } from '@/collections/Media'
@@ -31,6 +32,10 @@ export default buildConfig({
   // ─── Server ────────────────────────────────────────────────────────────────
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
   secret: process.env.PAYLOAD_SECRET ?? 'INSECURE_DEV_SECRET_REPLACE_ME',
+
+  // Required for Media's imageSizes (thumbnail/card/hero) to actually generate —
+  // just having `sharp` installed isn't enough, Payload needs the reference.
+  sharp,
 
   // ─── Database ──────────────────────────────────────────────────────────────
   db: postgresAdapter({
