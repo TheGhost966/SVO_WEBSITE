@@ -12,6 +12,7 @@ import {
   getPillarAllLocaleSlugs,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
+import { forwardArrow } from '@/i18n/routing'
 import type { ResolvedMedia, ServiceDoc } from '@/types/payload'
 
 const SERVICES_BASE: Record<string, string> = {
@@ -218,7 +219,7 @@ function ServiceCard({
           <p className="text-sm text-ink-70 line-clamp-3 flex-1">{service.summary}</p>
         )}
         <span className="mt-2 text-sm font-semibold text-brand-blue">
-          {locale === 'ar' ? 'اعرف المزيد' : locale === 'en' ? 'Learn more' : 'Mehr erfahren'} →
+          {locale === 'ar' ? 'اعرف المزيد' : locale === 'en' ? 'Learn more' : 'Mehr erfahren'} {forwardArrow(locale)}
         </span>
       </div>
     </Link>

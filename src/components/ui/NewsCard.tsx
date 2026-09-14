@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/navigation'
 import { MediaImage } from './MediaImage'
+import { forwardArrow } from '@/i18n/routing'
 import type { NewsDoc, ResolvedMedia } from '@/types/payload'
 
 type Props = {
@@ -65,7 +66,7 @@ export function NewsCard({ article, locale }: Props) {
           className="text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors mt-auto"
           aria-label={title}
         >
-          {locale === 'ar' ? 'اقرأ المزيد' : locale === 'en' ? 'Read more' : 'Mehr lesen'} →
+          {locale === 'ar' ? 'اقرأ المزيد' : locale === 'en' ? 'Read more' : 'Mehr lesen'} {forwardArrow(locale)}
         </Link>
       </div>
     </article>

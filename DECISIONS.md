@@ -59,6 +59,9 @@ Respects the German-first design principle. Arabic and English use English path 
 **`fallback: true` in Payload localization config.**
 Missing Arabic or English translations silently fall back to German content. The frontend adds a "not yet available in this language" notice. Never shows an empty page.
 
+**"Next"/"read more" arrows use `forwardArrow(locale)` / `backArrow(locale)` from `src/i18n/routing.ts`, never a hardcoded `→`.**
+A hardcoded arrow character doesn't flip with `dir="rtl"` — it's plain text, not a mirrored icon. `Pagination.tsx` had shipped with `next: 'Nächste →'` and `next: 'التالي →'` using the *same* arrow for German and Arabic, when "forward" in an RTL reading direction points left. Applies wherever a directional glyph sits next to link text (card "read more" links, section "view all" links); doesn't apply to icons that don't imply direction (calendar, pin) or ones already handled via CSS mirroring.
+
 ## Media
 
 **Local disk storage (`public/media/`) for Phase 1.**

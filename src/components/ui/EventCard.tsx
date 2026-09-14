@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/navigation'
 import { MediaImage } from './MediaImage'
+import { forwardArrow } from '@/i18n/routing'
 import type { EventDoc, ResolvedMedia } from '@/types/payload'
 
 type Props = {
@@ -96,7 +97,7 @@ export function EventCard({ event, locale }: Props) {
           className="text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors mt-auto"
           aria-label={title}
         >
-          {locale === 'ar' ? 'التفاصيل' : locale === 'en' ? 'Details' : 'Details'} →
+          {locale === 'ar' ? 'التفاصيل' : locale === 'en' ? 'Details' : 'Details'} {forwardArrow(locale)}
         </Link>
       </div>
     </article>

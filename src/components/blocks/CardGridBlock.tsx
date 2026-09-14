@@ -1,5 +1,6 @@
 import { MediaImage } from '@/components/ui/MediaImage'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { forwardArrow } from '@/i18n/routing'
 import type { CardGridBlock as CardGridBlockType, ResolvedMedia } from '@/types/payload'
 
 const colClasses: Record<string, string> = {
@@ -8,7 +9,7 @@ const colClasses: Record<string, string> = {
   '4': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
 }
 
-export function CardGridBlock({ block }: { block: CardGridBlockType }) {
+export function CardGridBlock({ block, locale }: { block: CardGridBlockType; locale: string }) {
   const { heading, subheading, cards = [], columns = '3' } = block
 
   return (
@@ -47,7 +48,7 @@ export function CardGridBlock({ block }: { block: CardGridBlockType }) {
                   href={card.url}
                   className="text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors"
                 >
-                  {card.linkLabel} →
+                  {card.linkLabel} {forwardArrow(locale)}
                 </a>
               )}
             </div>

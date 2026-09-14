@@ -29,7 +29,7 @@ export function BlockRenderer({ blocks, locale }: Props) {
           case 'image-text':
             return <ImageTextBlock key={key} block={block} />
           case 'card-grid':
-            return <CardGridBlock key={key} block={block} />
+            return <CardGridBlock key={key} block={block} locale={locale} />
           case 'stats':
             return <StatsBlock key={key} block={block} />
           case 'cta-band':

@@ -7,6 +7,7 @@ import { EventCard } from '@/components/ui/EventCard'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { ButtonLink } from '@/components/ui/Button'
 import { buildMetadata } from '@/lib/seo'
+import { forwardArrow } from '@/i18n/routing'
 import {
   getPageBySlug,
   getLatestNews,
@@ -94,7 +95,7 @@ export default async function HomePage({ params }: Props) {
                 href="/news"
                 className="text-sm font-semibold text-brand-blue hover:text-brand-navy shrink-0"
               >
-                {t('allNews')} →
+                {t('allNews')} {forwardArrow(locale)}
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,7 +120,7 @@ export default async function HomePage({ params }: Props) {
                 href="/events"
                 className="text-sm font-semibold text-brand-blue hover:text-brand-navy shrink-0"
               >
-                {t('allEvents')} →
+                {t('allEvents')} {forwardArrow(locale)}
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -191,7 +192,7 @@ function PillarsSection({
         <div className="flex items-end justify-between gap-4 mb-8">
           <SectionHeader title={t('ourServices')} as="h2" />
           <Link href="/services" className="text-sm font-semibold text-brand-blue hover:text-brand-navy shrink-0">
-            {t('allServices')} →
+            {t('allServices')} {forwardArrow(locale)}
           </Link>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -211,7 +212,7 @@ function PillarsSection({
                   <p className="text-sm text-ink-70 line-clamp-3">{pillar.description}</p>
                 )}
                 <span className="text-sm font-semibold text-brand-blue mt-auto">
-                  {locale === 'ar' ? 'اعرف المزيد' : locale === 'en' ? 'Learn more' : 'Mehr erfahren'} →
+                  {locale === 'ar' ? 'اعرف المزيد' : locale === 'en' ? 'Learn more' : 'Mehr erfahren'} {forwardArrow(locale)}
                 </span>
               </Link>
             )

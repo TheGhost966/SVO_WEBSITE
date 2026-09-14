@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Icon } from '@/components/ui/Icon'
 import { getServicePillars } from '@/lib/queries'
+import { forwardArrow } from '@/i18n/routing'
 
 const PILLAR_ICON_FALLBACK: Record<string, string> = {
   'graduation-cap': '🎓',
@@ -85,7 +86,7 @@ export default async function ServicesPage({ params }: Props) {
                   <p className="text-sm text-ink-70 line-clamp-3">{pillar.description}</p>
                 )}
                 <span className="inline-block mt-4 text-sm font-semibold text-brand-blue">
-                  {t('learnMore')} →
+                  {t('learnMore')} {forwardArrow(locale)}
                 </span>
               </div>
             </Link>

@@ -3,6 +3,23 @@ import { defineRouting } from 'next-intl/routing'
 export const locales = ['de', 'ar', 'en'] as const
 export type Locale = (typeof locales)[number]
 
+export function isRtlLocale(locale: string): boolean {
+  return locale === 'ar'
+}
+
+/**
+ * A "forward" glyph (continue reading, next page) points the way the reading
+ * direction actually advances — right in de/en, left in ar. A hardcoded "→"
+ * points the wrong way for Arabic.
+ */
+export function forwardArrow(locale: string): '→' | '←' {
+  return isRtlLocale(locale) ? '←' : '→'
+}
+
+export function backArrow(locale: string): '→' | '←' {
+  return isRtlLocale(locale) ? '→' : '←'
+}
+
 export const routing = defineRouting({
   locales,
   defaultLocale: 'de',

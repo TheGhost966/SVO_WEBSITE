@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
-import { routing } from '@/i18n/routing'
+import { routing, isRtlLocale } from '@/i18n/routing'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CookieConsent } from '@/components/ui/CookieConsent'
@@ -29,7 +29,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale)
 
   const messages = await getMessages()
-  const isRtl = locale === 'ar'
+  const isRtl = isRtlLocale(locale)
 
   return (
     <>
