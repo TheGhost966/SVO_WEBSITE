@@ -5,6 +5,7 @@
     "news": "News",
     "events": "Events",
     "services": "Services",
+    "guide": "Austria Guide",
     "contact": "Contact",
     "partners": "Partners",
     "menu": "Menu",
@@ -57,6 +58,13 @@
     "title": "Services & Support",
     "intro": "SVÖ supports the Syrian community in Austria across four areas.",
     "learnMore": "Learn more"
+  },
+  "guide": {
+    "title": "Austria Guide",
+    "intro": "Practical information for everyday life in Austria — work, housing, health, and more.",
+    "empty": "No guide topics have any articles yet.",
+    "viewArticles": "View articles",
+    "noArticlesInTopic": "No articles in this topic yet."
   },
   "contact": {
     "title": "Contact",

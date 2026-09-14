@@ -15,6 +15,7 @@ export const tags = {
   events: (locale?: string) => (locale ? `events-${locale}` : 'events'),
   eventsItem: (slug: string, locale: string) => `events-${slug}-${locale}`,
   services: (locale?: string) => (locale ? `services-${locale}` : 'services'),
+  guide: (locale?: string) => (locale ? `guide-${locale}` : 'guide'),
   pages: (locale?: string) => (locale ? `pages-${locale}` : 'pages'),
   navigation: (locale?: string) => (locale ? `navigation-${locale}` : 'navigation'),
   siteSettings: () => 'site-settings',

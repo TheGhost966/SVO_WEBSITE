@@ -5,6 +5,7 @@
     "news": "Nachrichten",
     "events": "Veranstaltungen",
     "services": "Leistungen",
+    "guide": "Österreich-Guide",
     "contact": "Kontakt",
     "partners": "Partner",
     "menu": "Menü",
@@ -57,6 +58,13 @@
     "title": "Leistungen & Angebote",
     "intro": "Der SVÖ unterstützt die syrische Gemeinschaft in Österreich in vier Bereichen.",
     "learnMore": "Mehr erfahren"
+  },
+  "guide": {
+    "title": "Österreich-Guide",
+    "intro": "Praktische Informationen für den Alltag in Österreich — Arbeit, Wohnen, Gesundheit und mehr.",
+    "empty": "Noch keine Guide-Themen mit Inhalten verfügbar.",
+    "viewArticles": "Artikel ansehen",
+    "noArticlesInTopic": "In diesem Thema sind noch keine Artikel verfügbar."
   },
   "contact": {
     "title": "Kontakt",

@@ -17,6 +17,8 @@ import { News } from '@/collections/News'
 import { Events } from '@/collections/Events'
 import { Services } from '@/collections/Services'
 import { ServicePillars } from '@/collections/ServicePillars'
+import { GuideTopics } from '@/collections/GuideTopics'
+import { GuideArticles } from '@/collections/GuideArticles'
 import { BoardMembers } from '@/collections/BoardMembers'
 import { Partners } from '@/collections/Partners'
 import { Pages } from '@/collections/Pages'
@@ -101,6 +103,8 @@ export default buildConfig({
     Events,
     Services,
     ServicePillars,
+    GuideTopics,
+    GuideArticles,
     BoardMembers,
     Partners,
     Pages,

@@ -66,6 +66,33 @@ export type EventDoc = {
   _isFallback?: boolean
 }
 
+export type GuideTopicDoc = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  description?: string | null
+  icon?: string | null
+  order?: number | null
+}
+
+export type GuideArticleDoc = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  topic?: GuideTopicDoc | string | null
+  excerpt?: string | null
+  body?: unknown
+  coverImage?: ResolvedMedia | string | null
+  lastReviewedAt?: string | null
+  reviewIntervalMonths?: number | null
+  officialSourceUrl?: string | null
+  relatedServices?: Array<ServiceDoc | string> | null
+  reviewStatus?: string | null
+  seo?: SeoField
+  /** Set by `getGuideArticleBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
+}
+
 export type ServicePillarDoc = {
   id: string
   title?: string | null

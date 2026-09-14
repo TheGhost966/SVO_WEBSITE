@@ -7,12 +7,16 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 
 type Props = { locale: string }
 
-const navKeys = ['news', 'events', 'services', 'contact'] as const
+// "guide" stands alone for now; per BRIEF-AMENDMENT-01 §2.9 it becomes a
+// combined "Guide + Roadmaps" entry once Roadmaps ships (Slice 2), rather
+// than adding a fifth top-level item and overflowing the header.
+const navKeys = ['news', 'events', 'services', 'guide', 'contact'] as const
 
 const navHrefs = {
   news: '/news',
   events: '/events',
   services: '/services',
+  guide: '/guide',
   contact: '/contact',
 } as const
 

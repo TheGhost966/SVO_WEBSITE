@@ -68,6 +68,21 @@ export const routing = defineRouting({
       ar: '/services/[pillar]/[service]',
       en: '/services/[pillar]/[service]',
     },
+    '/guide': {
+      de: '/oesterreich-guide',
+      ar: '/guide',
+      en: '/guide',
+    },
+    '/guide/[topic]': {
+      de: '/oesterreich-guide/[topic]',
+      ar: '/guide/[topic]',
+      en: '/guide/[topic]',
+    },
+    '/guide/[topic]/[article]': {
+      de: '/oesterreich-guide/[topic]/[article]',
+      ar: '/guide/[topic]/[article]',
+      en: '/guide/[topic]/[article]',
+    },
     '/contact': {
       de: '/kontakt',
       ar: '/contact',

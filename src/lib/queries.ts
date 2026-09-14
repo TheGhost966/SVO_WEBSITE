@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -17,7 +17,7 @@ function empty<T>(): PaginatedResult<T> {
  * Re-fetches with `fallbackLocale: false` to see the raw, un-fallen-back value.
  */
 async function isLocaleFallback(
-  collection: 'news' | 'events' | 'services',
+  collection: 'news' | 'events' | 'services' | 'guide-articles',
   id: string,
   locale: string,
 ): Promise<boolean> {
@@ -514,6 +514,189 @@ export const getServicePillars = unstable_cache(
   ['service-pillars'],
   { revalidate: 3600, tags: [tags.services()] },
 )
+
+// ─── Guide ───────────────────────────────────────────────────────────────────
+
+/**
+ * Topics for the public topic grid — filtered to topics with at least one
+ * published article (BRIEF-AMENDMENT-01 §2.8: GuideTopics has no reviewStatus
+ * of its own, so without this filter all topics would be publicly "live" the
+ * moment they're created, with nothing behind them).
+ */
+export const getGuideTopics = unstable_cache(
+  async (locale: string): Promise<GuideTopicDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const topics = await payload.find({
+        collection: 'guide-topics',
+        sort: 'order',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 50,
+      })
+      const withArticles = await Promise.all(
+        topics.docs.map(async (topic) => {
+          const count = await payload.count({
+            collection: 'guide-articles',
+            where: {
+              and: [
+                { topic: { equals: topic.id } },
+                { reviewStatus: { equals: 'published' } },
+              ],
+            },
+          })
+          return count.totalDocs > 0 ? topic : null
+        }),
+      )
+      return withArticles.filter((t): t is NonNullable<typeof t> => t !== null) as unknown as GuideTopicDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['guide-topics'],
+  { revalidate: 3600, tags: [tags.guide()] },
+)
+
+/** A topic by slug — found even with zero published articles (empty state, not 404). */
+export const getGuideTopicBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<GuideTopicDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'guide-topics',
+        where: { slug: { equals: slug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as GuideTopicDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['guide-topic-by-slug'],
+  { revalidate: 3600, tags: [tags.guide()] },
+)
+
+export const getGuideArticlesByTopic = unstable_cache(
+  async (topicSlug: string, locale: string, page = 1): Promise<PaginatedResult<GuideArticleDoc>> => {
+    try {
+      const payload = await getPayloadClient()
+      const topicResult = await payload.find({
+        collection: 'guide-topics',
+        where: { slug: { equals: topicSlug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 1,
+      })
+      const topic = topicResult.docs[0]
+      if (!topic) return empty<GuideArticleDoc>()
+
+      const result = await payload.find({
+        collection: 'guide-articles',
+        where: {
+          and: [
+            { topic: { equals: topic.id } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        sort: 'title',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit: 9,
+        page,
+      })
+      return result as unknown as PaginatedResult<GuideArticleDoc>
+    } catch {
+      return empty<GuideArticleDoc>()
+    }
+  },
+  ['guide-articles-by-topic'],
+  { revalidate: 60, tags: [tags.guide()] },
+)
+
+export const getGuideArticleBySlug = unstable_cache(
+  async (topicSlug: string, articleSlug: string, locale: string): Promise<GuideArticleDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const topicResult = await payload.find({
+        collection: 'guide-topics',
+        where: { slug: { equals: topicSlug } },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 0,
+        limit: 1,
+      })
+      const topic = topicResult.docs[0]
+      if (!topic) return null
+
+      const result = await payload.find({
+        collection: 'guide-articles',
+        where: {
+          and: [
+            { slug: { equals: articleSlug } },
+            { topic: { equals: topic.id } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+        limit: 1,
+      })
+      const doc = result.docs[0] as unknown as GuideArticleDoc | undefined
+      if (!doc) return null
+      doc._isFallback = await isLocaleFallback('guide-articles', doc.id, locale)
+      return doc
+    } catch {
+      return null
+    }
+  },
+  ['guide-article-by-slug'],
+  { revalidate: 60, tags: [tags.guide()] },
+)
+
+/** Fetch a guide article with ALL locales to extract per-locale slugs for hreflang */
+export async function getGuideArticleAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'guide-articles',
+      id,
+      locale: 'all',
+      depth: 0,
+    })
+    const slugField = (doc as { slug?: unknown })?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+/** Fetch a guide topic with ALL locales to extract per-locale slugs for hreflang */
+export async function getGuideTopicAllLocaleSlugs(id: string): Promise<Record<string, string>> {
+  try {
+    const payload = await getPayloadClient()
+    const doc = await payload.findByID({
+      collection: 'guide-topics',
+      id,
+      locale: 'all',
+      depth: 0,
+    })
+    const slugField = (doc as { slug?: unknown })?.slug
+    if (!slugField || typeof slugField !== 'object') return {}
+    return Object.fromEntries(
+      Object.entries(slugField as Record<string, unknown>).filter(
+        ([, v]) => typeof v === 'string' && Boolean(v),
+      ),
+    ) as Record<string, string>
+  } catch {
+    return {}
+  }
+}
 
 // ─── Site settings + Partners ─────────────────────────────────────────────────
 

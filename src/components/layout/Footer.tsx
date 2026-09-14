@@ -43,6 +43,7 @@ export function Footer() {
                   { href: '/news' as const, key: 'news' as const },
                   { href: '/events' as const, key: 'events' as const },
                   { href: '/services' as const, key: 'services' as const },
+                  { href: '/guide' as const, key: 'guide' as const },
                   { href: '/contact' as const, key: 'contact' as const },
                   { href: '/partners' as const, key: 'partners' as const },
                 ]

@@ -58,6 +58,40 @@ export function newsArticleSchema({
   }
 }
 
+export function guideArticleSchema({
+  title,
+  description,
+  imageUrl,
+  dateModified,
+  url,
+  locale,
+}: {
+  title: string
+  description?: string | null
+  imageUrl?: string | null
+  dateModified?: string | null
+  url: string
+  locale: string
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    ...(description ? { description } : {}),
+    ...(imageUrl ? { image: [imageUrl] } : {}),
+    ...(dateModified ? { dateModified } : {}),
+    author: { '@type': 'Organization', name: 'SVÖ — Syrischer Verband in Österreich' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'SVÖ — Syrischer Verband in Österreich',
+      url: BASE_URL,
+    },
+    url,
+    inLanguage: locale,
+    isAccessibleForFree: true,
+  }
+}
+
 export function breadcrumbSchema(
   items: { name: string; url: string }[],
 ) {
