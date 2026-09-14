@@ -56,13 +56,19 @@ These pages contain legally required content in Austria. **Never generate or inv
 
 ## Contact page
 
-- [ ] Category options for the contact form dropdown (DE/AR/EN)
+- [x] Category options for the contact form dropdown (DE/AR/EN) — implemented in `ContactForm.tsx`
 - [ ] `CONTACT_FORWARD_EMAIL` env var confirmed
 
 ## SEO / meta
 
 - [ ] Default OG image (1200×630px) — for social sharing fallback
 - [ ] Per-page meta descriptions will be added as content is entered
+
+## Documentation
+
+- [ ] `ADMIN-HANDBUCH.md` (and its published artifact version) has a placeholder
+      `[Kontakt der Entwicklung eintragen]` in the "Bei Problemen" / troubleshooting section —
+      fill in with the actual developer/agency contact before handing off to the board.
 
 ---
 *Last updated: auto-maintained — add entries as you build each slice.*
