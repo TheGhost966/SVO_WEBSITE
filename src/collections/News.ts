@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { seoGroup } from '@/fields/seoGroup'
+import { bundeslandField } from '@/fields/bundeslandField'
 import {
   isEditorOrAbove,
   readPublishedOrLoggedIn,
@@ -78,12 +79,7 @@ export const News: CollectionConfig = {
       label: { de: 'Veröffentlichungsdatum', ar: 'تاريخ النشر', en: 'Published date' },
       admin: { date: { pickerAppearance: 'dayOnly', displayFormat: 'dd.MM.yyyy' } },
     },
-    {
-      name: 'bundesland',
-      type: 'relationship',
-      relationTo: 'bundeslaender',
-      label: { de: 'Bundesland', ar: 'الولاية', en: 'State' },
-    },
+    bundeslandField,
     {
       name: 'featured',
       type: 'checkbox',

@@ -8,12 +8,6 @@ import { cache } from 'react'
  */
 export const getPayloadClient = cache(async () => getPayload({ config }))
 
-/** Fetch a global with full typing inferred from Payload's generated types */
-export async function getGlobal<T>(slug: string, locale = 'de'): Promise<T> {
-  const payload = await getPayloadClient()
-  return payload.findGlobal({ slug, locale } as any) as Promise<T>
-}
-
 /** Standard ISR revalidation tag helpers — use with Next.js `revalidateTag` */
 export const tags = {
   news: (locale?: string) => (locale ? `news-${locale}` : 'news'),

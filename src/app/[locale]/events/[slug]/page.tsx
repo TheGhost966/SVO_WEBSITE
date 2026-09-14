@@ -77,7 +77,7 @@ export async function generateStaticParams() {
         limit: 500,
       })
       for (const doc of result.docs) {
-        const slug = (doc as any).slug
+        const slug = (doc as { slug?: unknown }).slug
         if (slug && typeof slug === 'string') params.push({ locale, slug })
       }
     }
@@ -112,7 +112,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : null
   const imageUrl = coverImage?.sizes?.hero?.url ?? coverImage?.url
 
-  const meta = buildMetadata({ doc: event as any, locale, serverUrl: SERVER })
+  const meta = buildMetadata({ doc: event, locale, serverUrl: SERVER })
 
   return {
     ...meta,
@@ -202,7 +202,7 @@ export default async function EventDetailPage({ params }: Props) {
             />
 
             {/* Fallback notice */}
-            {locale !== 'de' && (
+            {event._isFallback && (
               <div className="mb-6">
                 <FallbackNotice locale={locale} />
               </div>
@@ -231,7 +231,7 @@ export default async function EventDetailPage({ params }: Props) {
                 )}
 
                 {/* Description */}
-                <LexicalContent content={(event as any).description} />
+                <LexicalContent content={event.description} />
               </div>
 
               {/* Sidebar: date, location, registration */}
@@ -303,20 +303,20 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
 
                 {/* Capacity (display only) */}
-                {(event as any).capacity && (
+                {event.capacity && (
                   <div>
                     <p className="text-xs font-semibold text-ink-50 uppercase tracking-wider mb-1">
                       {locale === 'ar' ? 'الطاقة الاستيعابية' : locale === 'en' ? 'Capacity' : 'Kapazität'}
                     </p>
-                    <p className="text-sm text-ink">{(event as any).capacity}</p>
+                    <p className="text-sm text-ink">{event.capacity}</p>
                   </div>
                 )}
 
                 {/* Registration CTA */}
-                {(event as any).registrationUrl && !isPast && (
+                {event.registrationUrl && !isPast && (
                   <div className="pt-2">
                     <ButtonLink
-                      href={(event as any).registrationUrl}
+                      href={event.registrationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       variant="primary"

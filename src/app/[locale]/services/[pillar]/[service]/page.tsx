@@ -17,7 +17,7 @@ import {
   getPillarAllLocaleSlugs,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
-import type { ResolvedMedia, ServiceDoc } from '@/types/payload'
+import type { ResolvedMedia } from '@/types/payload'
 
 const SERVICES_BASE: Record<string, string> = {
   de: '/de/leistungen',
@@ -45,9 +45,10 @@ export async function generateStaticParams() {
         limit: 500,
       })
       for (const doc of result.docs) {
-        const serviceSlug = (doc as any).slug
-        const pillarSlug = (doc as any).pillar?.slug
-        if (serviceSlug && pillarSlug) {
+        const d = doc as { slug?: unknown; pillar?: { slug?: unknown } | unknown }
+        const serviceSlug = d.slug
+        const pillarSlug = d.pillar && typeof d.pillar === 'object' ? (d.pillar as { slug?: unknown }).slug : undefined
+        if (typeof serviceSlug === 'string' && typeof pillarSlug === 'string') {
           params.push({ locale, pillar: pillarSlug, service: serviceSlug })
         }
       }
@@ -87,7 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  const meta = buildMetadata({ doc: service as any, locale, serverUrl: SERVER })
+  const meta = buildMetadata({ doc: service, locale, serverUrl: SERVER })
 
   return {
     ...meta,
@@ -160,7 +161,7 @@ export default async function ServiceDetailPage({ params }: Props) {
               ]}
             />
 
-            {locale !== 'de' && (
+            {service._isFallback && (
               <div className="mb-6">
                 <FallbackNotice locale={locale} />
               </div>

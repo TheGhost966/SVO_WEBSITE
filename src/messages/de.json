@@ -76,13 +76,31 @@
     "success": "Vielen Dank! Ihre Nachricht wurde gesendet. Wir melden uns in Kürze.",
     "error": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt per E-Mail.",
     "required": "Pflichtfeld",
+    "categories": {
+      "general": "Allgemeine Anfrage",
+      "legal": "Rechtsberatung & Beratung",
+      "events": "Veranstaltungen",
+      "membership": "Mitgliedschaft",
+      "press": "Presse & Medien",
+      "other": "Sonstiges"
+    },
+    "validationName": "Bitte geben Sie Ihren Namen ein.",
+    "validationEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    "validationMessage": "Die Nachricht muss mindestens 10 Zeichen lang sein.",
+    "validationConsent": "Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.",
     "address": "Adresse",
     "phone": "Telefon",
     "openingHours": "Öffnungszeiten"
   },
   "partners": {
     "title": "Partner & Förderer",
-    "intro": "Der SVÖ dankt seinen Partnern und Förderern für ihre Unterstützung."
+    "intro": "Der SVÖ dankt seinen Partnern und Förderern für ihre Unterstützung.",
+    "groups": {
+      "funder": "Fördergeber",
+      "partner": "Partner",
+      "sponsor": "Sponsoren"
+    },
+    "empty": "In diesem Bereich sind noch keine Partner eingetragen."
   },
   "legal": {
     "impressum": "Impressum",

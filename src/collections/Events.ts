@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { seoGroup } from '@/fields/seoGroup'
+import { bundeslandField } from '@/fields/bundeslandField'
 import {
   isEditorOrAbove,
   readPublishedOrLoggedIn,
@@ -88,12 +89,7 @@ export const Events: CollectionConfig = {
       type: 'text',
       label: { de: 'Adresse', ar: 'العنوان', en: 'Address' },
     },
-    {
-      name: 'bundesland',
-      type: 'relationship',
-      relationTo: 'bundeslaender',
-      label: { de: 'Bundesland', ar: 'الولاية', en: 'State' },
-    },
+    bundeslandField,
     {
       name: 'isOnline',
       type: 'checkbox',

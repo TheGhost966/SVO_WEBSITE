@@ -6,7 +6,7 @@ type SeoDoc = {
     description?: string | null
     ogImage?: { filename?: string | null } | string | null
     noIndex?: boolean | null
-  }
+  } | null
   title?: string | Record<string, string> | null
   excerpt?: string | Record<string, string> | null
 }

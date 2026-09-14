@@ -7,113 +7,140 @@
  */
 import 'dotenv/config'
 import { getPayload } from 'payload'
+import type { CollectionSlug, GlobalSlug } from 'payload'
 import config from '../src/payload.config'
+
+const LOCALES = ['de', 'ar', 'en'] as const
+type Locale = (typeof LOCALES)[number]
+
+function isLocaleMap(value: unknown): value is Record<Locale, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    LOCALES.every((l) => l in value) &&
+    Object.keys(value).length === LOCALES.length
+  )
+}
+
+/**
+ * Payload's local API writes one locale per call — passing a `{de, ar, en}`
+ * object straight into `data` silently stores the object itself as the field
+ * value instead of populating each locale. This walks a seed literal and
+ * extracts just the values for one locale, recursing into nested groups/arrays.
+ */
+function pickLocale(data: unknown, locale: Locale): unknown {
+  if (Array.isArray(data)) return data.map((item) => pickLocale(item, locale))
+  if (data !== null && typeof data === 'object') {
+    if (isLocaleMap(data)) return data[locale]
+    return Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, pickLocale(value, locale)]),
+    )
+  }
+  return data
+}
 
 async function seed() {
   const payload = await getPayload({ config })
 
-  console.log('🌱 Seeding database…')
+  // Payload's generated types aren't available (no DB connection at typecheck
+  // time), so the Local API's per-collection `data` typing can't be resolved
+  // generically here — this is the one intentional escape hatch for that.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const asData = (v: unknown): any => v
 
-  // ─── Bundesländer global ───────────────────────────────────────────────────
-  console.log('  → Bundesländer')
-  await payload.updateGlobal({
-    slug: 'bundeslaender',
-    data: {
-      items: [
-        { code: 'W',    name: { de: 'Wien',              ar: 'فيينا',    en: 'Vienna' } },
-        { code: 'NOE',  name: { de: 'Niederösterreich',  ar: 'النمسا السفلى', en: 'Lower Austria' } },
-        { code: 'OOE',  name: { de: 'Oberösterreich',    ar: 'النمسا العليا', en: 'Upper Austria' } },
-        { code: 'SBG',  name: { de: 'Salzburg',          ar: 'زالتسبورغ', en: 'Salzburg' } },
-        { code: 'T',    name: { de: 'Tirol',             ar: 'تيرول',    en: 'Tyrol' } },
-        { code: 'VBG',  name: { de: 'Vorarlberg',        ar: 'فورارلبرغ', en: 'Vorarlberg' } },
-        { code: 'STMK', name: { de: 'Steiermark',        ar: 'شتاير مارك', en: 'Styria' } },
-        { code: 'KTN',  name: { de: 'Kärnten',           ar: 'كارينثيا',  en: 'Carinthia' } },
-        { code: 'BGLD', name: { de: 'Burgenland',        ar: 'بورغنلاند', en: 'Burgenland' } },
-      ],
-    },
-  })
+  async function createLocalized(collection: CollectionSlug, data: Record<string, unknown>) {
+    const doc = await payload.create({ collection, data: asData(pickLocale(data, 'de')), locale: 'de' })
+    for (const locale of LOCALES.filter((l) => l !== 'de')) {
+      await payload.update({ collection, id: doc.id, data: asData(pickLocale(data, locale)), locale })
+    }
+    return doc
+  }
+
+  async function updateGlobalLocalized(slug: GlobalSlug, data: Record<string, unknown>) {
+    await payload.updateGlobal({ slug, data: asData(pickLocale(data, 'de')), locale: 'de' })
+    for (const locale of LOCALES.filter((l) => l !== 'de')) {
+      await payload.updateGlobal({ slug, data: asData(pickLocale(data, locale)), locale })
+    }
+  }
+
+  console.log('🌱 Seeding database…')
 
   // ─── Site settings ─────────────────────────────────────────────────────────
   console.log('  → SiteSettings')
-  await payload.updateGlobal({
-    slug: 'site-settings',
-    data: {
-      orgName: {
+  await updateGlobalLocalized('site-settings', {
+    orgName: {
+      de: 'SVÖ — Syrischer Verband in Österreich',
+      ar: 'الاتحاد السوري في النمسا',
+      en: 'SVÖ — Syrian Association in Austria',
+    },
+    tagline: {
+      de: 'Bauen. Verbinden. Umsetzen.',
+      ar: 'نبني · نربط · ننفذ',
+      en: 'Building. Connecting. Delivering.',
+    },
+    contactGroup: {
+      address: '[DE] Adresse wird vom SVÖ-Team bereitgestellt',
+      email: 'info@svoe.at',
+    },
+    seoGroup: {
+      defaultTitle: {
         de: 'SVÖ — Syrischer Verband in Österreich',
         ar: 'الاتحاد السوري في النمسا',
         en: 'SVÖ — Syrian Association in Austria',
       },
-      tagline: {
-        de: 'Bauen. Verbinden. Umsetzen.',
-        ar: 'نبني · نربط · ننفذ',
-        en: 'Building. Connecting. Delivering.',
+      defaultDescription: {
+        de: 'Der SVÖ unterstützt die syrische Gemeinschaft in allen neun österreichischen Bundesländern.',
+        ar: 'يدعم الاتحاد السوري المجتمع السوري في النمسا.',
+        en: 'SVÖ supports the Syrian community across all nine Austrian states.',
       },
-      contactGroup: {
-        address: '[DE] Adresse wird vom SVÖ-Team bereitgestellt',
-        email: 'info@svoe.at',
-      },
-      seoGroup: {
-        defaultTitle: {
-          de: 'SVÖ — Syrischer Verband in Österreich',
-          ar: 'الاتحاد السوري في النمسا',
-          en: 'SVÖ — Syrian Association in Austria',
-        },
-        defaultDescription: {
-          de: 'Der SVÖ unterstützt die syrische Gemeinschaft in allen neun österreichischen Bundesländern.',
-          ar: 'يدعم الاتحاد السوري المجتمع السوري في النمسا.',
-          en: 'SVÖ supports the Syrian community across all nine Austrian states.',
-        },
-      },
-      submissionRetentionMonths: 12,
-      boardNotificationEmails: [{ email: process.env.BOARD_NOTIFICATION_EMAIL ?? 'alexalexltesgo@gmail.com' }],
     },
+    submissionRetentionMonths: 12,
+    boardNotificationEmails: [{ email: process.env.BOARD_NOTIFICATION_EMAIL ?? 'alexalexltesgo@gmail.com' }],
   })
 
   // ─── Navigation ────────────────────────────────────────────────────────────
   console.log('  → Navigation')
-  await payload.updateGlobal({
-    slug: 'navigation',
-    data: {
-      header: {
-        de: [
-          { label: 'Über uns', url: '/ueber-uns' },
-          { label: 'Nachrichten', url: '/nachrichten' },
-          { label: 'Veranstaltungen', url: '/veranstaltungen' },
-          { label: 'Leistungen', url: '/leistungen' },
-          { label: 'Kontakt', url: '/kontakt' },
-        ],
-        ar: [
-          { label: 'من نحن', url: '/about' },
-          { label: 'أخبار', url: '/news' },
-          { label: 'فعاليات', url: '/events' },
-          { label: 'خدمات', url: '/services' },
-          { label: 'اتصل بنا', url: '/contact' },
-        ],
-        en: [
-          { label: 'About', url: '/about' },
-          { label: 'News', url: '/news' },
-          { label: 'Events', url: '/events' },
-          { label: 'Services', url: '/services' },
-          { label: 'Contact', url: '/contact' },
-        ],
-      },
-      footer: {
-        de: [
-          { label: 'Impressum', url: '/impressum' },
-          { label: 'Datenschutzerklärung', url: '/datenschutz' },
-          { label: 'Barrierefreiheitserklärung', url: '/barrierefreiheit' },
-        ],
-        ar: [
-          { label: 'Impressum', url: '/impressum' },
-          { label: 'Datenschutzerklärung', url: '/datenschutz' },
-          { label: 'Barrierefreiheitserklärung', url: '/barrierefreiheit' },
-        ],
-        en: [
-          { label: 'Impressum', url: '/impressum' },
-          { label: 'Privacy Policy', url: '/privacy-policy' },
-          { label: 'Accessibility', url: '/accessibility' },
-        ],
-      },
+  await updateGlobalLocalized('navigation', {
+    header: {
+      de: [
+        { label: 'Über uns', url: '/ueber-uns' },
+        { label: 'Nachrichten', url: '/nachrichten' },
+        { label: 'Veranstaltungen', url: '/veranstaltungen' },
+        { label: 'Leistungen', url: '/leistungen' },
+        { label: 'Kontakt', url: '/kontakt' },
+      ],
+      ar: [
+        { label: 'من نحن', url: '/about' },
+        { label: 'أخبار', url: '/news' },
+        { label: 'فعاليات', url: '/events' },
+        { label: 'خدمات', url: '/services' },
+        { label: 'اتصل بنا', url: '/contact' },
+      ],
+      en: [
+        { label: 'About', url: '/about' },
+        { label: 'News', url: '/news' },
+        { label: 'Events', url: '/events' },
+        { label: 'Services', url: '/services' },
+        { label: 'Contact', url: '/contact' },
+      ],
+    },
+    footer: {
+      de: [
+        { label: 'Impressum', url: '/impressum' },
+        { label: 'Datenschutzerklärung', url: '/datenschutz' },
+        { label: 'Barrierefreiheitserklärung', url: '/barrierefreiheit' },
+      ],
+      ar: [
+        { label: 'Impressum', url: '/impressum' },
+        { label: 'Datenschutzerklärung', url: '/datenschutz' },
+        { label: 'Barrierefreiheitserklärung', url: '/barrierefreiheit' },
+      ],
+      en: [
+        { label: 'Impressum', url: '/impressum' },
+        { label: 'Privacy Policy', url: '/privacy-policy' },
+        { label: 'Accessibility', url: '/accessibility' },
+      ],
     },
   })
 
@@ -171,7 +198,7 @@ async function seed() {
   ]
 
   for (const pillar of pillars) {
-    await payload.create({ collection: 'service-pillars', data: pillar as any })
+    await createLocalized('service-pillars', pillar)
   }
 
   // ─── Categories ────────────────────────────────────────────────────────────
@@ -184,7 +211,7 @@ async function seed() {
     { name: { de: 'Feier', ar: 'احتفال', en: 'Celebration' }, slug: { de: 'feier', ar: 'celebration', en: 'celebration' }, type: 'event' },
   ]
   for (const cat of categories) {
-    await payload.create({ collection: 'categories', data: cat as any })
+    await createLocalized('categories', cat)
   }
 
   console.log('✅ Seed complete.')

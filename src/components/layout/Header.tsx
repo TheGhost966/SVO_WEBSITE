@@ -9,12 +9,12 @@ type Props = { locale: string }
 
 const navKeys = ['news', 'events', 'services', 'contact'] as const
 
-const navHrefs: Record<string, string> = {
+const navHrefs = {
   news: '/news',
   events: '/events',
   services: '/services',
   contact: '/contact',
-}
+} as const
 
 export function Header({ locale }: Props) {
   const t = useTranslations('nav')
@@ -35,7 +35,7 @@ export function Header({ locale }: Props) {
         {/* Desktop nav */}
         <nav aria-label={t('home')} className="hidden md:flex items-center gap-1">
           {navKeys.map((key) => {
-            const href = navHrefs[key] as any
+            const href = navHrefs[key]
             const isActive = pathname.startsWith(`/${key}`)
             return (
               <Link
@@ -88,7 +88,7 @@ export function Header({ locale }: Props) {
           aria-label={t('menu')}
         >
           {navKeys.map((key) => {
-            const href = navHrefs[key] as any
+            const href = navHrefs[key]
             return (
               <Link
                 key={key}

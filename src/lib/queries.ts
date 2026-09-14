@@ -1,6 +1,7 @@
 import { unstable_cache } from 'next/cache'
+import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -8,6 +9,32 @@ type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
 function empty<T>(): PaginatedResult<T> {
   return { docs: [], totalDocs: 0, hasNextPage: false }
+}
+
+/**
+ * True if `locale`'s `title` field on this doc is empty and Payload silently
+ * served the default-locale (`de`) value instead (`localization.fallback: true`).
+ * Re-fetches with `fallbackLocale: false` to see the raw, un-fallen-back value.
+ */
+async function isLocaleFallback(
+  collection: 'news' | 'events' | 'services',
+  id: string,
+  locale: string,
+): Promise<boolean> {
+  if (locale === 'de') return false
+  try {
+    const payload = await getPayloadClient()
+    const raw = await payload.findByID({
+      collection,
+      id,
+      locale: locale as 'ar' | 'en',
+      fallbackLocale: false,
+      depth: 0,
+    })
+    return !raw?.title
+  } catch {
+    return false
+  }
 }
 
 // ─── Pages ───────────────────────────────────────────────────────────────────
@@ -64,8 +91,7 @@ export const getNewsPage = unstable_cache(
   async (locale: string, page = 1, categorySlug?: string): Promise<PaginatedResult<NewsDoc>> => {
     try {
       const payload = await getPayloadClient()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = { reviewStatus: { equals: 'published' } }
+      const where: Where = { reviewStatus: { equals: 'published' } }
       if (categorySlug) {
         where['category.slug'] = { equals: categorySlug }
       }
@@ -103,7 +129,10 @@ export const getNewsBySlug = unstable_cache(
         depth: 3,
         limit: 1,
       })
-      return (result.docs[0] as unknown as NewsDoc) ?? null
+      const doc = result.docs[0] as unknown as NewsDoc | undefined
+      if (!doc) return null
+      doc._isFallback = await isLocaleFallback('news', doc.id, locale)
+      return doc
     } catch {
       return null
     }
@@ -152,7 +181,7 @@ export const getNewsCategories = unstable_cache(
         depth: 0,
         limit: 50,
       })
-      return result.docs.map((d: any) => ({ id: d.id, name: d.name, slug: d.slug }))
+      return result.docs.map((d: { id: string | number; name?: string | null; slug?: string | null }) => ({ id: String(d.id), name: d.name, slug: d.slug }))
     } catch {
       return []
     }
@@ -174,12 +203,11 @@ export async function getNewsAllLocaleSlugs(
     const doc = await payload.findByID({
       collection: 'news',
       id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      locale: 'all' as any,
+      locale: 'all',
       depth: 0,
     })
     // With locale:'all', localised fields come back as { de: '...', ar: '...', en: '...' }
-    const slugField = (doc as any)?.slug
+    const slugField = (doc as { slug?: unknown })?.slug
     if (!slugField || typeof slugField !== 'object') return {}
     return Object.fromEntries(
       Object.entries(slugField as Record<string, unknown>).filter(
@@ -202,7 +230,7 @@ export const getEventCategories = unstable_cache(
         depth: 0,
         limit: 50,
       })
-      return result.docs.map((d: any) => ({ id: d.id, name: d.name, slug: d.slug }))
+      return result.docs.map((d: { id: string | number; name?: string | null; slug?: string | null }) => ({ id: String(d.id), name: d.name, slug: d.slug }))
     } catch {
       return []
     }
@@ -216,14 +244,13 @@ export const getUpcomingEventsPaged = unstable_cache(
     try {
       const payload = await getPayloadClient()
       const now = new Date().toISOString()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = {
+      const where: Where = {
         and: [
           { reviewStatus: { equals: 'published' } },
           { startDate: { greater_than: now } },
         ],
       }
-      if (categorySlug) where.and.push({ 'category.slug': { equals: categorySlug } })
+      if (categorySlug) where.and?.push({ 'category.slug': { equals: categorySlug } })
       const result = await payload.find({
         collection: 'events',
         where,
@@ -247,14 +274,13 @@ export const getPastEvents = unstable_cache(
     try {
       const payload = await getPayloadClient()
       const now = new Date().toISOString()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const where: any = {
+      const where: Where = {
         and: [
           { reviewStatus: { equals: 'published' } },
           { startDate: { less_than: now } },
         ],
       }
-      if (categorySlug) where.and.push({ 'category.slug': { equals: categorySlug } })
+      if (categorySlug) where.and?.push({ 'category.slug': { equals: categorySlug } })
       const result = await payload.find({
         collection: 'events',
         where,
@@ -289,7 +315,10 @@ export const getEventBySlug = unstable_cache(
         depth: 3,
         limit: 1,
       })
-      return (result.docs[0] as unknown as EventDoc) ?? null
+      const doc = result.docs[0] as unknown as EventDoc | undefined
+      if (!doc) return null
+      doc._isFallback = await isLocaleFallback('events', doc.id, locale)
+      return doc
     } catch {
       return null
     }
@@ -304,11 +333,10 @@ export async function getEventAllLocaleSlugs(id: string): Promise<Record<string,
     const doc = await payload.findByID({
       collection: 'events',
       id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      locale: 'all' as any,
+      locale: 'all',
       depth: 0,
     })
-    const slugField = (doc as any)?.slug
+    const slugField = (doc as { slug?: unknown })?.slug
     if (!slugField || typeof slugField !== 'object') return {}
     return Object.fromEntries(
       Object.entries(slugField as Record<string, unknown>).filter(
@@ -411,7 +439,10 @@ export const getServiceBySlug = unstable_cache(
         depth: 3,
         limit: 1,
       })
-      return (result.docs[0] as unknown as ServiceDoc) ?? null
+      const doc = result.docs[0] as unknown as ServiceDoc | undefined
+      if (!doc) return null
+      doc._isFallback = await isLocaleFallback('services', doc.id, locale)
+      return doc
     } catch {
       return null
     }
@@ -427,11 +458,10 @@ export async function getServiceAllLocaleSlugs(id: string): Promise<Record<strin
     const doc = await payload.findByID({
       collection: 'services',
       id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      locale: 'all' as any,
+      locale: 'all',
       depth: 0,
     })
-    const slugField = (doc as any)?.slug
+    const slugField = (doc as { slug?: unknown })?.slug
     if (!slugField || typeof slugField !== 'object') return {}
     return Object.fromEntries(
       Object.entries(slugField as Record<string, unknown>).filter(
@@ -450,11 +480,10 @@ export async function getPillarAllLocaleSlugs(id: string): Promise<Record<string
     const doc = await payload.findByID({
       collection: 'service-pillars',
       id,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      locale: 'all' as any,
+      locale: 'all',
       depth: 0,
     })
-    const slugField = (doc as any)?.slug
+    const slugField = (doc as { slug?: unknown })?.slug
     if (!slugField || typeof slugField !== 'object') return {}
     return Object.fromEntries(
       Object.entries(slugField as Record<string, unknown>).filter(
@@ -484,4 +513,43 @@ export const getServicePillars = unstable_cache(
   },
   ['service-pillars'],
   { revalidate: 3600, tags: [tags.services()] },
+)
+
+// ─── Site settings + Partners ─────────────────────────────────────────────────
+
+export const getSiteSettings = unstable_cache(
+  async (locale: string): Promise<SiteSettingsDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.findGlobal({
+        slug: 'site-settings',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 2,
+      })
+      return result as unknown as SiteSettingsDoc
+    } catch {
+      return null
+    }
+  },
+  ['site-settings'],
+  { revalidate: 3600, tags: [tags.siteSettings()] },
+)
+
+export const getPartners = unstable_cache(
+  async (): Promise<PartnerDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const result = await payload.find({
+        collection: 'partners',
+        sort: 'order',
+        depth: 2,
+        limit: 100,
+      })
+      return result.docs as unknown as PartnerDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['partners'],
+  { revalidate: 3600, tags: ['partners'] },
 )

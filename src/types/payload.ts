@@ -22,16 +22,27 @@ export type ResolvedMedia = {
 
 export type CategoryRef = { id: string; name?: string | null; slug?: string | null }
 
+export type SeoField = {
+  title?: string | null
+  description?: string | null
+  ogImage?: ResolvedMedia | string | null
+  noIndex?: boolean | null
+} | null
+
 export type NewsDoc = {
   id: string
   title?: string | null
   slug?: string | null
   excerpt?: string | null
+  body?: unknown
   publishedAt?: string | null
   coverImage?: ResolvedMedia | string | null
   category?: CategoryRef | string | null
   author?: string | null
   reviewStatus?: string | null
+  seo?: SeoField
+  /** Set by `getNewsBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
 }
 
 export type EventDoc = {
@@ -45,9 +56,14 @@ export type EventDoc = {
   address?: string | null
   isOnline?: boolean | null
   isFree?: boolean | null
+  registrationUrl?: string | null
+  capacity?: number | null
   coverImage?: ResolvedMedia | string | null
   category?: CategoryRef | string | null
   reviewStatus?: string | null
+  seo?: SeoField
+  /** Set by `getEventBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
 }
 
 export type ServicePillarDoc = {
@@ -146,6 +162,20 @@ export type TimelineBlock = {
   items?: Array<{ id?: string; year?: string | null; title?: string | null; description?: string | null }>
 }
 
+export type ContactPageBlock = {
+  blockType: 'contact-block'
+  id?: string
+  heading?: string | null
+  subheading?: string | null
+  showForm?: boolean | null
+  contactDetails?: {
+    showAddress?: boolean | null
+    showPhone?: boolean | null
+    showEmail?: boolean | null
+    showHours?: boolean | null
+  } | null
+}
+
 export type PageBlock =
   | HeroBlock
   | RichTextPayloadBlock
@@ -156,6 +186,30 @@ export type PageBlock =
   | FAQPayloadBlock
   | LogoGridBlock
   | TimelineBlock
+  | ContactPageBlock
+
+export type SiteSettingsDoc = {
+  orgName?: string | null
+  tagline?: string | null
+  contactGroup?: {
+    address?: string | null
+    phone?: string | null
+    email?: string | null
+    openingHours?: string | null
+  } | null
+  socialLinks?: Array<{ platform: string; url: string }> | null
+  logo?: ResolvedMedia | string | null
+  boardNotificationEmails?: Array<{ email: string }> | null
+}
+
+export type PartnerDoc = {
+  id: string
+  name: string
+  logo?: ResolvedMedia | string | null
+  url?: string | null
+  type: 'funder' | 'partner' | 'sponsor'
+  order?: number | null
+}
 
 export type ServiceDoc = {
   id: string
@@ -169,12 +223,9 @@ export type ServiceDoc = {
   targetAudience?: string | null
   relatedServices?: Array<{ id: string; title?: string | null; slug?: string | null; pillar?: ServicePillarDoc | string | null } | string> | null
   reviewStatus?: string | null
-  seo?: {
-    title?: string | null
-    description?: string | null
-    ogImage?: ResolvedMedia | string | null
-    noIndex?: boolean | null
-  } | null
+  seo?: SeoField
+  /** Set by `getServiceBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
 }
 
 export type PageDoc = {
@@ -182,10 +233,5 @@ export type PageDoc = {
   title?: string | null
   slug?: string | null
   layout?: PageBlock[] | null
-  seo?: {
-    title?: string | null
-    description?: string | null
-    ogImage?: ResolvedMedia | string | null
-    noIndex?: boolean | null
-  } | null
+  seo?: SeoField
 }

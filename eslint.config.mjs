@@ -1,11 +1,12 @@
-import { FlatCompat } from '@eslint/eslintrc'
-
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-})
+// eslint-config-next ships flat-config arrays natively (Next 16 + ESLint 9) —
+// FlatCompat is unnecessary and crashes with a circular-structure error when
+// bridging eslint-plugin-react's config objects into legacy eslintrc format.
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextCoreWebVitals,
+  ...nextTypescript,
   {
     rules: {
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],

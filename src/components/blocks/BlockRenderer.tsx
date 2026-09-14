@@ -8,6 +8,7 @@ import { CTABandBlock } from './CTABandBlock'
 import { FAQBlock } from './FAQBlock'
 import { LogoGridBlock } from './LogoGridBlock'
 import { TimelineBlock } from './TimelineBlock'
+import { ContactBlockBlock } from './ContactBlockBlock'
 
 type Props = {
   blocks: PageBlock[]
@@ -39,6 +40,8 @@ export function BlockRenderer({ blocks, locale }: Props) {
             return <LogoGridBlock key={key} block={block} />
           case 'timeline':
             return <TimelineBlock key={key} block={block} />
+          case 'contact-block':
+            return <ContactBlockBlock key={key} block={block} locale={locale} />
           default:
             return null
         }

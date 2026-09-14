@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { LexicalContent } from '@/components/ui/LexicalContent'
 import { MediaImage } from '@/components/ui/MediaImage'
 import { NewsCard } from '@/components/ui/NewsCard'
@@ -11,7 +11,6 @@ import { getPayloadClient } from '@/lib/payload'
 import { buildMetadata } from '@/lib/seo'
 import { newsArticleSchema, breadcrumbSchema } from '@/lib/jsonld'
 import type { ResolvedMedia } from '@/types/payload'
-import type { Locale } from '@/i18n/routing'
 
 // Locale → base URL path for news articles
 const NEWS_BASE: Record<string, string> = {
@@ -53,7 +52,7 @@ export async function generateStaticParams() {
         limit: 500,
       })
       for (const doc of result.docs) {
-        const slug = (doc as any).slug
+        const slug = (doc as { slug?: unknown }).slug
         if (slug && typeof slug === 'string') {
           params.push({ locale, slug })
         }
@@ -124,8 +123,6 @@ export default async function NewsArticlePage({ params }: Props) {
   const { locale, slug } = await params
   setRequestLocale(locale)
 
-  const t = await getTranslations('common')
-
   const [article, relatedResult] = await Promise.all([
     getNewsBySlug(slug, locale),
     getLatestNews(locale, 4),
@@ -163,9 +160,7 @@ export default async function NewsArticlePage({ params }: Props) {
     { name: article.title ?? '', url: articleUrl },
   ])
 
-  // Detect German fallback (compare title language heuristic: if locale isn't de but article title exists)
-  // Payload returns fallback silently; we detect it by checking if the doc was fetched with locale != 'de'
-  const isFallback = locale !== 'de' && !!(article as any)._isFallback
+  const isFallback = !!article._isFallback
 
   return (
     <>
@@ -243,7 +238,7 @@ export default async function NewsArticlePage({ params }: Props) {
 
             {/* Rich text body */}
             <div className="mt-8">
-              <LexicalContent content={(article as any).body} />
+              <LexicalContent content={article.body} />
             </div>
           </div>
         </div>

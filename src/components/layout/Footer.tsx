@@ -1,9 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 
-type Props = { locale: string }
-
-export function Footer({ locale }: Props) {
+export function Footer() {
   const t = useTranslations('footer')
   const tLegal = useTranslations('legal')
   const tNav = useTranslations('nav')
@@ -40,12 +38,17 @@ export function Footer({ locale }: Props) {
           {/* Quick links */}
           <nav aria-label={tNav('home')}>
             <ul className="grid grid-cols-2 gap-x-8 gap-y-2">
-              {(['news', 'events', 'services', 'contact', 'partners'] as const).map((key) => (
+              {(
+                [
+                  { href: '/news' as const, key: 'news' as const },
+                  { href: '/events' as const, key: 'events' as const },
+                  { href: '/services' as const, key: 'services' as const },
+                  { href: '/contact' as const, key: 'contact' as const },
+                  { href: '/partners' as const, key: 'partners' as const },
+                ]
+              ).map(({ href, key }) => (
                 <li key={key}>
-                  <Link
-                    href={`/${key}` as any}
-                    className="text-sm text-white/70 hover:text-white transition-colors"
-                  >
+                  <Link href={href} className="text-sm text-white/70 hover:text-white transition-colors">
                     {tNav(key)}
                   </Link>
                 </li>

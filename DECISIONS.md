@@ -30,6 +30,9 @@ The root `<html>` element is in the root layout (required by Next.js), but only 
 
 ## Content model
 
+**Austria's 9 federal states (`Bundesländer`) are a `select` field on `Events`/`News`, not a relationship to a collection or global.**
+The original design had `Events.bundesland` / `News.bundesland` as `relationship` fields targeting a `Bundeslaender` *global* — Payload only allows relationships to target collections, so this crashed the entire app at boot (`InvalidFieldRelationship`). Since the 9 states are a fixed, never-changing enumeration, a shared `select` field (`src/fields/bundeslandField.ts`) with localized option labels is simpler and correct — no join, no extra collection to seed or manage permissions for.
+
 **Single `Categories` collection with a `type` field (`news | event | service`).**
 Keeps the schema generic. Phase 2 features (roadmaps, jobs, ticketing) can add new type values without a schema migration.
 
@@ -82,6 +85,7 @@ Blocks non-essential scripts before consent. Reject button has equal visual weig
 
 **Fonts self-hosted; no Google Fonts CDN.**
 Loading from Google's CDN sets a cookie and logs IPs — explicitly ruled illegal for Austrian/German sites by multiple court decisions. Fonts are in `public/fonts/` and loaded via `next/font/local`.
+Files were extracted from the `@fontsource/inter` and `@fontsource/cairo` npm packages (OFL-licensed, same upstream files Google Fonts serves, repackaged for self-hosting) — `latin` subset for Inter (covers German umlauts/ß via Latin-1 Supplement), `arabic` subset for Cairo. The packages themselves are not a runtime dependency; only the four woff2 weights per family (400/500/600/700) were copied into `public/fonts/`.
 
 **Contact form submissions stored in `ContactSubmissions` collection + forwarded by email.**
 12-month auto-deletion default, configurable in `SiteSettings.submissionRetentionMonths`. Consent checkbox is required.

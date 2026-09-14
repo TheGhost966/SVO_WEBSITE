@@ -5,7 +5,6 @@ import { Link } from '@/i18n/navigation'
 import { Icon } from '@/components/ui/Icon'
 import { MediaImage } from '@/components/ui/MediaImage'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
-import { buildMetadata } from '@/lib/seo'
 import { breadcrumbSchema } from '@/lib/jsonld'
 import {
   getPillarBySlug,
@@ -40,8 +39,8 @@ export async function generateStaticParams() {
         limit: 50,
       })
       for (const doc of result.docs) {
-        const slug = (doc as any).slug
-        if (slug) params.push({ locale, pillar: slug })
+        const slug = (doc as { slug?: unknown }).slug
+        if (typeof slug === 'string') params.push({ locale, pillar: slug })
       }
     }
     return params

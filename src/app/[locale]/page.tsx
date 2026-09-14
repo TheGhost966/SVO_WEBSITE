@@ -22,8 +22,8 @@ type Props = { params: Promise<{ locale: string }> }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
   const page = await getPageBySlug('home', locale)
-  if (page?.seo ?? null) {
-    return buildMetadata({ doc: page as any, locale })
+  if (page && page.seo) {
+    return buildMetadata({ doc: page, locale })
   }
   const titles: Record<string, string> = {
     de: 'SVÖ — Syrischer Verband in Österreich',

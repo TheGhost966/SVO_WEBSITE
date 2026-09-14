@@ -3,11 +3,6 @@
 Tracks all placeholder content that must be replaced before launch.
 All items are marked `[DE]`, `[AR]`, or `[EN]` to show which locale is missing.
 
-## Fonts (before dev server can render correctly)
-
-- [ ] `public/fonts/inter/` — download Inter Regular/Medium/SemiBold/Bold woff2 files (see PLACEHOLDER.md)
-- [ ] `public/fonts/cairo/` — download Cairo Regular/Medium/SemiBold/Bold woff2 files (see PLACEHOLDER.md)
-
 ## Legal pages (hard blocker for launch)
 
 These pages contain legally required content in Austria. **Never generate or invent legal text.**

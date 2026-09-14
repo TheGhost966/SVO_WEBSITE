@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isEditorOrAbove, isLoggedIn } from '@/lib/access'
+import { isEditorOrAbove } from '@/lib/access'
 
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contact-submissions',

@@ -1,4 +1,5 @@
 import type { CollectionBeforeChangeHook } from 'payload'
+import type { SiteSettingsDoc } from '@/types/payload'
 
 /**
  * Sends an email notification to board members when an editor
@@ -28,9 +29,9 @@ export const notifyBoardOnReview: CollectionBeforeChangeHook = async ({
 
     const settingsEmails: string[] = []
     try {
-      const settings = await req.payload.findGlobal({ slug: 'site-settings' })
-      const items = (settings as any)?.boardNotificationEmails ?? []
-      settingsEmails.push(...items.map((i: { email: string }) => i.email).filter(Boolean))
+      const settings = (await req.payload.findGlobal({ slug: 'site-settings' })) as unknown as SiteSettingsDoc
+      const items = settings?.boardNotificationEmails ?? []
+      settingsEmails.push(...items.map((i) => i.email).filter(Boolean))
     } catch {
       // settings global might not be seeded yet — fall through to env var
     }

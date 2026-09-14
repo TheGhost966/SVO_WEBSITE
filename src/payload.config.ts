@@ -4,6 +4,9 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { en } from '@payloadcms/translations/languages/en'
+import { de } from '@payloadcms/translations/languages/de'
+import { ar } from '@payloadcms/translations/languages/ar'
 import nodemailer from 'nodemailer'
 
 import { Users } from '@/collections/Users'
@@ -20,7 +23,6 @@ import { ContactSubmissions } from '@/collections/ContactSubmissions'
 
 import { SiteSettings } from '@/globals/SiteSettings'
 import { Navigation } from '@/globals/Navigation'
-import { Bundeslaender } from '@/globals/Bundeslaender'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -77,8 +79,12 @@ export default buildConfig({
       titleSuffix: '— SVÖ Admin',
     },
     dateFormat: 'dd.MM.yyyy',
-    // Admin UI locale support (German default)
-    // Community translation files can be added here as they become available
+  },
+
+  // ─── Admin UI language (dashboard chrome, not content) ────────────────────
+  i18n: {
+    supportedLanguages: { en, de, ar },
+    fallbackLanguage: 'de',
   },
 
   // ─── Collections ───────────────────────────────────────────────────────────
@@ -97,7 +103,7 @@ export default buildConfig({
   ],
 
   // ─── Globals ───────────────────────────────────────────────────────────────
-  globals: [SiteSettings, Navigation, Bundeslaender],
+  globals: [SiteSettings, Navigation],
 
   // ─── TypeScript output ─────────────────────────────────────────────────────
   typescript: {

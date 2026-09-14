@@ -76,13 +76,31 @@
     "success": "Thank you! Your message has been sent. We will be in touch shortly.",
     "error": "Something went wrong. Please try again or contact us directly by email.",
     "required": "Required",
+    "categories": {
+      "general": "General enquiry",
+      "legal": "Legal & advisory",
+      "events": "Events",
+      "membership": "Membership",
+      "press": "Press & media",
+      "other": "Other"
+    },
+    "validationName": "Please enter your name.",
+    "validationEmail": "Please enter a valid email address.",
+    "validationMessage": "The message must be at least 10 characters.",
+    "validationConsent": "Please agree to the processing of your data.",
     "address": "Address",
     "phone": "Phone",
     "openingHours": "Opening hours"
   },
   "partners": {
     "title": "Partners & Supporters",
-    "intro": "SVÖ thanks its partners and supporters for their continued support."
+    "intro": "SVÖ thanks its partners and supporters for their continued support.",
+    "groups": {
+      "funder": "Funders",
+      "partner": "Partners",
+      "sponsor": "Sponsors"
+    },
+    "empty": "No partners have been added to this section yet."
   },
   "legal": {
     "impressum": "Impressum",
