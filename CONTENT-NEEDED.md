@@ -85,6 +85,9 @@ These pages contain legally required content in Austria. **Never generate or inv
       job board? Until someone is named, this stays a curated-links page — see DECISIONS.md.
 - [ ] Curated links to add to `SiteSettings.jobResourceLinks` — at minimum AMS (ams.at), karriere.at;
       consider willhaben Jobs, migration.gv.at's work-permit info page
+- [ ] AR/EN translations for the two placeholder links already in `SiteSettings.jobResourceLinks`
+      (AMS, karriere.at) — `label`/`description` are localized fields but only DE is filled in, so
+      `/ar/jobs` and `/en/jobs` currently show German text via Payload's locale fallback
 
 ## About page
 
