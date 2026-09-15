@@ -374,6 +374,33 @@ env vars for that specific boot.
   real production deploy, run `PAYLOAD_MIGRATE_ON_BOOT=1` once against a genuinely fresh database and
   confirm it succeeds — this is the one piece of Slice 0 still unverified.**
 
+**Does dev-mode schema push race `PAYLOAD_MIGRATE_ON_BOOT`? No — checked the adapter source
+directly rather than assuming.** `node_modules/@payloadcms/db-postgres/dist/connect.js:110`:
+```js
+if (process.env.NODE_ENV !== 'production' && process.env.PAYLOAD_MIGRATING !== 'true' && this.push !== false) {
+    await pushDevSchema(this)
+}
+```
+Three independent guards, any one of which fully disables push:
+1. **`push: false`** (set on the adapter in `payload.config.ts`, see "Unlocalized slugs" above) —
+   makes this condition permanently false. Push cannot fire at all anymore, in any mode.
+2. **`NODE_ENV === 'production'`** — `next build && next start` never runs push, *regardless* of
+   the `push` config value. This was true before `push: false` was ever added.
+3. **`PAYLOAD_MIGRATING === 'true'`** — Payload's own CLI (`payload/dist/bin/migrate.js:36`) sets
+   this before `payload.init()`, specifically to prevent this exact race. `instrumentation.ts` now
+   sets it too, as a second independent guard alongside `push: false` — belt and braces, matching
+   Payload's own convention exactly rather than relying on a single config flag.
+
+Practical upshot: there was never actually a race *in this project's current state* (`push: false`
+alone fully prevents it), but before that flag existed, push ran at `payload.init()`/connection time
+— i.e. *before* any subsequent `adapter.migrate()` call in `instrumentation.ts` gets a chance to
+run — which is the actual mechanism behind the interactive-prompt hang documented under
+"Unlocalized slugs" above (a plain `next dev` restart with no `PAYLOAD_MIGRATE_*` var set at all,
+reacting automatically to the schema code change). **`npm run build && npm run start` is confirmed
+as the closer-to-production path** — recommended for verifying `PAYLOAD_MIGRATE_ON_BOOT` from now on,
+since it's what a real deploy actually runs, and it makes guard #2 redundant with #1/#3 rather than
+relying on any single one.
+
 ## Known issues
 
 **`generate:types` and `npm run seed` still crash the same way; `db:migrate` no longer does — see

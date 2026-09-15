@@ -28,6 +28,11 @@ export async function register() {
   const createName = process.env.PAYLOAD_MIGRATE_CREATE_NAME
   if (!wantsStatus && !wantsMigrate && !createName) return
 
+  // Defense in depth alongside postgresAdapter's push: false — matches the exact guard
+  // node_modules/payload/dist/bin/migrate.js sets before payload.init() for the same reason:
+  // dev-mode auto-push must never race a migration operation.
+  process.env.PAYLOAD_MIGRATING = 'true'
+
   const { getPayload, getMigrations, readMigrationFiles } = await import('payload')
   const { default: config } = await import('@payload-config')
   const payload = await getPayload({ config })
