@@ -1,4 +1,4 @@
-import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+import { sql } from '@payloadcms/db-postgres'
 
 /**
  * Hand-edited after generation — DO NOT regenerate this file from a fresh diff.
@@ -20,7 +20,7 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
  * for draft-capable collections (a draft can be incomplete) — required-ness is enforced at the
  * application layer on publish, not as a DB constraint, for those three.
  */
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db, payload, req }) {
   await db.execute(sql`
     ALTER TABLE "services" ADD COLUMN "slug" varchar;
     ALTER TABLE "_services_v" ADD COLUMN "version_slug" varchar;
@@ -71,7 +71,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   `)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db, payload, req }) {
   await db.execute(sql`
     ALTER TABLE "services_locales" ADD COLUMN "slug" varchar;
     ALTER TABLE "_services_v_locales" ADD COLUMN "version_slug" varchar;

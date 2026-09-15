@@ -53,12 +53,54 @@ export async function register() {
     }
 
     if (createName) {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dir = adapter.migrationDir
+      const before = new Set(fs.readdirSync(dir))
+
       await adapter.createMigration({
         payload,
         migrationName: createName,
         // Non-interactive — boot has no TTY to prompt.
         forceAcceptWarning: true,
       })
+
+      // createMigration always writes .ts (Payload's template is hardcoded) — but readMigrationFiles'
+      // dynamicImport is a plain native import(), which can't parse TypeScript outside next dev's
+      // Turbopack loader. Under next start (real production), a raw .ts migration file fails with
+      // ERR_UNKNOWN_FILE_EXTENSION — confirmed the hard way. Converting to .js here (stripping the
+      // type-only import and two type annotations — the only TS-specific syntax the template emits)
+      // makes every migration this hook creates work identically in dev and production, always.
+      const newTsFiles = fs.readdirSync(dir).filter((f) => f.endsWith('.ts') && !before.has(f))
+      for (const file of newTsFiles) {
+        const tsPath = path.join(dir, file)
+        let content = fs.readFileSync(tsPath, 'utf8')
+        content = content
+          .replace(
+            /import \{ MigrateUpArgs, MigrateDownArgs, sql \} from '@payloadcms\/db-postgres'/,
+            "import { sql } from '@payloadcms/db-postgres'",
+          )
+          .replace(
+            /export async function up\(\{ db, payload, req \}: MigrateUpArgs\): Promise<void> \{/,
+            'export async function up({ db, payload, req }) {',
+          )
+          .replace(
+            /export async function down\(\{ db, payload, req \}: MigrateDownArgs\): Promise<void> \{/,
+            'export async function down({ db, payload, req }) {',
+          )
+        const jsPath = tsPath.replace(/\.ts$/, '.js')
+        fs.writeFileSync(jsPath, content)
+        fs.unlinkSync(tsPath)
+        console.log(`[migrate] converted ${file} -> ${path.basename(jsPath)} (production needs .js, not .ts)`)
+      }
+
+      // createMigration also (re)writes migrations/index.ts unconditionally, every time. Nothing in
+      // this project's migration flow reads it — readMigrationFiles lists the directory directly —
+      // so it's pure dead weight (and it would be yet another stray .ts file). Delete it rather than
+      // maintain a second, easily-stale copy in .js.
+      const indexTsPath = path.join(dir, 'index.ts')
+      if (fs.existsSync(indexTsPath)) fs.unlinkSync(indexTsPath)
+
       console.log(`[migrate] created migration "${createName}"`)
     }
 

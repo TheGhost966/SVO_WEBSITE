@@ -33,3 +33,6 @@ npm-debug.log*
 
 # Migrations (commit these — they're like DB schema history)
 # migrations/ — do NOT gitignore
+
+# DB backups (scripts/backup-db.mjs) — real data dumps, never commit
+backups/

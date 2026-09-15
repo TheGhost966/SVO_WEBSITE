@@ -1,6 +1,6 @@
-import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
+import { sql } from '@payloadcms/db-postgres'
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
+export async function up({ db, payload, req }) {
   await db.execute(sql`
    CREATE TYPE "public"."_locales" AS ENUM('de', 'ar', 'en');
   CREATE TYPE "public"."enum_users_role" AS ENUM('admin', 'board', 'editor', 'viewer');
@@ -1854,7 +1854,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "navigation_footer_locale_idx" ON "navigation_footer" USING btree ("_locale");`)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+export async function down({ db, payload, req }) {
   await db.execute(sql`
    DROP TABLE "users_sessions" CASCADE;
   DROP TABLE "users" CASCADE;
