@@ -244,9 +244,55 @@ consistent with the same overflow-avoidance reasoning from the Roadmaps/Experts 
 `guide-articles` cases found during the Roadmaps slice. Added a hook that busts `tags.siteSettings()`
 on every change, same as every other publishable collection.
 
+## Migration path fix (BRIEF-AMENDMENT-02 Slice 0)
+
+**`db:migrate` is fixed — not by fixing the CLI, but by not using it.** Per this file's own prior
+note under "Known issues" (still accurate for `seed`/`generate:types`), every `tsx`-loaded path to
+`payload.config.ts` hits an unfixable interop bug, and only `next dev`/`next build` load the config
+successfully (Turbopack/SWC, no tsx). `src/instrumentation.ts` now runs migration operations from
+*inside* that already-working pipeline: its `register()` hook fires once per server boot, and —
+gated behind explicit opt-in env vars, never automatic — calls the exact same `payload.db.migrate()`
+/ `payload.db.createMigration()` / status-read functions that `node_modules/payload/dist/bin/migrate.js`
+calls internally. Confirmed by reading that file: the CLI wrapper does nothing but parse args and
+call these adapter methods, so calling them directly from a working Next.js boot is equivalent, not
+a workaround-of-a-workaround.
+
+**Env vars** (see `.env.example`): `PAYLOAD_MIGRATE_STATUS=1`, `PAYLOAD_MIGRATE_ON_BOOT=1`,
+`PAYLOAD_MIGRATE_CREATE_NAME=<name>`. Set one, boot the server once (`next dev` or `next start`),
+read the result from the console, unset it before the next normal boot.
+
+**Why not an HTTP route instead** (the other option this file previously suggested): built first,
+then rejected by this session's own security review — a secret-gated endpoint that executes
+privileged DB-schema operations on request is a standing network attack surface regardless of how
+well it's gated. `instrumentation.ts`'s `register()` has no equivalent surface: it fires once at
+process boot, accepts no request, and does nothing unless an operator has explicitly set one of the
+env vars for that specific boot.
+
+**What's verified vs. not:**
+- `PAYLOAD_MIGRATE_STATUS=1` run against the real working dev database (read-only — lists migration
+  files vs. applied state, no writes): confirmed working end-to-end, no tsx crash, correct output
+  (`(no migration files found)`, matching the then-empty `migrations/` directory).
+- `PAYLOAD_MIGRATE_CREATE_NAME=initial_schema` run the same way generated
+  `migrations/20260915_103709_initial_schema.ts` (2,027 lines — the full schema: every collection,
+  version/draft tables, all enums). Confirmed this operation is filesystem-only and doesn't touch
+  the live database at all: reading `buildCreateMigration.js` shows it diffs the *last saved
+  snapshot in `migrations/`* (empty, since none existed) against the config-derived schema — never
+  live-DB introspection — so it was safe to run against the working dev DB and would have produced
+  the identical file against any DB, including a fresh empty one.
+- **Not verified: actually applying (`PAYLOAD_MIGRATE_ON_BOOT=1`) this migration against a fresh
+  database that's never seen dev-mode push.** This session's own tooling denied the action needed to
+  provision a throwaway database to test against (`CREATE DATABASE` on the project's Neon instance,
+  flagged "Modify Shared Resources") — correctly: that's a real write to shared cloud infrastructure
+  outside this repo, not something to wave through autonomously. Applying the generated migration to
+  the *working* dev DB was deliberately not attempted — it already has every table from dev-mode
+  push, so a raw (non-idempotent) `CREATE TABLE` migration would fail partway through. **Before a
+  real production deploy, run `PAYLOAD_MIGRATE_ON_BOOT=1` once against a genuinely fresh database and
+  confirm it succeeds — this is the one piece of Slice 0 still unverified.**
+
 ## Known issues
 
-**Every standalone Payload CLI-adjacent command — `npm run seed`, `generate:types`, `generate:importmap`, `db:migrate` — currently crashes.** None of these are bugs in this project's schema/config; all three are `tsx`/Node ESM-CJS interop friction between Payload's dependencies and however each command loads `payload.config.ts`:
+**`generate:types` and `npm run seed` still crash the same way; `db:migrate` no longer does — see
+"Migration path fix" above.** Every standalone Payload CLI-adjacent command — `npm run seed`, `generate:types`, `generate:importmap`, `db:migrate` — used to crash the same way. None of these are bugs in this project's schema/config; all three are `tsx`/Node ESM-CJS interop friction between Payload's dependencies and however each command loads `payload.config.ts`:
 
 - `npm run seed` (`tsx seed/index.ts`, tsx's CLI/CJS-register path — the only mode that correctly resolves this project's `@/*` tsconfig alias, used throughout `payload.config.ts` and every collection): crashes with `Cannot destructure property 'loadEnvConfig' of 'import_env.default'`. `@payloadcms/db-postgres` → `@payloadcms/drizzle` eagerly imports `payload/node`'s `loadEnv.js` for a migration-dir helper; that file has `import nextEnvImport from '@next/env'` at its top level, and tsx's CJS transform of this ESM-syntax file produces an interop wrapper that expects `@next/env`'s CJS export to have a `.default` — it doesn't, so the wrapper is `undefined`. Confirmed independent of `dotenv` (also genuinely missing as a dependency — fixed separately) by reproducing the identical crash from a two-line repro file. A `require.cache` pre-seed via `node --require` (which works in principle — Node's CJS loader does check the cache by resolved path before re-requiring) did not resolve it either, for a reason not fully pinned down before deprioritizing this.
 - `payload generate:types` / `generate:importmap` / `migrate` in their default mode (`payload`'s own CLI, `node_modules/payload/bin.js` — uses tsx's ESM `tsImport()` API instead of the CJS register path, specifically to *avoid* the bug above): crash instead with `ERR_REQUIRE_ASYNC_MODULE: Cannot use require() on an ESM graph with top-level await`, from `@payloadcms/richtext-lexical`'s dist build. Same root shape as the seed script's bug — something in the chain downgrades an `import` to a `require()` where it shouldn't.
@@ -254,7 +300,7 @@ on every change, same as every other publishable collection.
 
 So every available loader mode has exactly one blocking bug, and no combination avoids all of them. Only `next dev`/`next build` are unaffected (Turbopack/SWC, no tsx involved) — confirmed extensively this session against a real Neon Postgres instance. Payload's dev-mode schema **push** (automatic, no migration needed) is what every bit of manual testing in this repo has relied on so far.
 
-**Practical impact:** seed content manually through the admin UI instead of `npm run seed`. `generate:types` not running means `src/payload-types.ts` was never generated (the hand-written `src/types/payload.ts` stands in — see its own comment). **`db:migrate` not running is the one with real production stakes** — a live deploy needs actual migrations, not dev-mode push. Revisit with a different tsx version, or by running these operations from inside the already-working Next.js runtime (a temporary authenticated API route hit from `next dev`/`next start`, or a custom script that loads `payload.config.ts` via Next's own SWC pipeline instead of tsx) rather than as standalone scripts.
+**Practical impact:** seed content manually through the admin UI instead of `npm run seed`. `generate:types` not running means `src/payload-types.ts` was never generated (the hand-written `src/types/payload.ts` stands in — see its own comment). **`db:migrate` — the one with real production stakes — is fixed, see "Migration path fix" above.**
 
 `generate:importmap` not running turned out **not** to matter in practice: Payload's Next.js plugin regenerates `src/app/(payload)/admin/importMap.js` on its own whenever `next dev`/`next build` runs (via SWC/Turbopack, unaffected by the tsx issues above) — no CLI command needed. The real bug was that this project's `admin/[[...segments]]/page.tsx` imported a stray, permanently-empty `(payload)/importMap.ts` stub instead of the auto-generated `admin/importMap.js` sitting right next to it, so the dashboard's collection-cards widget could never find its components (`getFromImportMap: PayloadComponent not found... @payloadcms/next/rsc#CollectionCards`) no matter how many times Payload regenerated the real file. Fixed by pointing both `page.tsx` and the new `(payload)/layout.tsx` (see below) at `./admin/importMap` and deleting the stub.
 
