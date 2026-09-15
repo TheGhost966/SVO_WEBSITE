@@ -9,7 +9,6 @@ import { breadcrumbSchema } from '@/lib/jsonld'
 import {
   getPillarBySlug,
   getServicesByPillar,
-  getPillarAllLocaleSlugs,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import { forwardArrow } from '@/i18n/routing'
@@ -31,20 +30,18 @@ type Props = { params: Promise<{ locale: string; pillar: string }> }
 export async function generateStaticParams() {
   try {
     const payload = await getPayloadClient()
-    const params: { locale: string; pillar: string }[] = []
-    for (const locale of ['de', 'ar', 'en'] as const) {
-      const result = await payload.find({
-        collection: 'service-pillars',
-        locale,
-        depth: 0,
-        limit: 50,
-      })
-      for (const doc of result.docs) {
-        const slug = (doc as { slug?: unknown }).slug
-        if (typeof slug === 'string') params.push({ locale, pillar: slug })
-      }
-    }
-    return params
+    // slug is unlocalized — one fetch covers every locale variant.
+    const result = await payload.find({
+      collection: 'service-pillars',
+      depth: 0,
+      limit: 50,
+    })
+    const slugs = result.docs
+      .map((doc) => (doc as { slug?: unknown }).slug)
+      .filter((slug): slug is string => typeof slug === 'string')
+    return (['de', 'ar', 'en'] as const).flatMap((locale) =>
+      slugs.map((pillar) => ({ locale, pillar })),
+    )
   } catch {
     return []
   }
@@ -61,12 +58,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = SERVICES_BASE[locale] ?? SERVICES_BASE.de
-  const slugsByLocale = await getPillarAllLocaleSlugs(pillar.id)
 
+  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segment for every locale.
   const languages: Record<string, string> = {}
-  for (const [loc, locSlug] of Object.entries(slugsByLocale)) {
+  for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = SERVICES_BASE[loc]
-    if (locBase && locSlug) languages[loc] = `${SERVER}${locBase}/${locSlug}`
+    if (locBase) languages[loc] = `${SERVER}${locBase}/${pillarSlug}`
   }
 
   return {

@@ -28,9 +28,12 @@ export const Services: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      localized: true,
       required: true,
+      unique: true,
       label: { de: 'Slug (URL)', ar: 'الرابط', en: 'Slug (URL)' },
+      admin: {
+        description: 'Not localized — one URL segment shared by all languages (see DECISIONS.md "Unlocalized slugs").',
+      },
     },
     {
       name: 'pillar',

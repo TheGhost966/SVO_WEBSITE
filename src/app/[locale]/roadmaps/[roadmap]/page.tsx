@@ -7,7 +7,7 @@ import { GuideDisclaimer } from '@/components/ui/GuideDisclaimer'
 import { Link } from '@/i18n/navigation'
 import { buildMetadata } from '@/lib/seo'
 import { roadmapSchema, breadcrumbSchema } from '@/lib/jsonld'
-import { getRoadmapBySlug, getRoadmapAllLocaleSlugs } from '@/lib/queries'
+import { getRoadmapBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { RoadmapStep } from '@/types/payload'
 
@@ -46,21 +46,19 @@ function formatDate(iso: string | null | undefined, locale: string): string {
 export async function generateStaticParams() {
   try {
     const payload = await getPayloadClient()
-    const params: { locale: string; roadmap: string }[] = []
-    for (const locale of ['de', 'ar', 'en'] as const) {
-      const result = await payload.find({
-        collection: 'roadmaps',
-        where: { reviewStatus: { equals: 'published' } },
-        locale,
-        depth: 0,
-        limit: 500,
-      })
-      for (const doc of result.docs) {
-        const slug = (doc as { slug?: unknown }).slug
-        if (typeof slug === 'string') params.push({ locale, roadmap: slug })
-      }
-    }
-    return params
+    // slug is unlocalized — one fetch covers every locale variant.
+    const result = await payload.find({
+      collection: 'roadmaps',
+      where: { reviewStatus: { equals: 'published' } },
+      depth: 0,
+      limit: 500,
+    })
+    const slugs = result.docs
+      .map((doc) => (doc as { slug?: unknown }).slug)
+      .filter((slug): slug is string => typeof slug === 'string')
+    return (['de', 'ar', 'en'] as const).flatMap((locale) =>
+      slugs.map((roadmap) => ({ locale, roadmap })),
+    )
   } catch {
     return []
   }
@@ -77,13 +75,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = ROADMAPS_BASE[locale] ?? ROADMAPS_BASE.de
-  const slugs = await getRoadmapAllLocaleSlugs(roadmap.id)
 
+  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segment for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = ROADMAPS_BASE[loc]
-    const s = (slugs as Record<string, string | undefined>)[loc]
-    if (locBase && s) languages[loc] = `${SERVER}${locBase}/${s}`
+    if (locBase) languages[loc] = `${SERVER}${locBase}/${slug}`
   }
 
   const meta = buildMetadata({ doc: roadmap, locale, serverUrl: SERVER })

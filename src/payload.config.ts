@@ -43,6 +43,12 @@ export default buildConfig({
 
   // ─── Database ──────────────────────────────────────────────────────────────
   db: postgresAdapter({
+    // Dev-mode auto-push is off — a real migration path exists now (see
+    // src/instrumentation.ts, DECISIONS.md "Migration path fix"). Auto-push can silently prompt
+    // for destructive changes (interactively, which hangs a backgrounded/non-TTY server) and
+    // apply them without the review a committed migration file gets. Schema changes now go
+    // through PAYLOAD_MIGRATE_CREATE_NAME / PAYLOAD_MIGRATE_ON_BOOT exclusively.
+    push: false,
     pool: {
       connectionString: process.env.DATABASE_URI ?? '',
       // Connection pooling — handles high traffic

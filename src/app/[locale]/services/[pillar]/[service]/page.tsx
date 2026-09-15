@@ -13,8 +13,6 @@ import {
   getServiceBySlug,
   getPillarBySlug,
   getServicesByPillar,
-  getServiceAllLocaleSlugs,
-  getPillarAllLocaleSlugs,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { ResolvedMedia } from '@/types/payload'
@@ -35,25 +33,25 @@ type Props = { params: Promise<{ locale: string; pillar: string; service: string
 export async function generateStaticParams() {
   try {
     const payload = await getPayloadClient()
-    const params: { locale: string; pillar: string; service: string }[] = []
-    for (const locale of ['de', 'ar', 'en'] as const) {
-      const result = await payload.find({
-        collection: 'services',
-        where: { reviewStatus: { equals: 'published' } },
-        locale,
-        depth: 1,
-        limit: 500,
-      })
-      for (const doc of result.docs) {
-        const d = doc as { slug?: unknown; pillar?: { slug?: unknown } | unknown }
-        const serviceSlug = d.slug
-        const pillarSlug = d.pillar && typeof d.pillar === 'object' ? (d.pillar as { slug?: unknown }).slug : undefined
-        if (typeof serviceSlug === 'string' && typeof pillarSlug === 'string') {
-          params.push({ locale, pillar: pillarSlug, service: serviceSlug })
-        }
+    // slug is unlocalized — one fetch covers every locale variant.
+    const result = await payload.find({
+      collection: 'services',
+      where: { reviewStatus: { equals: 'published' } },
+      depth: 1,
+      limit: 500,
+    })
+    const pairs: { pillar: string; service: string }[] = []
+    for (const doc of result.docs) {
+      const d = doc as { slug?: unknown; pillar?: { slug?: unknown } | unknown }
+      const serviceSlug = d.slug
+      const pillarSlug = d.pillar && typeof d.pillar === 'object' ? (d.pillar as { slug?: unknown }).slug : undefined
+      if (typeof serviceSlug === 'string' && typeof pillarSlug === 'string') {
+        pairs.push({ pillar: pillarSlug, service: serviceSlug })
       }
     }
-    return params
+    return (['de', 'ar', 'en'] as const).flatMap((locale) =>
+      pairs.map(({ pillar, service }) => ({ locale, pillar, service })),
+    )
   } catch {
     return []
   }
@@ -68,24 +66,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const service = await getServiceBySlug(pillarSlug, serviceSlug, locale)
   if (!service) return {}
 
-  const pillar = await getPillarBySlug(pillarSlug, locale)
-
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = SERVICES_BASE[locale] ?? SERVICES_BASE.de
 
-  const [serviceSlugs, pillarSlugs] = await Promise.all([
-    getServiceAllLocaleSlugs(service.id),
-    pillar ? getPillarAllLocaleSlugs(pillar.id) : Promise.resolve({}),
-  ])
-
+  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segments for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = SERVICES_BASE[loc]
-    const pSlug = (pillarSlugs as Record<string, string | undefined>)[loc]
-    const sSlug = (serviceSlugs as Record<string, string | undefined>)[loc]
-    if (locBase && pSlug && sSlug) {
-      languages[loc] = `${SERVER}${locBase}/${pSlug}/${sSlug}`
-    }
+    if (locBase) languages[loc] = `${SERVER}${locBase}/${pillarSlug}/${serviceSlug}`
   }
 
   const meta = buildMetadata({ doc: service, locale, serverUrl: SERVER })

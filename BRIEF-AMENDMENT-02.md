@@ -82,10 +82,13 @@ Today that bug is buried behind an index page. Homepage teasers promote it to th
 Arabic visitor sees — and Arabic is a large share of this audience.
 
 **Preferred fix — do this one:** make `slug` unlocalized on `GuideTopics`, `GuideArticles`,
-`Roadmaps` and `Services`, exactly as the Experts slice already does (`DECISIONS.md` → Experts
-slice §2.3). A URL segment doesn't need to change per language; only `title`/`body` do. This is a
-proven pattern in this codebase, it retires a site-wide bug rather than masking it on one page,
-and it removes a standing content burden from the board.
+`Roadmaps`, `Services`, **and `ServicePillars`**, exactly as the Experts slice already does
+(`DECISIONS.md` → Experts slice §2.3). (Corrected post-implementation — `ServicePillars` was missing
+from this list, but the bug repro this section opens with, `/ar/services/bildung-qualifizierung`, is
+a *pillar* route; leaving pillars off would have shipped the fix half-done. See `DECISIONS.md`
+"Unlocalized slugs".) A URL segment doesn't need to change per language; only `title`/`body` do.
+This is a proven pattern in this codebase, it retires a site-wide bug rather than masking it on one
+page, and it removes a standing content burden from the board.
 
 **Fallback, only if §2.2's migration work makes the above unsafe to sequence now:** filter every
 teaser to items resolvable in the current locale, and record in `DECISIONS.md` that the real fix

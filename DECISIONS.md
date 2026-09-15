@@ -244,6 +244,91 @@ consistent with the same overflow-avoidance reasoning from the Roadmaps/Experts 
 `guide-articles` cases found during the Roadmaps slice. Added a hook that busts `tags.siteSettings()`
 on every change, same as every other publishable collection.
 
+## Unlocalized slugs (BRIEF-AMENDMENT-02 Slice 1)
+
+**`slug` is no longer a `localized` field on `ServicePillars`, `Services`, `GuideTopics`,
+`GuideArticles`, or `Roadmaps`** — one URL segment shared by every locale, `unique: true`, exactly
+the pattern the Experts slice already used (see "Experts slice" above). This retires the site-wide
+untranslated-slug-404 bug (documented under "Known issues" below) at its root for every collection
+it affected, rather than filtering teasers to dodge it on a case-by-case basis (§2.3's non-preferred
+fallback). `ServicePillars` was added to the amendment's literal list of four — the bug repro
+(`/ar/services/bildung-qualifizierung`) is a *pillar* route, not a nested service route, so leaving
+pillars out would have left the bug half-fixed.
+
+**Removed, not just unused:** the five `get*AllLocaleSlugs` helpers in `src/lib/queries.ts` and every
+caller (`generateMetadata` in the five affected detail pages) that fetched a document a second time
+with `locale: 'all'` just to build hreflang `alternates.languages`. With one slug per document, the
+current route param *is* every locale's URL segment — no extra fetch needed. Also simplified
+`generateStaticParams` in the same five pages from a 3x-per-locale fetch loop to one fetch + a
+`flatMap` over the three locales (BRIEF-AMENDMENT-02 §2.7's query-discipline principle, applied here
+even though §2.7 itself was written for the homepage).
+
+**`postgresAdapter({ push: false })`** — dev-mode auto-push is now off. Discovered why the hard way:
+restarting `next dev` after this schema edit hot-reloaded straight into Payload's dev-push flow,
+which detected the change was destructive (dropping the old per-locale `slug` columns) and prompted
+*interactively* — `Accept warnings and push schema to database? (y/N)` — which hangs forever against
+a backgrounded/non-TTY process, since nothing can answer it. Now that Slice 0 gives this project a
+real migration path, dev-push's convenience isn't worth its risk of silently prompting for
+destructive changes (or hanging) on every schema edit going forward. All schema changes now go
+through `PAYLOAD_MIGRATE_CREATE_NAME`/`PAYLOAD_MIGRATE_ON_BOOT` exclusively — see "Migration path
+fix" below.
+
+**The migration needed hand-correction before it could touch real data — this is exactly why
+migrations get reviewed before running, not auto-applied.** `createMigration` doesn't know "a field
+moved from a per-locale side table to the base table" is one semantic change; it sees an independent
+ADD + DROP, so the auto-generated SQL would have (a) failed outright on `service_pillars`/
+`guide_topics` — `ADD COLUMN "slug" varchar NOT NULL` with no default, against tables that already
+have one row each — and (b) silently left `services`/`guide_articles`/`roadmaps`' new `slug` column
+NULL forever, since it never backfilled from the old per-locale data at all. Checked real data first
+(`service_pillars`: 1 row, `slug` de-only `bildung-qualifizierung`; `guide_topics`: 1 row, `arbeit`;
+`guide_articles`: 1 row, `ams-registrierung`; `roadmaps`: 1 row, `meldezettel`; `services`: 0 rows) —
+hand-rewrote `migrations/20260915_104651_unlocalize_reference_slugs.ts` to add each column nullable,
+backfill it from the `de` locale row via `UPDATE ... FROM ... WHERE _parent_id = id AND _locale =
+'de'`, then set `NOT NULL` only where the migration's own generated `.json` snapshot actually shows
+it (see next paragraph), before creating indexes and dropping the old columns.
+
+**Not all five `required: true` slug fields are DB-level `NOT NULL` — and that's correct, not a
+bug.** Cross-checked the migration's `.json` snapshot (generated straight from
+`generateDrizzleJson(config)`, so it reflects the real target schema Payload wants, independent of
+whatever SQL got auto-generated for the diff): `service_pillars.slug` and `guide_topics.slug` are
+`notNull: true`; `services.slug`, `guide_articles.slug`, and `roadmaps.slug` are `notNull: false`.
+The difference is `versions.drafts` — the latter three have draft/review workflows (`_services_v`,
+`_guide_articles_v`, `_roadmaps_v` version tables exist; pillars/topics have none), and Payload
+deliberately keeps `required: true` fields nullable at the base-table level for draft-capable
+collections, since a draft can legitimately be incomplete — required-ness is enforced at the
+application layer only, on publish. The hand-corrected migration matches this exactly.
+
+**Not yet applied to the real working dev database — blocked by this session's own tooling, same as
+Slice 0's fresh-database test.** Two more direct-DB-write attempts were declined ("Modify Shared
+Resources"): first `CREATE DATABASE` for a throwaway test target (Slice 0), now a two-row
+`DELETE`/`INSERT` against `payload_migrations` on the *existing* working database. This project's
+`payload_migrations` table already carries Payload's own sentinel row (`name: 'dev', batch: -1` —
+written by dev-push itself) marking that this database's schema came from dev-mode push, not
+migrations. Running `payload.db.migrate()` against it will hit Payload's own built-in interactive
+prompt for exactly this situation ("It looks like you've run Payload in dev mode... data loss will
+occur. Would you like to proceed?") — which needs a real TTY to answer, so it must be run from an
+actual interactive terminal, not through this session's tooling.
+
+**Exact recovery steps** (run locally, interactively, in a normal terminal — not backgrounded):
+1. `$env:PAYLOAD_MIGRATE_ON_BOOT=1` (PowerShell) or `PAYLOAD_MIGRATE_ON_BOOT=1` prefix (bash), then
+   `npm run dev` (or `next build && next start` for a closer-to-prod check).
+2. Answer **y** at Payload's dev-mode prompt. This runs both pending migrations: `initial_schema`
+   will fail if the database already has these tables from dev-push — if so, that confirms the
+   database needs baselining first (mark `initial_schema` as already-applied without running it,
+   since dev-push already built that schema) before `unlocalize_reference_slugs` can run alone.
+3. Once clean, unset `PAYLOAD_MIGRATE_ON_BOOT` before the next normal boot.
+4. Verify: `/ar/roadmaps/meldezettel`, `/ar/guide/arbeit/ams-registrierung`,
+   `/ar/services/bildung-qualifizierung` (and `/en/...`) all resolve instead of 404ing — this is the
+   actual proof the fix works, not just that the migration ran.
+
+**Until that's done, this is the current state:** the code is correct and builds cleanly (confirmed:
+`npm run build` succeeds, `generateStaticParams` degrades gracefully to zero pre-rendered paths for
+the five affected detail routes rather than crashing, since the live DB doesn't have the new `slug`
+column yet). But **the real dev database is mid-migration** — it has neither the old localized-slug
+shape the running site was built against, nor the new unlocalized shape this code now expects. Guide/
+Roadmaps/Services detail pages will 404 or error until the steps above are run. Don't treat a running
+`next dev` as a working preview of this slice until that database write happens.
+
 ## Migration path fix (BRIEF-AMENDMENT-02 Slice 0)
 
 **`db:migrate` is fixed — not by fixing the CLI, but by not using it.** Per this file's own prior

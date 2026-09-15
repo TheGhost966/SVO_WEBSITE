@@ -451,50 +451,6 @@ export const getServiceBySlug = unstable_cache(
   { revalidate: 60, tags: [tags.services()] },
 )
 
-/** Fetch a service with ALL locales to extract per-locale slugs for hreflang */
-export async function getServiceAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'services',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
-
-/** Fetch a pillar with ALL locales to extract per-locale slugs for hreflang */
-export async function getPillarAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'service-pillars',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
-
 export const getServicePillars = unstable_cache(
   async (locale: string): Promise<PaginatedResult<ServicePillarDoc>> => {
     try {
@@ -654,50 +610,6 @@ export const getGuideArticleBySlug = unstable_cache(
   { revalidate: 60, tags: [tags.guide()] },
 )
 
-/** Fetch a guide article with ALL locales to extract per-locale slugs for hreflang */
-export async function getGuideArticleAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'guide-articles',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
-
-/** Fetch a guide topic with ALL locales to extract per-locale slugs for hreflang */
-export async function getGuideTopicAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'guide-topics',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
-
 // ─── Roadmaps ──────────────────────────────────────────────────────────────────
 
 /** Published roadmaps only — a flat list, no parent (BRIEF-AMENDMENT-01 §2.8 empty-state principle). */
@@ -749,28 +661,6 @@ export const getRoadmapBySlug = unstable_cache(
   ['roadmap-by-slug'],
   { revalidate: 60, tags: [tags.roadmaps()] },
 )
-
-/** Fetch a roadmap with ALL locales to extract per-locale slugs for hreflang */
-export async function getRoadmapAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'roadmaps',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
 
 // ─── Experts ───────────────────────────────────────────────────────────────────
 

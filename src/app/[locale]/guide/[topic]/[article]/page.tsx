@@ -13,8 +13,6 @@ import {
   getGuideArticleBySlug,
   getGuideTopicBySlug,
   getGuideArticlesByTopic,
-  getGuideArticleAllLocaleSlugs,
-  getGuideTopicAllLocaleSlugs,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { ResolvedMedia } from '@/types/payload'
@@ -54,25 +52,25 @@ function formatDate(iso: string | null | undefined, locale: string): string {
 export async function generateStaticParams() {
   try {
     const payload = await getPayloadClient()
-    const params: { locale: string; topic: string; article: string }[] = []
-    for (const locale of ['de', 'ar', 'en'] as const) {
-      const result = await payload.find({
-        collection: 'guide-articles',
-        where: { reviewStatus: { equals: 'published' } },
-        locale,
-        depth: 1,
-        limit: 500,
-      })
-      for (const doc of result.docs) {
-        const d = doc as { slug?: unknown; topic?: { slug?: unknown } | unknown }
-        const articleSlug = d.slug
-        const topicSlug = d.topic && typeof d.topic === 'object' ? (d.topic as { slug?: unknown }).slug : undefined
-        if (typeof articleSlug === 'string' && typeof topicSlug === 'string') {
-          params.push({ locale, topic: topicSlug, article: articleSlug })
-        }
+    // slug is unlocalized — one fetch covers every locale variant.
+    const result = await payload.find({
+      collection: 'guide-articles',
+      where: { reviewStatus: { equals: 'published' } },
+      depth: 1,
+      limit: 500,
+    })
+    const pairs: { topic: string; article: string }[] = []
+    for (const doc of result.docs) {
+      const d = doc as { slug?: unknown; topic?: { slug?: unknown } | unknown }
+      const articleSlug = d.slug
+      const topicSlug = d.topic && typeof d.topic === 'object' ? (d.topic as { slug?: unknown }).slug : undefined
+      if (typeof articleSlug === 'string' && typeof topicSlug === 'string') {
+        pairs.push({ topic: topicSlug, article: articleSlug })
       }
     }
-    return params
+    return (['de', 'ar', 'en'] as const).flatMap((locale) =>
+      pairs.map(({ topic, article }) => ({ locale, topic, article })),
+    )
   } catch {
     return []
   }
@@ -87,23 +85,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getGuideArticleBySlug(topicSlug, articleSlug, locale)
   if (!article) return {}
 
-  const topic = await getGuideTopicBySlug(topicSlug, locale)
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = GUIDE_BASE[locale] ?? GUIDE_BASE.de
 
-  const [articleSlugs, topicSlugs] = await Promise.all([
-    getGuideArticleAllLocaleSlugs(article.id),
-    topic ? getGuideTopicAllLocaleSlugs(topic.id) : Promise.resolve({}),
-  ])
-
+  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segments for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = GUIDE_BASE[loc]
-    const tSlug = (topicSlugs as Record<string, string | undefined>)[loc]
-    const aSlug = (articleSlugs as Record<string, string | undefined>)[loc]
-    if (locBase && tSlug && aSlug) {
-      languages[loc] = `${SERVER}${locBase}/${tSlug}/${aSlug}`
-    }
+    if (locBase) languages[loc] = `${SERVER}${locBase}/${topicSlug}/${articleSlug}`
   }
 
   const meta = buildMetadata({ doc: article, locale, serverUrl: SERVER })
