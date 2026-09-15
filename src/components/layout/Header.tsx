@@ -25,6 +25,7 @@ const guideMenuItems = [
   { href: '/guide', key: 'guide' },
   { href: '/roadmaps', key: 'roadmaps' },
   { href: '/experts', key: 'experts' },
+  { href: '/jobs', key: 'jobs' },
 ] as const
 
 function GuideMenu({ pathname }: { pathname: string }) {

@@ -9,6 +9,7 @@
     "guideMenu": "Ressourcen",
     "roadmaps": "Anleitungen",
     "experts": "Expert:innen",
+    "jobs": "Stellenangebote",
     "contact": "Kontakt",
     "partners": "Partner",
     "menu": "Menü",
@@ -110,6 +111,11 @@
     "contact": "Kontakt",
     "languages": "Sprachen",
     "listedDisclaimer": "Der SVÖ übernimmt keine Haftung für die Richtigkeit der Angaben oder die Qualität der angebotenen Dienstleistungen."
+  },
+  "jobs": {
+    "title": "Stellenangebote",
+    "intro": "Der SVÖ betreibt keine eigene Jobbörse. Hier finden Sie ausgewählte Anlaufstellen für die Jobsuche in Österreich.",
+    "empty": "Es wurden noch keine Links hinterlegt."
   },
   "contact": {
     "title": "Kontakt",

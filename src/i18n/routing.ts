@@ -108,6 +108,11 @@ export const routing = defineRouting({
       ar: '/experts/apply',
       en: '/experts/apply',
     },
+    '/jobs': {
+      de: '/stellenangebote',
+      ar: '/jobs',
+      en: '/jobs',
+    },
     '/contact': {
       de: '/kontakt',
       ar: '/contact',

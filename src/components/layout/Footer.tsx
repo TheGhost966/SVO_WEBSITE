@@ -46,6 +46,7 @@ export function Footer() {
                   { href: '/guide' as const, key: 'guide' as const },
                   { href: '/roadmaps' as const, key: 'roadmaps' as const },
                   { href: '/experts' as const, key: 'experts' as const },
+                  { href: '/jobs' as const, key: 'jobs' as const },
                   { href: '/contact' as const, key: 'contact' as const },
                   { href: '/partners' as const, key: 'partners' as const },
                 ]

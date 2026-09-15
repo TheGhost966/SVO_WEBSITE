@@ -9,6 +9,7 @@
     "guideMenu": "Resources",
     "roadmaps": "Roadmaps",
     "experts": "Experts",
+    "jobs": "Jobs",
     "contact": "Contact",
     "partners": "Partners",
     "menu": "Menu",
@@ -110,6 +111,11 @@
     "contact": "Contact",
     "languages": "Languages",
     "listedDisclaimer": "SVÖ accepts no liability for the accuracy of this information or the quality of services offered."
+  },
+  "jobs": {
+    "title": "Jobs",
+    "intro": "SVÖ does not run its own job board. Here are some useful starting points for job hunting in Austria.",
+    "empty": "No links have been added yet."
   },
   "contact": {
     "title": "Contact",

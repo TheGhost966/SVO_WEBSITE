@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
+import { revalidateTag } from 'next/cache'
 import { isAdminOrBoard } from '@/lib/access'
+import { tags } from '@/lib/payload'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -100,6 +102,42 @@ export const SiteSettings: GlobalConfig = {
       ],
     },
     {
+      name: 'jobResourceLinks',
+      type: 'array',
+      label: { de: 'Stellenangebote — externe Links', ar: 'روابط فرص العمل الخارجية', en: 'Job resource links' },
+      labels: {
+        singular: { de: 'Link', ar: 'رابط', en: 'Link' },
+        plural: { de: 'Links', ar: 'روابط', en: 'Links' },
+      },
+      admin: {
+        description: {
+          de: 'Kuratierte Links zu AMS, karriere.at usw. — siehe DECISIONS.md, warum es (noch) keine eigene Jobbörse gibt.',
+          en: 'Curated links to AMS, karriere.at, etc. — see DECISIONS.md for why this isn\'t a full job board (yet).',
+        },
+      },
+      fields: [
+        {
+          name: 'label',
+          type: 'text',
+          localized: true,
+          required: true,
+          label: { de: 'Beschriftung', ar: 'التسمية', en: 'Label' },
+        },
+        {
+          name: 'url',
+          type: 'text',
+          required: true,
+          label: { de: 'URL', ar: 'الرابط', en: 'URL' },
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          localized: true,
+          label: { de: 'Beschreibung', ar: 'الوصف', en: 'Description' },
+        },
+      ],
+    },
+    {
       name: 'submissionRetentionMonths',
       type: 'number',
       defaultValue: 12,
@@ -146,6 +184,17 @@ export const SiteSettings: GlobalConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      () => {
+        try {
+          revalidateTag(tags.siteSettings(), { expire: 0 })
+        } catch {
+          // Outside Next.js context (CLI, migrations) — revalidateTag is a no-op
+        }
+      },
+    ],
+  },
   access: {
     read: () => true,
     update: isAdminOrBoard,

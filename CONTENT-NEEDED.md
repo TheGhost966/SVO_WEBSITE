@@ -79,6 +79,13 @@ These pages contain legally required content in Austria. **Never generate or inv
 - [ ] Datenschutzerklärung's real legal text needs to describe the Experts removal/delisting path
       (see DECISIONS.md) once written by the board/lawyer
 
+## Jobs / Stellenangebote
+
+- [ ] **Board decision:** who maintains a weekly review of job postings, if the SVÖ ever wants a real
+      job board? Until someone is named, this stays a curated-links page — see DECISIONS.md.
+- [ ] Curated links to add to `SiteSettings.jobResourceLinks` — at minimum AMS (ams.at), karriere.at;
+      consider willhaben Jobs, migration.gv.at's work-permit info page
+
 ## About page
 
 - [ ] Mission statement (DE/AR/EN)

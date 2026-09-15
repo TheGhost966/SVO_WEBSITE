@@ -274,6 +274,7 @@ export type SiteSettingsDoc = {
   socialLinks?: Array<{ platform: string; url: string }> | null
   logo?: ResolvedMedia | string | null
   boardNotificationEmails?: Array<{ email: string }> | null
+  jobResourceLinks?: Array<{ id?: string; label?: string | null; url?: string | null; description?: string | null }> | null
 }
 
 export type PartnerDoc = {

@@ -218,6 +218,32 @@ process was idle, not spinning) wedged the whole process. Fix was simply restart
 If a session doing heavy schema iteration sees requests mysteriously hang site-wide (not just on the
 route you just edited), suspect this before assuming a code bug — restart the dev server first.
 
+## Jobs slice (BRIEF-AMENDMENT-01 Slice 4)
+
+**"Who reviews job postings weekly?" — unanswered, and that's the answer.** §4 requires this
+question be answered in `DECISIONS.md` before building the full Jobs collection, and is explicit
+that if nobody is assigned, the right move is a curated links page instead. Nobody has been assigned
+a weekly review responsibility as of this slice — this is a board staffing decision that can't be
+made from inside a coding session. Per §4's own instruction, this slice therefore ships:
+`SiteSettings.jobResourceLinks` (a simple admin-editable array of external links to AMS, karriere.at,
+willhaben Jobs, etc.) rendered on a plain `/stellenangebote` (de) / `/jobs` (ar, en) page — **not**
+the `Jobs` collection with `applyUrl`/`expiryDate`/detail pages/`JobPosting` JSON-LD described in the
+brief's original schema sketch. None of §2.4 (detail page), §2.5 (expiry enforcement) apply to this
+simpler shape — there's no listing lifecycle to manage, only a hand-curated list of outbound links.
+
+**If the board later commits a named maintainer for weekly review**, that unlocks building the real
+`Jobs` collection per the brief's original schema — at that point §2.4/§2.5 become load-bearing
+again and should be implemented in full, not retrofitted piecemeal onto this page.
+
+**Route added to "Ressourcen" nav dropdown as a fourth item**, alongside Guide/Roadmaps/Experts —
+consistent with the same overflow-avoidance reasoning from the Roadmaps/Experts slices.
+
+**Fixed while building this: `SiteSettings` had no `afterChange` hook at all**, so any edit
+(`jobResourceLinks` included) sat on the `getSiteSettings` cache for up to an hour (`revalidate:
+3600`) instead of showing immediately — the same class of bug as the missing `guide-topics`/
+`guide-articles` cases found during the Roadmaps slice. Added a hook that busts `tags.siteSettings()`
+on every change, same as every other publishable collection.
+
 ## Known issues
 
 **Every standalone Payload CLI-adjacent command — `npm run seed`, `generate:types`, `generate:importmap`, `db:migrate` — currently crashes.** None of these are bugs in this project's schema/config; all three are `tsx`/Node ESM-CJS interop friction between Payload's dependencies and however each command loads `payload.config.ts`:
