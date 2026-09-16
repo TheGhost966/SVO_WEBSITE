@@ -524,6 +524,24 @@ before it. See "Migration path fix" above for the now-updated recovery steps, wh
 pending migrations (`initial_schema`, `unlocalize_reference_slugs`, `add_home_group_site_settings`)
 in one interactive session. **The homepage admin fields will not appear until that recovery runs.**
 
+## Process: verify schema-state claims against the actual connection string, not a verbal report
+
+2026-09-16, during Slice 3 kickoff: told the migration was applied and to proceed; ran a read-only
+`PAYLOAD_MIGRATE_STATUS=1` check against the connection string actually sitting in `.env.local`
+first anyway, and it reported all three migrations still `pending`. The applied-migration claim
+turned out to be pointed at a different Neon branch than the one wired up in `.env.local` — caught
+before any Slice 3 code was written against a DB that didn't have the schema it would need.
+
+**The pattern worth keeping is the check itself, not this specific mix-up:** a report that schema
+state changed (a migration ran, a seed completed, a branch was promoted) gets verified against
+whatever this session is actually pointed at before any schema-dependent code is written — never
+taken on the reporter's word alone, regardless of who's reporting it or how confident the report
+sounds. `BRIEF-AMENDMENT-02.md` §5 now has this as a named preflight step for this slice; the
+general version of the habit is: **when what you're about to build depends on external state
+(a database's actual schema, a deployed service's actual version, a branch someone says was
+merged), check the state directly through whatever read-only mechanism exists before building
+against it — a status query, not a status claim.**
+
 ## Homepage sections (BRIEF-AMENDMENT-02 Slice 3) — planning, blocked on migration
 
 **Not started — the plan was approved with two corrections, then paused.** Building against the

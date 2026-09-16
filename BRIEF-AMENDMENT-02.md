@@ -260,6 +260,13 @@ heavy schema iterations (`DECISIONS.md` → dev-server note).
 
 ## 5. Definition of done
 
+**Preflight — run before any build session in this slice, not just at the end:** run the
+migration status check (`PAYLOAD_MIGRATE_STATUS=1` — see `DECISIONS.md` "Migration path fix" for
+the exact command) against whatever connection string is actually in `.env.local` right now, and
+paste its output. A verbal "the migration is applied" is not sufficient to start writing
+schema-dependent code — see `DECISIONS.md` "Homepage sections" for why. If status shows any of the
+three migrations as `pending`, stop and resolve that first.
+
 Extends `BRIEF-AMENDMENT-01.md` §5. In addition to that checklist:
 
 - [ ] every interactive element on `/de`, `/ar`, `/en` either navigates somewhere real or is gone
