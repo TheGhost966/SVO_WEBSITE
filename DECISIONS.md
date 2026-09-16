@@ -309,14 +309,29 @@ prompt for exactly this situation ("It looks like you've run Payload in dev mode
 occur. Would you like to proceed?") — which needs a real TTY to answer, so it must be run from an
 actual interactive terminal, not through this session's tooling.
 
+**Confirmed reproducible, not a one-off: BRIEF-AMENDMENT-02 Slice 2 (`SiteSettings.homeGroup`) hit
+the identical wall.** Its migration (`add_home_group_site_settings`, purely additive — new nullable
+columns and two new child tables, no drops) was generated successfully (filesystem-only, safe), but
+running `PAYLOAD_MIGRATE_ON_BOOT=1` against the real dev DB hit the exact same
+`payload_migrations.batch = -1` sentinel prompt, backgrounded with no TTY to answer — killed rather
+than force-answered, since blindly piping `y` into a schema-migrating process against a shared
+database is not a call this session should make unsupervised, and the risk below (baselining) is
+real, not hypothetical until proven otherwise. The migration file is committed anyway (matches how
+`unlocalize_reference_slugs` was handled) — it's the same *pending-application* state as that one,
+now stacked one deeper. **Do not add a fourth migration on top before running the recovery steps
+below** — each additional unapplied migration makes the eventual manual recovery larger.
+
 **Exact recovery steps** (run locally, interactively, in a normal terminal — not backgrounded):
 1. `$env:PAYLOAD_MIGRATE_ON_BOOT=1` (PowerShell) or `PAYLOAD_MIGRATE_ON_BOOT=1` prefix (bash), then
    `npm run dev` (or `next build && next start` for a closer-to-prod check).
-2. Answer **y** at Payload's dev-mode prompt. This runs both pending migrations: `initial_schema`
-   will fail if the database already has these tables from dev-push — if so, that confirms the
-   database needs baselining first (mark `initial_schema` as already-applied without running it,
-   since dev-push already built that schema) before `unlocalize_reference_slugs` can run alone.
+2. Answer **y** at Payload's dev-mode prompt. This runs all pending migrations in order:
+   `initial_schema` will fail if the database already has these tables from dev-push — if so, that
+   confirms the database needs baselining first (mark `initial_schema` as already-applied without
+   running it, since dev-push already built that schema) before `unlocalize_reference_slugs` and
+   `add_home_group_site_settings` can run.
 3. Once clean, unset `PAYLOAD_MIGRATE_ON_BOOT` before the next normal boot.
+4. Verify the homepage-settings fields too: open `/admin/globals/site-settings`, confirm a
+   "Homepage" group with hero/stats/help-card/CTA-band fields appears and saves.
 4. Verify: `/ar/roadmaps/meldezettel`, `/ar/guide/arbeit/ams-registrierung`,
    `/ar/services/bildung-qualifizierung` (and `/en/...`) all resolve instead of 404ing — this is the
    actual proof the fix works, not just that the migration ran.
@@ -400,6 +415,46 @@ reacting automatically to the schema code change). **`npm run build && npm run s
 as the closer-to-production path** — recommended for verifying `PAYLOAD_MIGRATE_ON_BOOT` from now on,
 since it's what a real deploy actually runs, and it makes guard #2 redundant with #1/#3 rather than
 relying on any single one.
+
+## Homepage settings + contact deep-link (BRIEF-AMENDMENT-02 Slice 2)
+
+**`SiteSettings.homeGroup`** added per §3.1 — hero headline/subline/CTA, `statLabels` (label +
+source), up to four `helpCards`, and a CTA band. Nothing was seeded: every field is optional with no
+`defaultValue`, per §2.8 — the board fills these in through the admin panel once the migration below
+is applied; until then the homepage sections built in Slice 3 fall back to in-code defaults, never a
+blank band.
+
+**Deviation from §3.1's table, recorded per §2.6:** the CTA-band row groups `ctaBandCtaHref` under
+"localized" alongside the other three fields, but `heroCtaHref` in the row above it is explicitly
+plain text (not localized). Made both `heroCtaHref` and `ctaBandCtaHref` unlocalized text fields —
+an href is a route, not copy a translator edits per language, and every other internal link field in
+this codebase (`helpCards[].href`, `jobResourceLinks[].url`, etc.) is already unlocalized. Localizing
+it would mean the board maintains three copies of the same path per button, for no benefit.
+
+**`statLabels.source` options are `experts` / `guideArticles` / `roadmaps` / `events`** — the four
+collections with a real, queryable count today. The non-count trust signals §2.5 also allows (9
+Bundesländer, 3 Sprachen, the four Schwerpunkte, founding year) are static, not DB-backed, so they
+don't belong in this select — Slice 3 renders them directly in code instead.
+
+**`src/types/payload.ts`** (the hand-written stand-in for `generate:types` — see "Known issues")
+extended with the matching `homeGroup` shape.
+
+**Contact form category deep-link** (§3.2): added `volunteering` and `idea` to the category list
+(`membership` already existed) in a new `src/lib/contactCategories.ts` — the single source of truth
+both `ContactForm.tsx` (rendering) and `contact/page.tsx` (validation) import from, so the two can't
+drift. `contact/page.tsx` reads `?kategorie=` (de) / `?category=` (ar, en) via Next's async
+`searchParams`, checks it against `isContactCategory()`, and silently drops anything that doesn't
+match — never passed through as free text, per §3.2's requirement. The category `<select>` itself
+was already a fixed enum in the UI; `ContactSubmissions.category` is a plain text field in the CMS
+(pre-existing, out of this slice's scope) so this doesn't change what gets stored, only what's
+pre-selected. Wiring real header/footer/homepage links to `/kontakt?kategorie=freiwillig` etc. is
+Slices 3–4, per the amendment's own build order — this slice only adds the capability.
+
+**Migration generated but NOT applied to the real database** — `add_home_group_site_settings` hit
+the exact same `payload_migrations.batch = -1` interactive-prompt wall as `unlocalize_reference_slugs`
+before it. See "Migration path fix" above for the now-updated recovery steps, which apply all three
+pending migrations (`initial_schema`, `unlocalize_reference_slugs`, `add_home_group_site_settings`)
+in one interactive session. **The homepage admin fields will not appear until that recovery runs.**
 
 ## Known issues
 

@@ -275,6 +275,22 @@ export type SiteSettingsDoc = {
   logo?: ResolvedMedia | string | null
   boardNotificationEmails?: Array<{ email: string }> | null
   jobResourceLinks?: Array<{ id?: string; label?: string | null; url?: string | null; description?: string | null }> | null
+  homeGroup?: {
+    heroHeadline?: string | null
+    heroSubline?: string | null
+    heroCtaLabel?: string | null
+    heroCtaHref?: string | null
+    statLabels?: Array<{
+      id?: string
+      label: string
+      source: 'experts' | 'guideArticles' | 'roadmaps' | 'events'
+    }> | null
+    helpCards?: Array<{ id?: string; title: string; description?: string | null; href: string }> | null
+    ctaBandHeading?: string | null
+    ctaBandBody?: string | null
+    ctaBandCtaLabel?: string | null
+    ctaBandCtaHref?: string | null
+  } | null
 }
 
 export type PartnerDoc = {

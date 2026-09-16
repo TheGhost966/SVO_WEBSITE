@@ -141,6 +141,8 @@
       "events": "Veranstaltungen",
       "membership": "Mitgliedschaft",
       "press": "Presse & Medien",
+      "volunteering": "Ehrenamtliche Mitarbeit",
+      "idea": "Idee oder Vorschlag",
       "other": "Sonstiges"
     },
     "validationName": "Bitte geben Sie Ihren Namen ein.",

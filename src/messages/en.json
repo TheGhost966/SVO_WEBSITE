@@ -141,6 +141,8 @@
       "events": "Events",
       "membership": "Membership",
       "press": "Press & media",
+      "volunteering": "Volunteering",
+      "idea": "Idea or suggestion",
       "other": "Other"
     },
     "validationName": "Please enter your name.",

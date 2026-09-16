@@ -3,10 +3,14 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { ContactForm } from '@/components/ui/ContactForm'
 import { getSiteSettings } from '@/lib/queries'
+import { isContactCategory } from '@/lib/contactCategories'
 
 const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
-type Props = { params: Promise<{ locale: string }> }
+type Props = {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ kategorie?: string; category?: string }>
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params
@@ -23,14 +27,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function ContactPage({ params }: Props) {
+export default async function ContactPage({ params, searchParams }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const [t, settings] = await Promise.all([
+  const [t, settings, { kategorie, category }] = await Promise.all([
     getTranslations('contact'),
     getSiteSettings(locale),
+    searchParams,
   ])
+
+  const requestedCategory = kategorie ?? category
+  const initialCategory = isContactCategory(requestedCategory) ? requestedCategory : undefined
 
   const contact = settings?.contactGroup
 
@@ -44,7 +52,7 @@ export default async function ContactPage({ params }: Props) {
       <div className="grid md:grid-cols-[1fr_320px] gap-12 items-start">
         {/* Form column */}
         <div>
-          <ContactForm locale={locale} />
+          <ContactForm locale={locale} initialCategory={initialCategory} />
         </div>
 
         {/* Office details column */}

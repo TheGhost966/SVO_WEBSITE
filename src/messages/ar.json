@@ -141,6 +141,8 @@
       "events": "فعاليات",
       "membership": "عضوية",
       "press": "صحافة وإعلام",
+      "volunteering": "عمل تطوعي",
+      "idea": "فكرة أو اقتراح",
       "other": "أخرى"
     },
     "validationName": "يرجى إدخال اسمك.",

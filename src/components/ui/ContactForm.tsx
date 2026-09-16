@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { submitContactForm, type ContactFormState } from '@/lib/contactAction'
+import { CONTACT_CATEGORY_VALUES, type ContactCategory } from '@/lib/contactCategories'
 
 const initial: ContactFormState = { status: 'idle' }
 
@@ -13,9 +14,9 @@ const PRIVACY_PATHS: Record<string, string> = {
   en: '/en/privacy-policy',
 }
 
-type Props = { locale: string }
+type Props = { locale: string; initialCategory?: ContactCategory }
 
-export function ContactForm({ locale }: Props) {
+export function ContactForm({ locale, initialCategory }: Props) {
   const t = useTranslations('contact')
   const [state, formAction] = useActionState(submitContactForm, initial)
 
@@ -41,14 +42,10 @@ export function ContactForm({ locale }: Props) {
               : t('error')
       : null
 
-  const categories = [
-    { value: 'general', label: t('categories.general') },
-    { value: 'legal', label: t('categories.legal') },
-    { value: 'events', label: t('categories.events') },
-    { value: 'membership', label: t('categories.membership') },
-    { value: 'press', label: t('categories.press') },
-    { value: 'other', label: t('categories.other') },
-  ]
+  const categories = CONTACT_CATEGORY_VALUES.map((value) => ({
+    value,
+    label: t(`categories.${value}`),
+  }))
 
   const privacyPath = PRIVACY_PATHS[locale] ?? PRIVACY_PATHS.de
 
@@ -102,7 +99,7 @@ export function ContactForm({ locale }: Props) {
           />
         </Field>
         <Field label={t('category')}>
-          <select name="category" className={inputClass} defaultValue="">
+          <select name="category" className={inputClass} defaultValue={initialCategory ?? ''}>
             <option value="" disabled>{t('categoryPlaceholder')}</option>
             {categories.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>

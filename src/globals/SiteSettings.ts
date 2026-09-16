@@ -138,6 +138,165 @@ export const SiteSettings: GlobalConfig = {
       ],
     },
     {
+      name: 'homeGroup',
+      type: 'group',
+      label: { de: 'Startseite', ar: 'الصفحة الرئيسية', en: 'Homepage' },
+      admin: {
+        description: {
+          de: 'Alle Felder optional — bei leerem Feld greift ein Standardtext im Code.',
+          en: 'All fields optional — an empty field falls back to a default in the code.',
+        },
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'heroHeadline',
+              type: 'text',
+              localized: true,
+              label: { de: 'Hero-Überschrift', ar: 'عنوان الصفحة الرئيسية', en: 'Hero headline' },
+              admin: { width: '50%' },
+            },
+            {
+              name: 'heroSubline',
+              type: 'textarea',
+              localized: true,
+              label: { de: 'Hero-Untertitel', ar: 'العنوان الفرعي', en: 'Hero subline' },
+              admin: { width: '50%' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'heroCtaLabel',
+              type: 'text',
+              localized: true,
+              label: { de: 'Hero-Button-Text', ar: 'نص زر البطل', en: 'Hero CTA label' },
+              admin: { width: '50%' },
+            },
+            {
+              name: 'heroCtaHref',
+              type: 'text',
+              label: { de: 'Hero-Button-Ziel (URL)', ar: 'رابط زر البطل', en: 'Hero CTA link' },
+              admin: {
+                width: '50%',
+                description: { de: 'Interner Pfad, z.B. /kontakt — nicht sprachabhängig.', en: 'Internal path, e.g. /contact — not language-dependent.' },
+              },
+            },
+          ],
+        },
+        {
+          name: 'statLabels',
+          type: 'array',
+          label: { de: 'Statistik-Kacheln', ar: 'بطاقات الإحصائيات', en: 'Stat tiles' },
+          admin: {
+            description: {
+              de: 'Eine Kachel wird nur angezeigt, wenn der zugehörige Wert mindestens 3 beträgt.',
+              en: 'A tile only renders when its underlying count is at least 3.',
+            },
+          },
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'label',
+                  type: 'text',
+                  localized: true,
+                  required: true,
+                  label: { de: 'Beschriftung', ar: 'التسمية', en: 'Label' },
+                  admin: { width: '60%' },
+                },
+                {
+                  name: 'source',
+                  type: 'select',
+                  required: true,
+                  options: [
+                    { label: { de: 'Expert:innen', ar: 'الخبراء', en: 'Experts' }, value: 'experts' },
+                    { label: { de: 'Anleitungen (Guide)', ar: 'مقالات الدليل', en: 'Guide articles' }, value: 'guideArticles' },
+                    { label: { de: 'Wegweiser (Roadmaps)', ar: 'خارطات الطريق', en: 'Roadmaps' }, value: 'roadmaps' },
+                    { label: { de: 'Veranstaltungen', ar: 'الفعاليات', en: 'Events' }, value: 'events' },
+                  ],
+                  label: { de: 'Datenquelle', ar: 'مصدر البيانات', en: 'Source' },
+                  admin: { width: '40%' },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'helpCards',
+          type: 'array',
+          label: { de: 'Hilfe-Karten', ar: 'بطاقات المساعدة', en: 'Help cards' },
+          maxRows: 4,
+          fields: [
+            {
+              name: 'title',
+              type: 'text',
+              localized: true,
+              required: true,
+              label: { de: 'Titel', ar: 'العنوان', en: 'Title' },
+            },
+            {
+              name: 'description',
+              type: 'textarea',
+              localized: true,
+              label: { de: 'Beschreibung', ar: 'الوصف', en: 'Description' },
+            },
+            {
+              name: 'href',
+              type: 'text',
+              required: true,
+              label: { de: 'Ziel (URL)', ar: 'الرابط', en: 'Link' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'ctaBandHeading',
+              type: 'text',
+              localized: true,
+              label: { de: 'CTA-Band-Überschrift', ar: 'عنوان شريط الدعوة', en: 'CTA band heading' },
+              admin: { width: '50%' },
+            },
+            {
+              name: 'ctaBandBody',
+              type: 'textarea',
+              localized: true,
+              label: { de: 'CTA-Band-Text', ar: 'نص شريط الدعوة', en: 'CTA band body' },
+              admin: { width: '50%' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'ctaBandCtaLabel',
+              type: 'text',
+              localized: true,
+              label: { de: 'CTA-Band-Button-Text', ar: 'نص زر شريط الدعوة', en: 'CTA band CTA label' },
+              admin: { width: '50%' },
+            },
+            {
+              name: 'ctaBandCtaHref',
+              type: 'text',
+              label: { de: 'CTA-Band-Button-Ziel (URL)', ar: 'رابط زر شريط الدعوة', en: 'CTA band CTA link' },
+              admin: {
+                width: '50%',
+                description: { de: 'Interner Pfad — nicht sprachabhängig.', en: 'Internal path — not language-dependent.' },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
       name: 'submissionRetentionMonths',
       type: 'number',
       defaultValue: 12,
