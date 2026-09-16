@@ -330,11 +330,79 @@ below** — each additional unapplied migration makes the eventual manual recove
    running it, since dev-push already built that schema) before `unlocalize_reference_slugs` and
    `add_home_group_site_settings` can run.
 3. Once clean, unset `PAYLOAD_MIGRATE_ON_BOOT` before the next normal boot.
-4. Verify the homepage-settings fields too: open `/admin/globals/site-settings`, confirm a
-   "Homepage" group with hero/stats/help-card/CTA-band fields appears and saves.
 4. Verify: `/ar/roadmaps/meldezettel`, `/ar/guide/arbeit/ams-registrierung`,
    `/ar/services/bildung-qualifizierung` (and `/en/...`) all resolve instead of 404ing — this is the
    actual proof the fix works, not just that the migration ran.
+5. Verify the homepage-settings fields too: open `/admin/globals/site-settings`, confirm a
+   "Homepage" group with hero/stats/help-card/CTA-band fields appears and saves.
+
+**Rehearse on a disposable copy first — do not answer the prompt against the real Neon DB
+directly.** The rest of this subsection is a read-only audit of what the three pending migrations'
+`up()` functions actually do, done specifically so that rehearsal has something concrete to verify
+against rather than trusting Payload's generic warning at face value.
+
+**Ordering check — does any DROP precede its own backfill?** No, in any of the three files.
+- `add_home_group_site_settings.up()`: no `DROP` of any kind — only `CREATE TYPE`, `CREATE TABLE`
+  (two new child tables), and `ADD COLUMN` (all nullable, all new columns on `site_settings`). There
+  is nothing pre-existing to back up before touching it.
+- `initial_schema.up()` (lines 3–1856): pure `CREATE TYPE`/`CREATE TABLE` from an empty schema — zero
+  `DROP` statements anywhere in `up()`. Every `DROP TABLE`/`DROP TYPE` in this file (the long list
+  starting line 1859) is inside `down()`, the rollback function, which never runs during a forward
+  migration.
+- `unlocalize_reference_slugs.up()` — the only file that removes existing data-bearing columns.
+  Per collection, quoting line numbers:
+  - **services**: `ADD COLUMN "slug"` (L25) → backfill `UPDATE "services" ... FROM "services_locales"` (L34-35) → index (L54) → `DROP COLUMN` on `services_locales` (L63)
+  - **_services_v** (draft version table): `ADD COLUMN "version_slug"` (L26) → backfill (L36-37) → index (L55) → drop (L64)
+  - **service_pillars**: `ADD COLUMN "slug"` (L27) → backfill (L38-39) → `SET NOT NULL` (L51) → index (L56) → drop (L65)
+  - **guide_topics**: `ADD COLUMN "slug"` (L28) → backfill (L40-41) → `SET NOT NULL` (L52) → index (L57) → drop (L66)
+  - **guide_articles**: `ADD COLUMN "slug"` (L29) → backfill (L42-43) → index (L58) → drop (L67)
+  - **_guide_articles_v**: `ADD COLUMN "version_slug"` (L30) → backfill (L44-45) → index (L59) → drop (L68)
+  - **roadmaps**: `ADD COLUMN "slug"` (L31) → backfill (L46-47) → index (L60) → drop (L69)
+  - **_roadmaps_v**: `ADD COLUMN "version_slug"` (L32) → backfill (L48-49) → index (L61) → drop (L70)
+
+  Every single `DROP COLUMN` is preceded by its collection's backfill `UPDATE`. The file is correctly
+  ordered as written.
+
+**What the prompt is actually warning about — Payload's generic warning, not something specific to
+these files.** `node_modules/@payloadcms/drizzle/dist/migrate.js` fires this prompt purely because
+`payload_migrations` contains a `batch: -1` sentinel row — it never inspects what the pending
+migration files contain. Reading `runMigrationFile()` in that same source: each migration's `up()`
+runs inside one real Postgres transaction (`initTransaction`/`commitTransaction`/`killTransaction`),
+and Postgres (unlike MySQL) supports transactional DDL, so any error anywhere in a 2,000-line file
+rolls back the *entire* file atomically — no partial `CREATE`/`DROP` can persist.
+
+Given that, the concrete, non-generic risk in *this* project's case is: **`initial_schema` will
+almost certainly fail immediately**, because the live database's tables were already built by
+dev-mode push before `push: false` was set — its very first `CREATE TABLE "users"` (or whichever
+table dev-push hasn't already got as byte-identical DDL) will raise `relation "..." already exists`,
+the transaction rolls back cleanly, and the boot process exits(1) before `unlocalize_reference_slugs`
+or `add_home_group_site_settings` even get a chance to run. That failure is not data loss — it's a
+clean no-op. The step that actually carries risk is the one this file's recovery instructions gloss
+over: to get past that guaranteed failure, `initial_schema` needs to be **baselined** — manually
+marked as already-applied in `payload_migrations` (insert `{ name: '20260915_103709_initial_schema',
+batch: 1 }`) *without* running its SQL, since dev-push already built that schema by hand-pushing, not
+via this file. That manual insert has no automated safety net and is the one step worth rehearsing
+on a Neon branch: if the string doesn't exactly match the migration's `name`, or dev-push's actual
+schema drifted at all from what this file would have produced, `unlocalize_reference_slugs` could run
+against columns/tables that don't look like what it expects.
+
+**If slugs come back empty after migrating, what restores them:** `service_pillars` and
+`guide_topics` have `ALTER COLUMN "slug" SET NOT NULL` (L51-52) immediately after their backfill —
+if the backfill produced `NULL` for any row (no `de`-locale row existed for it), that `SET NOT NULL`
+itself fails, which rolls back the *whole* migration transaction, so the old `_locales.slug` column
+is never dropped and no data is lost — the fix is just to make sure every row has a `de` slug filled
+in before re-running. **The real risk is narrower and specific to `services`, `guide_articles`, and
+`roadmaps`** — these three stay nullable at the DB level (deliberately — see the file's own comment
+on `versions.drafts`), so a `NULL` backfill for one of them does *not* error; the migration commits
+successfully, the old per-locale column is gone, and that document's slug is genuinely empty with no
+DB-level trace of the old value. Recovery in that case: (1) if a Neon branch/snapshot was taken
+before migrating (which this rehearsal should do anyway), restore the `*_locales` table from it and
+re-run the equivalent `UPDATE ... FROM ..._locales WHERE _locale = 'de'` for just the affected rows;
+(2) failing that, re-enter the slug by hand via the admin panel — per `CONTENT-NEEDED.md`, current
+row counts are tiny (`service_pillars`: 1, `guide_topics`: 1, `guide_articles`: 1, `roadmaps`: 1,
+`services`: 0, and every one of today's rows already has its German slug filled in), so today this
+failure mode has zero rows it could actually affect — this is a safeguard for future content, not a
+live problem right now.
 
 **Until that's done, this is the current state:** the code is correct and builds cleanly (confirmed:
 `npm run build` succeeds, `generateStaticParams` degrades gracefully to zero pre-rendered paths for
