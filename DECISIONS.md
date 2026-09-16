@@ -524,6 +524,39 @@ before it. See "Migration path fix" above for the now-updated recovery steps, wh
 pending migrations (`initial_schema`, `unlocalize_reference_slugs`, `add_home_group_site_settings`)
 in one interactive session. **The homepage admin fields will not appear until that recovery runs.**
 
+## Homepage sections (BRIEF-AMENDMENT-02 Slice 3) — planning, blocked on migration
+
+**Not started — the plan was approved with two corrections, then paused.** Building against the
+real dev database before `PAYLOAD_MIGRATE_ON_BOOT`'s recovery steps (see "Homepage settings +
+contact deep-link" above) run would test nothing real: `SiteSettings.homeGroup` doesn't exist in
+the DB yet, so every homepage section would silently render its in-code fallback and §2.1 ("copy
+editable from admin, not hardcoded") would go completely unverified. Worse, §2.3's own
+verification step — click every teaser card on `/ar` and `/en` — is *unverifiable* right now: the
+`unlocalize_reference_slugs` migration is also unapplied, so Guide/Roadmaps/Services detail routes
+still 404 on every locale regardless of what Slice 3 builds. Migration rehearsal on a Neon branch
+is in progress; Slice 3 code starts once that lands on the real dev DB.
+
+**Hero search (§2.4.1): dropped, not deferred as an open design question — revisit only once real
+content exists.** With 1 guide topic and 1 roadmap in the DB, a `like` search returns nothing for
+almost any query a visitor would type — that reads as a broken feature, not a thin one. The 4 hero
+quick-filter chips (real links to Guide topics) carry the hero interaction instead. No `/suche`
+route, no search query function to build now — revisit once `CONTENT-NEEDED.md`'s Guide/Roadmaps
+gaps are filled, not on a fixed schedule.
+
+**Deleting `getPageBySlug('home')`/`BlockRenderer` from the homepage in Slice 3 makes a `pages`
+record with slug `home` permanently inert — and nothing in the schema stops someone from creating
+one expecting it to work.** `Pages.slug` (`src/collections/Pages.ts`) is a plain localized text
+field: no `unique: true`, no value restriction, no admin-panel warning. Checked whether any other
+route consumes it generically — it doesn't: `getPageBySlug` is called from exactly two places in
+the whole app, `about/page.tsx` (hardcoded `'about'`) and the home page (hardcoded `'home'`, being
+removed in this slice). There is no `[locale]/[slug]/page.tsx` catch-all. So this isn't a gap Slice
+3 introduces — a `pages` record with any slug other than `about` is *already* unroutable today —
+Slice 3 just moves `home` from "the one fallback path that used it" to fully dead, same as every
+other slug. Not fixed now: no board workflow creates arbitrary `pages` records today (every
+seeded/test record uses `about`), and a generic page-builder route is out of this slice's scope.
+Worth a one-line admin `description` on `Pages.slug` next time that field is touched, warning that
+only `about` currently renders.
+
 ## Known issues
 
 **`generate:types` and `npm run seed` still crash the same way; `db:migrate` no longer does — see

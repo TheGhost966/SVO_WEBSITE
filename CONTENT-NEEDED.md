@@ -26,12 +26,21 @@ These pages contain legally required content in Austria. **Never generate or inv
 - [ ] Board member photos and bios (all three locales)
 - [ ] Partner/sponsor logos with permission to publish
 
-## Home page
+## Home page (launch blocker — same weight as the legal pages, see DECISIONS.md "Homepage sections")
 
+BRIEF-AMENDMENT-02 §2.8: homepage copy authored during Slice 3 (hero, stat labels, help-card
+titles/descriptions, CTA-band heading/body — everything in `SiteSettings.homeGroup`, plus every
+in-code fallback string used when a field is empty) is agent-authored placeholder in three
+languages, not final. Board sign-off on this copy is a launch blocker, not a nice-to-have.
+
+- [ ] Board review + sign-off of all `SiteSettings.homeGroup` homepage copy (DE/AR/EN) once Slice 3 ships
 - [ ] Hero headline + subline + CTA text (DE/AR/EN)
 - [ ] Hero image (1920×1080px minimum, licence cleared, consent on file if people visible)
 - [ ] "What SVÖ does" section copy
 - [ ] Three focus area descriptions for homepage cards
+- [ ] SVÖ founding year — needed for the static stats-band trust signal (9 Bundesländer · 3
+      Sprachen · 4 Schwerpunkte · founding year). Not invented; the tile is omitted from Slice 3
+      until this is supplied.
 
 ## Service pillars (seeded with placeholders)
 
