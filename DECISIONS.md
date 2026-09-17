@@ -3,6 +3,32 @@
 Non-obvious technical decisions, one or two lines each, with the reason.
 Future developers and the SVÖ board can use this to understand why things are the way they are.
 
+## Blocked — needs Hamza
+
+**Two missing Guide topics (`BRIEF-AMENDMENT-03.md` §2.4) cannot be created this run.** The
+autonomous run's own instructions forbid writing to the Neon database, and the standalone seed
+script is broken regardless (`tsx`/ESM-CJS interop bug — see "Known issues"). Proposed
+German title/slug for both are in `CONTENT-NEEDED.md`, ready to paste into the admin UI
+(`/admin/collections/guide-topics`) — needs a human with admin access and DB write rights.
+
+**Applying the three pending migrations still needs an interactive terminal.** Unchanged from the
+prior session (see "Unlocalized slugs" → "Exact recovery steps" below) — this run's preflight
+re-confirmed all three are still `pending` against `.env.local`'s connection string. Nothing in
+this run attempted to change that; it needs the same manual, interactive recovery steps already
+documented.
+
+**Board decisions this run surfaced but cannot make:** the Arabic-default-locale question
+(§2.3), which locale-visibility default experts should get for §7.4 vs. §7.6 (a policy call, not
+a code default), and every row in `PHASE-2-SCOPE.md`'s "Board decision still owed" column
+(payment provider, bank account, volunteer-certificate authority, whether CVs get stored at all).
+
+## Assumptions made during the autonomous run (BRIEF-AMENDMENT-03 §5)
+
+Recorded here per the run's own instruction: where a decision wasn't already ruled on in
+`BRIEF-AMENDMENT-03.md` §2, pick the cheapest-to-reverse option, do it, and log it. Entries are
+added under this heading as the run proceeds; see each numbered work item's own commit/section
+below for the technical detail behind each call.
+
 ## Stack
 
 **Next.js 16 App Router + Payload CMS 3.88 inside the same process.**
@@ -574,6 +600,59 @@ other slug. Not fixed now: no board workflow creates arbitrary `pages` records t
 seeded/test record uses `about`), and a generic page-builder route is out of this slice's scope.
 Worth a one-line admin `description` on `Pages.slug` next time that field is touched, warning that
 only `about` currently renders.
+
+## AMENDMENT-03 rulings (client questionnaire)
+
+**Arabic-as-default — open board question, NOT switched.** The brief's six-decisions section
+(§2) says German is default; `SVO_Website_Requirements_Questionnaire_AR_final_comprehensive_v2.docx`
+§2.1 checks all three locale boxes for a single-answer question, which is self-contradictory, not
+a clear instruction to switch. Per `BRIEF-AMENDMENT-03.md` §2.3, the ruling is to keep `de` as
+default and record the actual cost of switching, since the architecture is German-first
+throughout: `src/i18n/routing.ts`'s `defaultLocale`, every German-language URL segment
+(`nachrichten`, `veranstaltungen`, `leistungen`, `kontakt`, `partner`), `localization.fallback`
+resolving to German, the SEO canonical/hreflang generation, and every piece of German-first seed/
+test content already in the database. None of that is a config-flag flip — switching later means
+re-deciding URL segments for `de` (would `de` get the current English-style segments, or would
+`ar` take over the German words?), re-pointing `fallback`, and re-auditing every hardcoded
+locale-ordering assumption in `queries.ts` and the SEO helpers. This is a board decision, not a
+coding one — raised here so the board knows the actual size of "yes, switch it" before answering.
+
+**Jobs maintainer — answered, but this run doesn't act on it.** Questionnaire §8.1: companies
+post, admin approves. That names a maintenance model, which is exactly what
+`BRIEF-AMENDMENT-01.md` §4 required before building the real `Jobs` collection (see "Jobs slice"
+above — the prior ruling was "nobody is assigned, ship curated links instead"). Per
+`BRIEF-AMENDMENT-03.md` §2.6, the curated-links page (`SiteSettings.jobResourceLinks`) stays
+exactly as-is for this run. What changes is that the collection is now **unblocked in principle**:
+whoever picks this up next should build the real `Jobs` collection with `AMENDMENT-01.md` §2.4
+(detail page + `JobPosting` JSON-LD) and §2.5 (expiry enforcement) both load-bearing again, not
+optional extras. CV upload (questionnaire §8.2) stays parked — see `PHASE-2-SCOPE.md`.
+
+**Experts §7.4/§7.6 contradiction — logged, and one correction to the amendment's own premise.**
+Questionnaire §7.4 asks whether expert email/website should be shown publicly; §7.6 asks whether
+contact should only go through an admin-mediated request. The document answers **both** yes,
+which are mutually exclusive default states for the same contact info.
+`BRIEF-AMENDMENT-03.md` §2.5 says to "keep the existing `showEmail`/`showPhone` toggles, default
+them off" — but no such toggles exist in `src/collections/Experts.ts` today: `contactEmail`,
+`contactPhone`, and `website` are plain fields, rendered on the public detail page (
+`experts/[slug]/page.tsx`) unconditionally whenever populated. The amendment's premise was wrong
+about the current code, not the instruction — added `showEmail`/`showPhone` checkboxes
+(**default `false`**, admin-mediated by default per §7.6) gating the existing render, per §2.5's
+actual intent. See "Experts contact visibility toggles" below for the implementation. The board
+still needs to pick one policy as the site-wide norm; until then, no new listing shows contact
+info unless a board member explicitly turns it on for that person.
+
+**Domain: `syrischerverband.at`**, owned by the association (questionnaire §16.1). Server location
+confirmed Austria/EU (§16.3), matching the brief's existing DSGVO hosting constraint — no change
+needed there. See `README.md`'s "Production domain" note for the one env var
+(`NEXT_PUBLIC_SERVER_URL`) production needs set.
+
+**Discovered while verifying the domain/canonical-URL claim above: no `sitemap.xml` or
+`robots.txt` route exists in this codebase at all** (`find src -iname "*sitemap*" -o -iname
+"*robots*"` returns nothing). The original brief §3.1 lists both as cross-cutting Phase 1
+requirements, not Phase 2+ scope — this is a real gap, not a deferred feature. Not built in this
+run (not one of `BRIEF-AMENDMENT-03.md` §5's seven numbered work items, and adding an unplanned
+feature mid-autonomous-run risks scope creep the Working Agreement explicitly warns against) —
+logged here so it doesn't stay invisible. Also logged under "Known issues" below.
 
 ## Known issues
 

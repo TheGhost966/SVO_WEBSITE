@@ -11,7 +11,14 @@ Arabic, English), built so the same content API can serve a mobile app later wit
 For the full background, locked client decisions, and scope, see
 [`SVOE_PROJECT_BRIEF.md`](./SVOE_PROJECT_BRIEF.md). For the "why" behind non-obvious technical
 choices, see [`DECISIONS.md`](./DECISIONS.md). For what placeholder content still needs to be
-replaced before launch, see [`CONTENT-NEEDED.md`](./CONTENT-NEEDED.md).
+replaced before launch, see [`CONTENT-NEEDED.md`](./CONTENT-NEEDED.md). For features the client
+asked about but that are deliberately not built yet, see [`PHASE-2-SCOPE.md`](./PHASE-2-SCOPE.md).
+
+**Production domain:** `syrischerverband.at`, owned by the association
+(`BRIEF-AMENDMENT-03.md` §2.7). Production deploys need exactly one env var set —
+`NEXT_PUBLIC_SERVER_URL=https://syrischerverband.at` — for canonical URLs and `hreflang`
+alternates to resolve correctly; neither is hardcoded to any other host in the codebase.
+(A `sitemap.xml`/`robots.txt` route does not exist yet — see `DECISIONS.md` "Known issues".)
 
 ## Stack
 

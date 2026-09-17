@@ -18,7 +18,9 @@ These pages contain legally required content in Austria. **Never generate or inv
 
 ## Organisation content (from SVÖ board)
 
-- [ ] SVÖ logo file (SVG preferred, PNG fallback) — for `SiteSettings.logo`
+- [ ] SVÖ logo file — **raster only (PNG/JPG), confirmed by the client questionnaire §3.1; no
+      vector/SVG version exists or is coming.** Request the highest-resolution PNG available so
+      it holds up at the hero/header sizes; do not ask for an SVG re-export that won't arrive.
 - [ ] Official address and office details — for `SiteSettings.contactGroup`
 - [ ] Opening hours — for `SiteSettings.contactGroup.openingHours`
 - [ ] Official email for public contact — for `SiteSettings.contactGroup.email`
@@ -59,6 +61,17 @@ languages, not final. Board sign-off on this copy is a launch blocker, not a nic
 
 ## Austria Guide (Österreich-Guide)
 
+- [ ] **14 guide topics at launch, per the client questionnaire §5.5** (up from the Figma's 12) —
+      see `BRIEF-AMENDMENT-03.md` §2.4. Two are entirely missing from this repo and are **blocked
+      on a human creating the records** — this session cannot write to the Neon database (see
+      `DECISIONS.md` "Blocked — needs Hamza"). Proposed German title + slug, ready to paste into
+      the admin UI once someone can:
+  - **القيادة والمواصلات** (driving and transport) → title `Führerschein & Verkehr`, slug
+    `fuehrerschein-verkehr`
+  - **الجهات الرسمية** (official bodies / authorities) → title `Behörden & Ämter`, slug `behoerden`
+  - The other 12 topics' exact names are only in the Figma exports (`design/figma-homepage-exports/`),
+    not as text anywhere in this repo — read them off the design files directly when creating
+    the remaining records rather than guessing from memory.
 - [ ] Real guide topics beyond the "Arbeit" test topic — at minimum: Wohnen, Gesundheit, Behördenwege (per BRIEF-AMENDMENT-01 §2.6 scope)
 - [ ] Real articles per topic, each with: `officialSourceUrl` pointing at the actual authoritative source (oesterreich.gv.at, migration.gv.at, ams.at, etc.), an accurate `lastReviewedAt`, and an appropriate `reviewIntervalMonths`
 - [ ] AR/EN translations of topic titles/descriptions and article content — currently German-only test content falls back correctly on `/ar` and `/en` index pages, but **detail pages 404 for any topic/article whose slug isn't also filled in for that locale** (see DECISIONS.md "Known issues" — untranslated localized slugs 404 on non-default locales). Until AR/EN slugs are filled in, Arabic/English users can only reach the Guide index pages, not individual articles.
@@ -66,6 +79,11 @@ languages, not final. Board sign-off on this copy is a launch blocker, not a nic
 
 ## Roadmaps (Anleitungen)
 
+- [ ] **10 roadmaps at launch, per the client questionnaire §6.1** (`BRIEF-AMENDMENT-03.md` §1.2).
+      The questionnaire names a target count, not the 10 procedures themselves — those names
+      exist only in the source `.docx`, not as text in this repo. Read them from that document
+      when scoping which 10 to write first; the three below (from `BRIEF-AMENDMENT-01.md` §2.6)
+      are a reasonable starting subset, not a substitute for the full list.
 - [ ] Real roadmaps beyond the "Meldezettel" test record — per BRIEF-AMENDMENT-01 §2.6 scope, at minimum: Anerkennung ausländischer Abschlüsse, Aufenthaltstitel-Verlängerung, ÖGK-Anmeldung
 - [ ] Each roadmap's steps filled in with real `responsibleAuthority`, `timing`, `requiredDocuments`, and — where relevant — a `linkedGuideArticle`
 - [ ] AR/EN translations — same caveat as Guide: detail pages 404 for locales without a translated slug (see DECISIONS.md "Known issues")
