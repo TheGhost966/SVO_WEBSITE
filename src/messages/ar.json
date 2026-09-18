@@ -35,7 +35,18 @@
     "upcomingEvents": "الفعاليات القادمة",
     "allEvents": "جميع الفعاليات",
     "ourServices": "خدماتنا",
-    "allServices": "جميع الخدمات"
+    "allServices": "جميع الخدمات",
+    "statsHeading": "الاتحاد بالأرقام",
+    "helpCardsHeading": "كيف يمكننا مساعدتك اليوم؟",
+    "roadmapsHeading": "خارطات الطريق",
+    "allRoadmaps": "جميع خارطات الطريق",
+    "guideHeading": "دليل النمسا",
+    "allGuide": "كل الدليل",
+    "expertsHeading": "شبكة الخبراء",
+    "allExperts": "جميع الخبراء",
+    "expertsApplyCta": "سجل كخبير",
+    "jobsHeading": "فرص العمل",
+    "allJobs": "جميع فرص العمل"
   },
   "news": {
     "title": "أخبار",

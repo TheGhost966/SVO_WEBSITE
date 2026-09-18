@@ -480,7 +480,7 @@ export const getServicePillars = unstable_cache(
  * moment they're created, with nothing behind them).
  */
 export const getGuideTopics = unstable_cache(
-  async (locale: string): Promise<GuideTopicDoc[]> => {
+  async (locale: string, limit = 50): Promise<GuideTopicDoc[]> => {
     try {
       const payload = await getPayloadClient()
       const topics = await payload.find({
@@ -504,7 +504,7 @@ export const getGuideTopics = unstable_cache(
           return count.totalDocs > 0 ? topic : null
         }),
       )
-      return withArticles.filter((t): t is NonNullable<typeof t> => t !== null) as unknown as GuideTopicDoc[]
+      return (withArticles.filter((t): t is NonNullable<typeof t> => t !== null) as unknown as GuideTopicDoc[]).slice(0, limit)
     } catch {
       return []
     }
@@ -614,7 +614,7 @@ export const getGuideArticleBySlug = unstable_cache(
 
 /** Published roadmaps only — a flat list, no parent (BRIEF-AMENDMENT-01 §2.8 empty-state principle). */
 export const getRoadmaps = unstable_cache(
-  async (locale: string): Promise<RoadmapDoc[]> => {
+  async (locale: string, limit = 100): Promise<RoadmapDoc[]> => {
     try {
       const payload = await getPayloadClient()
       const result = await payload.find({
@@ -623,7 +623,7 @@ export const getRoadmaps = unstable_cache(
         sort: 'title',
         locale: locale as 'de' | 'ar' | 'en',
         depth: 0,
-        limit: 100,
+        limit,
       })
       return result.docs as unknown as RoadmapDoc[]
     } catch {
@@ -690,7 +690,7 @@ export const getExpertCategories = unstable_cache(
 
 /** Published + verified experts only, optionally filtered by category slug. */
 export const getExperts = unstable_cache(
-  async (locale: string, categorySlug?: string): Promise<ExpertDoc[]> => {
+  async (locale: string, categorySlug?: string, limit = 100): Promise<ExpertDoc[]> => {
     try {
       const payload = await getPayloadClient()
       const conditions: Where[] = [{ reviewStatus: { equals: 'published' } }]
@@ -713,7 +713,7 @@ export const getExperts = unstable_cache(
         sort: 'name',
         locale: locale as 'de' | 'ar' | 'en',
         depth: 1,
-        limit: 100,
+        limit,
       })
       return result.docs as unknown as ExpertDoc[]
     } catch {
@@ -747,6 +747,41 @@ export const getExpertBySlug = unstable_cache(
   },
   ['expert-by-slug'],
   { revalidate: 60, tags: [tags.experts()] },
+)
+
+// ─── Homepage stats band ───────────────────────────────────────────────────────
+
+export type HomeStatSource = 'experts' | 'guideArticles' | 'roadmaps' | 'events'
+
+/**
+ * Count-only queries (`payload.count`, never a full `find`) for the homepage stats band's
+ * dynamic tiles — BRIEF-AMENDMENT-02 §2.7: "never fetch a full collection to read a count."
+ * Not locale-scoped: these are trust-signal totals of the association's work, not per-locale
+ * content, and localized fields fall back to German anyway so a count wouldn't meaningfully
+ * differ by locale.
+ */
+export const getHomeStatCounts = unstable_cache(
+  async (): Promise<Record<HomeStatSource, number>> => {
+    try {
+      const payload = await getPayloadClient()
+      const [experts, guideArticles, roadmaps, events] = await Promise.all([
+        payload.count({ collection: 'experts', where: { reviewStatus: { equals: 'published' } } }),
+        payload.count({ collection: 'guide-articles', where: { reviewStatus: { equals: 'published' } } }),
+        payload.count({ collection: 'roadmaps', where: { reviewStatus: { equals: 'published' } } }),
+        payload.count({ collection: 'events', where: { reviewStatus: { equals: 'published' } } }),
+      ])
+      return {
+        experts: experts.totalDocs,
+        guideArticles: guideArticles.totalDocs,
+        roadmaps: roadmaps.totalDocs,
+        events: events.totalDocs,
+      }
+    } catch {
+      return { experts: 0, guideArticles: 0, roadmaps: 0, events: 0 }
+    }
+  },
+  ['home-stat-counts'],
+  { revalidate: 3600, tags: [tags.experts(), tags.guide(), tags.roadmaps(), tags.events()] },
 )
 
 // ─── Site settings + Partners ─────────────────────────────────────────────────

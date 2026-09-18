@@ -35,7 +35,18 @@
     "upcomingEvents": "Kommende Veranstaltungen",
     "allEvents": "Alle Veranstaltungen",
     "ourServices": "Unsere Leistungen",
-    "allServices": "Alle Leistungen"
+    "allServices": "Alle Leistungen",
+    "statsHeading": "SVÖ auf einen Blick",
+    "helpCardsHeading": "Wie können wir Ihnen heute helfen?",
+    "roadmapsHeading": "Wegweiser",
+    "allRoadmaps": "Alle Anleitungen",
+    "guideHeading": "Österreich-Guide",
+    "allGuide": "Zum gesamten Guide",
+    "expertsHeading": "Expert:innen-Netzwerk",
+    "allExperts": "Alle Expert:innen",
+    "expertsApplyCta": "Als Expert:in eintragen",
+    "jobsHeading": "Stellenangebote",
+    "allJobs": "Alle Stellenangebote"
   },
   "news": {
     "title": "Nachrichten",

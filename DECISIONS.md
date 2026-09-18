@@ -575,7 +575,7 @@ general version of the habit is: **when what you're about to build depends on ex
 merged), check the state directly through whatever read-only mechanism exists before building
 against it — a status query, not a status claim.**
 
-## Homepage sections (BRIEF-AMENDMENT-02 Slice 3) — planning, blocked on migration
+## Homepage sections (BRIEF-AMENDMENT-02 Slice 3 / BRIEF-AMENDMENT-03 §5 item 3) — built
 
 **Not started — the plan was approved with two corrections, then paused.** Building against the
 real dev database before `PAYLOAD_MIGRATE_ON_BOOT`'s recovery steps (see "Homepage settings +
@@ -607,6 +607,99 @@ other slug. Not fixed now: no board workflow creates arbitrary `pages` records t
 seeded/test record uses `about`), and a generic page-builder route is out of this slice's scope.
 Worth a one-line admin `description` on `Pages.slug` next time that field is touched, warning that
 only `about` currently renders.
+
+**Built anyway, despite the preflight showing all three migrations still `pending` — per
+`BRIEF-AMENDMENT-03.md`'s explicit autonomous-run instruction ("continue building, but mark every
+definition-of-done item that depends on live data as UNVERIFIED — never as passed").** The section
+order is `hero, stats, news, events, helpCards, roadmaps, guide, experts, jobs, ctaBand`
+(`src/lib/homeSections.ts`'s `HOME_SECTIONS`/`DEFAULT_HOME_SECTION_ORDER`), matching §2.1's
+ruling exactly — News and Events kept as two independently orderable/toggleable sections rather
+than one combined entry, since they already have separate query functions and separate board
+control seems more useful than forcing them to move as a pair.
+
+**New `src/lib/internalHref.ts` (`resolveInternalHref`) — a real bug found and fixed while wiring
+`SiteSettings.homeGroup`'s CMS href fields to actual links.** Those fields (`heroCtaHref`,
+`ctaBandCtaHref`, `helpCards[].href`) are unlocalized plain text by design (Slice 2), with an
+admin description promising "not language-dependent" — but a raw `<a href={value}>` (the pattern
+`CardGridBlock` already uses for its own CMS url field) can only ever be locale-correct for AR/EN,
+which share English-language route segments; DE alone has different segments
+(`/contact`→`/kontakt`, `/services`→`/leistungen`, etc.). A board member typing `/kontakt` (the
+admin field's own literal example) would 404 on `/ar` and `/en`; typing `/contact` would 404 on
+`/de`. No single raw string is correct on all three locales for routes where DE differs.
+`resolveInternalHref(href, locale)` fixes this by treating the stored value as a canonical
+pathname key (matching `src/i18n/routing.ts`'s `pathnames`) and resolving it via `getPathname`
+from `@/i18n/navigation` — the same routing table `Link` itself uses — falling back to the raw
+value unchanged for anything not a recognized key (external URLs, `mailto:`/`tel:`, or a value an
+editor already typed as a literal locale-correct segment). Verified in-browser: a `/de` help card
+pointing at `/contact` correctly navigated to `/de/kontakt`; the same card on `/ar` navigated to
+`/ar/guide` (not `/ar/oesterreich-guide`) for a `/guide`-pointing card. Renders as a plain `<a>`,
+not next-intl's typed `Link`, since the resolved value is a runtime string that can't be checked
+against `Link`'s literal pathname-key union at compile time.
+
+**Stats band: CMS-configured tiles that don't clear the ≥3 threshold fall back to the static
+trio, not to hiding the band** — a refinement of §2.5's literal text ("the whole stats band does
+not render") reached during the prior session's planning and re-applied here: an empty stats band
+reads as a missing section, not a thin one, so `StatsSection` falls back to the static 9
+Bundesländer/3 Sprachen/4 Schwerpunkte trio whenever fewer than 3 dynamic tiles survive —
+including when `statLabels` is empty outright, not only when it's fully absent. Founding-year
+tile still omitted entirely (not in `CONTENT-NEEDED.md` yet, never invented).
+
+**Roadmaps/Guide/Experts/Jobs teasers always end with a "view all" grid card
+(`src/components/home/shared.tsx`'s `ViewAllCard`)** rather than a top-right "see all" link like
+News/Events use — real items are capped at 3, with the trailing tile always present regardless of
+count, so a thin row (1–2 real items) still reads as a deliberate, complete grid rather than a
+broken one. Chose "always show it" over "only show it when there are more items than fit" for
+simplicity and because it never produces a dead link — worst case (≤3 total items) it points at a
+page showing the same items, which is harmless.
+
+**Old page-builder/pillars-teaser code deleted, not deprecated:** `getPageBySlug('home')`,
+`BlockRenderer`, `FallbackHero`, `PillarsSection`, `DefaultCTABand`, and the homepage's
+`getServicePillars` call are gone from `src/app/[locale]/page.tsx` entirely, replaced by the
+bespoke `src/components/home/*` section components — no Services/Pillars teaser exists on the
+homepage at all now, since it isn't one of §2.1's ten sections (Services remains fully reachable
+via nav and `/services`, just not featured on the homepage).
+
+**`getRoadmaps`, `getGuideTopics`, `getExperts` gained an optional `limit` parameter**
+(BRIEF-AMENDMENT-02 §2.7) — all three previously hardcoded their limit (100/50/100). Existing
+callers (the full index pages) are unaffected since the parameter defaults to the same values;
+the homepage passes `4` for a capped teaser fetch instead of fetching the (small but unbounded)
+full collection and slicing client-side. `getGuideTopics`'s post-filter-by-article-count step
+still fetches up to 50 topics before filtering (unavoidable — the limit only determines how many
+*survive* the filter, and no batch of fewer than "all of them" can guarantee the requested count
+of topics-with-articles), then slices the filtered result to `limit`.
+
+**New `getHomeStatCounts` in `queries.ts`** — four `payload.count()` calls in one `Promise.all`,
+never a `find`, per §2.7's "never fetch a full collection to read a count." Not locale-scoped
+(a trust-signal total of the association's work, not per-locale content).
+
+**Fixed a pre-existing accessibility bug while touching this code: `SectionHeader` never accepted
+an `id` prop, so every homepage section's `aria-labelledby="x-heading"` pointed at nothing** —
+`aria-labelledby` requires the referenced `id` to exist on some element; it silently pointed at no
+element at all before this fix (screen readers fall back to no accessible name for the section,
+not an error). Added an optional `id` prop to `SectionHeader` and wired it through on every
+section, old and new.
+
+**Verified live via the dev server against the real dev DB (pending-migration state) on
+`/de`, `/ar`, `/en`:** hero/stats/help-cards render correctly with in-code fallback content (no
+console errors, no hydration warnings — confirmed via `read_console_messages`); RTL layout on
+`/ar` mirrors correctly (nav, text alignment, stat/help-card order); the one real `Experts` record
+("Dr. Layla Hassan") renders correctly in its teaser; News/Events/Roadmaps/Guide teasers
+correctly render *nothing* rather than crashing, consistent with **UNVERIFIED, not failing** —
+the live DB has thin data (News/Events collections likely empty) and, more importantly, the
+Guide/Roadmaps collections are mid-migration (their queries hit the same
+untranslated/unlocalized-slug schema mismatch documented under "Unlocalized slugs" above), so an
+empty teaser here does not indicate a bug in this slice's own code — it cannot be distinguished
+from one until the migrations are applied. **Not verified at all** (blocked on live data): editing
+`SiteSettings.homeGroup` fields in `/admin` and seeing them reflected on the homepage (the fields
+don't exist in the DB yet — see the dev-boot schema warning added in this run's preflight), the
+`sectionOrder` admin drag-reorder UI, and whether Roadmaps/Guide teasers render correctly once
+real, migrated data exists behind them.
+
+**Long-German-string check (§2.6):** hero headline "SVÖ — Syrischer Verband in Österreich" wraps
+to two lines at mobile/tablet widths without overflow or clipping (checked in-browser at the
+default viewport); stat labels ("Bundesländer", "Schwerpunkte") and help-card titles ("Kontakt
+aufnehmen") fit within their tiles with no truncation. No overflow instances found needing a
+layout change — nothing to log here beyond this confirmation.
 
 ## `npm run build` was fully broken — pre-existing, unrelated to any planned work, fixed anyway
 

@@ -35,9 +35,16 @@ titles/descriptions, CTA-band heading/body — everything in `SiteSettings.homeG
 in-code fallback string used when a field is empty) is agent-authored placeholder in three
 languages, not final. Board sign-off on this copy is a launch blocker, not a nice-to-have.
 
-- [ ] Board review + sign-off of all `SiteSettings.homeGroup` homepage copy (DE/AR/EN) once Slice 3 ships
+- [ ] Board review + sign-off of all `SiteSettings.homeGroup` homepage copy (DE/AR/EN) — Slice 3
+      has shipped (BRIEF-AMENDMENT-03 §5 item 3); every field is still empty in the live DB
+      pending the migration recovery steps (see DECISIONS.md "Migration path fix"), so what
+      currently renders is the in-code fallback copy this same slice authored, not yet
+      board-reviewed either
 - [ ] Hero headline + subline + CTA text (DE/AR/EN)
-- [ ] Hero image (1920×1080px minimum, licence cleared, consent on file if people visible)
+- [ ] Hero image or a real logo file (raster only — confirmed no SVG exists, see the "Organisation
+      content" section above) — the hero currently renders text-only with no logo
+- [ ] Help-card titles/descriptions (currently in-code defaults reusing existing nav/page labels,
+      not authored marketing copy — lower priority than the items above)
 - [ ] "What SVÖ does" section copy
 - [ ] Three focus area descriptions for homepage cards
 - [ ] SVÖ founding year — needed for the static stats-band trust signal (9 Bundesländer · 3

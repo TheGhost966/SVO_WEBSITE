@@ -35,7 +35,18 @@
     "upcomingEvents": "Upcoming events",
     "allEvents": "All events",
     "ourServices": "Our services",
-    "allServices": "All services"
+    "allServices": "All services",
+    "statsHeading": "SVÖ at a glance",
+    "helpCardsHeading": "How can we help you today?",
+    "roadmapsHeading": "Roadmaps",
+    "allRoadmaps": "All roadmaps",
+    "guideHeading": "Austria Guide",
+    "allGuide": "Browse the full guide",
+    "expertsHeading": "Experts network",
+    "allExperts": "All experts",
+    "expertsApplyCta": "Register as an expert",
+    "jobsHeading": "Jobs",
+    "allJobs": "All job resources"
   },
   "news": {
     "title": "News",
