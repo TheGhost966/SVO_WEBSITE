@@ -781,6 +781,46 @@ Experts/homepage-CMS-copy set of "broken until migration recovery runs" now incl
 Experts browsing too, not just the homepage's new fields. Applying the migration recovery steps
 (DECISIONS.md "Migration path fix") fixes all of these at once, in one pass.
 
+## Full /de, /ar, /en pass (BRIEF-AMENDMENT-03 §5 item 7)
+
+**Every top-level route resolves on all three locales — verified directly, not assumed.**
+Navigated to all 13 top-level routes (`about`, `news`, `events`, `services`, `guide`, `roadmaps`,
+`experts`, `experts/apply`, `jobs`, `contact`, `partners`, `impressum`, `datenschutz`/
+`privacy-policy`, `barrierefreiheit`) on `/de`, `/ar`, and `/en` using their correct per-locale
+segments from `src/i18n/routing.ts`. Every one returned real content — either a populated page or
+a legitimate empty/placeholder state (`⚠ Inhalt ausstehend`, "no news found", etc.) — zero 404s,
+zero crashes, across all 39 checks. Detail routes (`news/[slug]`, `guide/[topic]/[article]`,
+`roadmaps/[roadmap]`, `services/[pillar]/[service]`, `experts/[slug]`) could not be exercised —
+every backing collection is currently empty or (for Guide/Roadmaps/Services) blocked by the
+pending `unlocalize_reference_slugs` migration — already tracked, not re-logged here.
+
+**No console errors or hydration warnings** on any page checked (`/de`, `/ar/experts`,
+`/en/contact`), confirmed via `read_console_messages` after a fresh navigation.
+
+**Keyboard/ARIA spot-check on the `Header`'s custom `GuideMenu` dropdown ("Ressourcen"/"موارد"):**
+opens on click, all four items reachable, `Escape` closes it and **returns visible focus to the
+trigger button** (confirmed in-browser — a 3px blue `:focus-visible` outline, from the existing
+global `:focus-visible` rule in `globals.css`, appears on the trigger after closing). This
+existing behavior (not new in this run) already satisfies AMENDMENT-02 §2.9's accessibility
+contract.
+
+**RTL spot-check on `/ar`:** header mirrors correctly (nav order, button positions, dropdown
+`start-0` positioning via logical CSS properties), stat-tile and help-card reading order flips
+correctly, and — most importantly — the cross-locale link-resolution fix from item 3
+(`resolveInternalHref`) was independently re-confirmed here: the homepage's Guide help-card
+navigated to `/ar/guide` (not the German `/ar/oesterreich-guide`) with no dead end.
+
+**Long-German-string check, beyond the homepage (already checked in item 3):** header nav labels
+render on one line with no wrapping/clipping at desktop width, including the longest item
+("Veranstaltungen") alongside the new "Mitglied werden" button and "Über uns"; footer's two-column
+quick-links grid handles the newly added "Freiwillige werden"/"Idee einreichen" entries without
+layout breakage. No overflow instances found needing a layout change.
+
+**Not verified in this pass (already logged elsewhere, not re-litigated here):** mobile-viewport
+rendering (tooling limitation, see "Header and footer" above), admin-panel editability of any
+CMS field (blocked on the pending migrations), and correctness of Guide/Roadmaps/Experts detail
+pages once real content and a completed migration exist behind them.
+
 ## `npm run build` was fully broken — pre-existing, unrelated to any planned work, fixed anyway
 
 Discovered while verifying item 2 (`SiteSettings.homeGroup.sectionOrder`) — the Working
