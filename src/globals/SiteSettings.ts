@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload'
 import { revalidateTag } from 'next/cache'
 import { isAdminOrBoard } from '@/lib/access'
 import { tags } from '@/lib/payload'
+import { HOME_SECTIONS, HOME_SECTION_LABELS } from '@/lib/homeSections'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -148,6 +149,43 @@ export const SiteSettings: GlobalConfig = {
         },
       },
       fields: [
+        {
+          name: 'sectionOrder',
+          type: 'array',
+          label: {
+            de: 'Reihenfolge der Startseiten-Abschnitte',
+            ar: 'ترتيب أقسام الصفحة الرئيسية',
+            en: 'Homepage section order',
+          },
+          admin: {
+            description: {
+              de: 'Reihenfolge per Ziehen ändern, Abschnitte ein-/ausblenden. Leer lassen für die Standardreihenfolge: Hero, Statistik, Neuigkeiten, Veranstaltungen, Hilfe-Karten, Wegweiser, Guide, Expert:innen, Stellenangebote, CTA-Band.',
+              en: 'Drag rows to reorder; toggle sections on/off. Leave empty for the default order: Hero, Stats, News, Events, Help cards, Roadmaps, Guide, Experts, Jobs, CTA band.',
+            },
+          },
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'section',
+                  type: 'select',
+                  required: true,
+                  options: HOME_SECTIONS.map((value) => ({ value, label: HOME_SECTION_LABELS[value] })),
+                  label: { de: 'Abschnitt', ar: 'القسم', en: 'Section' },
+                  admin: { width: '70%' },
+                },
+                {
+                  name: 'enabled',
+                  type: 'checkbox',
+                  defaultValue: true,
+                  label: { de: 'Sichtbar', ar: 'مرئي', en: 'Visible' },
+                  admin: { width: '30%' },
+                },
+              ],
+            },
+          ],
+        },
         {
           type: 'row',
           fields: [

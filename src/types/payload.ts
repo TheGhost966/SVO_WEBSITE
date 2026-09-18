@@ -276,6 +276,11 @@ export type SiteSettingsDoc = {
   boardNotificationEmails?: Array<{ email: string }> | null
   jobResourceLinks?: Array<{ id?: string; label?: string | null; url?: string | null; description?: string | null }> | null
   homeGroup?: {
+    sectionOrder?: Array<{
+      id?: string
+      section: 'hero' | 'stats' | 'news' | 'events' | 'helpCards' | 'roadmaps' | 'guide' | 'experts' | 'jobs' | 'ctaBand'
+      enabled: boolean
+    }> | null
     heroHeadline?: string | null
     heroSubline?: string | null
     heroCtaLabel?: string | null

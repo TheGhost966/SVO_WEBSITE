@@ -29,6 +29,13 @@ Recorded here per the run's own instruction: where a decision wasn't already rul
 added under this heading as the run proceeds; see each numbered work item's own commit/section
 below for the technical detail behind each call.
 
+**Fixed `npm run build` (fully broken, pre-existing, not one of the seven numbered work items)
+rather than working around it or skipping the build-verification step.** See "`npm run build` was
+fully broken" above for the full diagnosis. Chose to fix rather than skip because every later
+item's definition-of-done depends on a working build to check against, and the fix (a Turbopack
+resolve-alias + a documented instrumentation-file split) is narrowly scoped, reversible, and
+touches no application behavior — cheapest-to-reverse option available.
+
 ## Stack
 
 **Next.js 16 App Router + Payload CMS 3.88 inside the same process.**
@@ -600,6 +607,54 @@ other slug. Not fixed now: no board workflow creates arbitrary `pages` records t
 seeded/test record uses `about`), and a generic page-builder route is out of this slice's scope.
 Worth a one-line admin `description` on `Pages.slug` next time that field is touched, warning that
 only `about` currently renders.
+
+## `npm run build` was fully broken — pre-existing, unrelated to any planned work, fixed anyway
+
+Discovered while verifying item 2 (`SiteSettings.homeGroup.sectionOrder`) — the Working
+Agreement's "typecheck, lint, build before every commit, never commit a broken build" rule needs
+a working build to check against, and `npm run build` failed outright even on unmodified
+`master` (confirmed via `git stash`). Fixing it wasn't one of `BRIEF-AMENDMENT-03.md` §5's seven
+numbered items, but every later item depends on this gate working, so it was fixed rather than
+worked around — cheapest-to-reverse call, logged per the run's own instructions.
+
+**Root cause 1 — Turbopack doesn't resolve conditional `exports` by the `"node"` condition, even
+for plain Node-targeted bundles.** `payload`'s own dependency `file-type@21.3.4` ships two entry
+points: `core.js` (the `"default"` condition — browser/universal, no `fileTypeFromFile`) and
+`index.js` (the `"node"` condition — has it). `node_modules/payload/dist/uploads/getFileByPath.js`
+imports `fileTypeFromFile` expecting Node resolution; Turbopack resolves the `"default"`
+condition instead and hard-fails at build time (`Export fileTypeFromFile doesn't exist`) — in
+**every** bundle category (`Server Component`, `App Route`, `Instrumentation`, `Edge
+Instrumentation`), not just edge, ruling out an edge-runtime-only explanation. `serverExternalPackages`
+(the documented fix for "Node-specific dependency needs native `require`") does **not** help here
+— confirmed empirically (added `file-type` to it, rebuilt, identical failure) — because it only
+changes *bundling* behavior, not Turbopack's static named-export validation during the build.
+`strtok3` (imported by `file-type/index.js`) has the identical split one level deeper. Fixed via
+`next.config.ts`'s `turbopack.resolveAlias`, pointing the bare specifiers straight at the path
+Node's own `require.resolve('file-type')`/`require.resolve('strtok3')` already pick — sidesteps
+Turbopack's conditional-exports resolution entirely. The alias value must be a project-relative
+path (`./node_modules/...`), not an OS-absolute one — an absolute path was silently ignored,
+confirmed empirically; mirrors exactly how next-intl's own plugin builds its
+`use-intl/format-message` alias.
+
+**Root cause 2 — a runtime `if (...) return` guard inside `instrumentation.ts` does not stop
+Turbopack from bundling what follows it for the separate "Edge Instrumentation" target.** Even
+with `if (process.env.NEXT_RUNTIME === 'edge') return` as the very first line, `npm run build`
+still failed on `sharp` (`non-ecmascript placeable asset` — a native addon can never be
+represented in an edge/ESM chunk) with an import trace running straight through
+`instrumentation.ts` → `payload.config.ts` → `Media.ts` → `sharp`. A runtime guard only skips
+*executing* the code after it; Turbopack still needs the entire reachable module graph to
+*compile* for both the Node and Edge instrumentation bundles it always builds, regardless of
+whether a runtime check would later prevent that code from running. Fixed by following Next's own
+documented pattern exactly ("Specifying the runtime" in the `instrumentation.js` docs): split the
+node-only logic into `src/instrumentation.node.ts`, and made `src/instrumentation.ts` a thin
+dispatcher that only reaches it via a *separate-file* dynamic `import()` gated on
+`NEXT_RUNTIME === 'edge'`. Physically separating the file (not just gating within one file) is
+what actually keeps `sharp` out of the edge bundle's module graph.
+
+**Net result:** `npm run build` now exits 0 with zero errors, confirmed after `rm -rf .next` (no
+stale-cache false negative). `npm run dev` was never affected by either bug — Turbopack's dev
+mode compiles routes on demand rather than eagerly walking the whole graph, which is presumably
+why this was never noticed in any prior session's dev-only testing.
 
 ## AMENDMENT-03 rulings (client questionnaire)
 
