@@ -13,7 +13,8 @@
     "contact": "Kontakt",
     "partners": "Partner",
     "menu": "Menü",
-    "closeMenu": "Menü schließen"
+    "closeMenu": "Menü schließen",
+    "joinUs": "Mitglied werden"
   },
   "common": {
     "readMore": "Mehr lesen",
@@ -183,7 +184,9 @@
   },
   "footer": {
     "rights": "Alle Rechte vorbehalten",
-    "builtWith": "Mit ❤ für die syrische Gemeinschaft in Österreich."
+    "builtWith": "Mit ❤ für die syrische Gemeinschaft in Österreich.",
+    "volunteer": "Freiwillige werden",
+    "idea": "Idee einreichen"
   },
   "cookies": {
     "title": "Datenschutzeinstellungen",

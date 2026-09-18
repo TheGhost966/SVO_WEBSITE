@@ -40,6 +40,7 @@ export function Footer() {
             <ul className="grid grid-cols-2 gap-x-8 gap-y-2">
               {(
                 [
+                  { href: '/about' as const, key: 'about' as const },
                   { href: '/news' as const, key: 'news' as const },
                   { href: '/events' as const, key: 'events' as const },
                   { href: '/services' as const, key: 'services' as const },
@@ -57,6 +58,25 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              {/* AMENDMENT-02 §2.4: volunteer/idea are deleted as fake feature triggers but "may
+                  appear as the real contact links above instead" — real deep-links into the
+                  existing contact form with the category preselected, never a dead end. */}
+              <li>
+                <Link
+                  href={{ pathname: '/contact', query: { category: 'volunteering' } }}
+                  className="text-sm text-white/70 hover:text-white transition-colors"
+                >
+                  {t('volunteer')}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={{ pathname: '/contact', query: { category: 'idea' } }}
+                  className="text-sm text-white/70 hover:text-white transition-colors"
+                >
+                  {t('idea')}
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

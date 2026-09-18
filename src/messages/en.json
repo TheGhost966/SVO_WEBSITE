@@ -13,7 +13,8 @@
     "contact": "Contact",
     "partners": "Partners",
     "menu": "Menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "joinUs": "Join us"
   },
   "common": {
     "readMore": "Read more",
@@ -183,7 +184,9 @@
   },
   "footer": {
     "rights": "All rights reserved",
-    "builtWith": "Built with ❤ for the Syrian community in Austria."
+    "builtWith": "Built with ❤ for the Syrian community in Austria.",
+    "volunteer": "Become a volunteer",
+    "idea": "Submit an idea"
   },
   "cookies": {
     "title": "Privacy settings",

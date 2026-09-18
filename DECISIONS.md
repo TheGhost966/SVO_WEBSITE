@@ -701,6 +701,49 @@ default viewport); stat labels ("Bundesländer", "Schwerpunkte") and help-card t
 aufnehmen") fit within their tiles with no truncation. No overflow instances found needing a
 layout change — nothing to log here beyond this confirmation.
 
+## Header and footer (BRIEF-AMENDMENT-03 §5 item 4, applying AMENDMENT-02 §2.4)
+
+**Header already had zero dead-end triggers before this item — login and search were never
+built, matching §2.4's "delete" rows.** The only actual gap against §2.4's table was "Join us":
+not present at all. Added as a real link to `/contact?category=membership` (next-intl's typed
+`Link` with a `{ pathname, query }` object — a static literal, so no `resolveInternalHref` needed
+here), styled as a small filled-green button in the header's right-side cluster (desktop,
+`hidden sm:inline-flex`) and as a plain link in the mobile menu. Verified in-browser on `/de`
+(→ `/de/kontakt?category=membership`, "Mitgliedschaft" preselected in the dropdown) and `/ar`
+(→ `/ar/contact?category=membership`).
+
+**Found and fixed while touching the header: "Über uns" (About) had no navigation entry
+anywhere — not in the header, not in the footer — despite `/about` existing as a real page and
+`SVOE_PROJECT_BRIEF.md` §2 decision 3 naming "Über uns" as one of the three most important
+sections at launch.** `nav.about` was already a translated message key, just never wired to a
+link. Added `about` as the header's first nav item and to the footer's quick-links grid. This
+predates this run — not introduced by Slice 3/4 — but it's squarely "header ... navigation" work,
+cheap to fix, and left the site's second-most-emphasized section (per the brief's own locked
+decisions) unreachable except by typing the URL directly.
+
+**Footer already had none of §2.4's named dead links either** (volunteer, idea, community voice,
+digital membership, annual reports, official bodies) — the current footer predates the Figma-era
+planning draft those rows describe. Took the amendment's own suggestion ("volunteer and idea may
+appear as the real contact links above instead") and added both as real
+`/contact?category=volunteering` / `/contact?category=idea` deep-links in the footer's quick-links
+list — turns two parked features into two working entries at no scope cost, same pattern as the
+header's "Join us."
+
+**Not done — deliberately out of this item's scope:** the Figma export shows a 5-column grouped
+footer layout (Community / Services / Union / Contact + brand) and a static 9-Bundesland pill
+row. Neither is a dead link or a functional gap — §2.4's table doesn't mention either — so
+restructuring the footer into that shape is Figma-fidelity work (§4/§2.6), not a §2.4 requirement,
+and wasn't built in this pass to stay scoped to what AMENDMENT-03 §5 item 4 actually asked for.
+Worth doing in a future pass if the board wants closer visual fidelity to the reference design.
+
+**Mobile-viewport behavior not independently re-verified in-browser this pass** — the browser
+automation's window-resize call didn't reflect in the captured screenshot (a tooling limitation,
+not a code issue), so the new "Join us" button and `about` nav item were only visually confirmed
+at desktop width. Both reuse the exact same responsive Tailwind classes (`hidden md:flex` desktop
+nav, `md:hidden` hamburger, `hidden sm:inline-flex` for the new button) as the pre-existing,
+already-working mobile menu, and the "Join us" mobile link was added to that same menu markup —
+low risk, but flagged as UNVERIFIED rather than claimed as tested.
+
 ## `npm run build` was fully broken — pre-existing, unrelated to any planned work, fixed anyway
 
 Discovered while verifying item 2 (`SiteSettings.homeGroup.sectionOrder`) — the Working

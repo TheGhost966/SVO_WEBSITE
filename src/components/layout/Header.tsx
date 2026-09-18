@@ -12,9 +12,10 @@ type Props = { locale: string }
 // overflow the header in German. Renamed from "Wegweiser" (Guide+Roadmaps
 // only, Slice 2) to "Ressourcen" when Experts joined in Slice 3 — see
 // DECISIONS.md.
-const navKeys = ['news', 'events', 'services', 'contact'] as const
+const navKeys = ['about', 'news', 'events', 'services', 'contact'] as const
 
 const navHrefs = {
+  about: '/about',
   news: '/news',
   events: '/events',
   services: '/services',
@@ -129,6 +130,15 @@ export function Header({ locale }: Props) {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* AMENDMENT-02 §2.4: "Join us" is a real link to the contact form with the membership
+              category preselected — never a dead account-signup button (no accounts exist). */}
+          <Link
+            href={{ pathname: '/contact', query: { category: 'membership' } }}
+            className="hidden sm:inline-flex px-4 py-2 rounded-control text-sm font-semibold bg-brand-green text-white hover:bg-brand-green-dk transition-colors"
+          >
+            {t('joinUs')}
+          </Link>
+
           <LanguageSwitcher locale={locale} />
 
           {/* Mobile hamburger */}
@@ -187,6 +197,13 @@ export function Header({ locale }: Props) {
               </span>
             )
           })}
+          <Link
+            href={{ pathname: '/contact', query: { category: 'membership' } }}
+            className="block py-3 text-sm font-semibold text-brand-green-dk"
+            onClick={() => setMenuOpen(false)}
+          >
+            {t('joinUs')}
+          </Link>
         </nav>
       )}
     </header>
