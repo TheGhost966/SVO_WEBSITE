@@ -104,7 +104,9 @@ export type ExpertDoc = {
   city?: string | null
   languages?: Array<{ id?: string; language?: string | null }> | null
   contactEmail?: string | null
+  showEmail?: boolean | null
   contactPhone?: string | null
+  showPhone?: boolean | null
   website?: string | null
   photo?: ResolvedMedia | string | null
   verificationStatus?: string | null

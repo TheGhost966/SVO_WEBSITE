@@ -122,7 +122,8 @@
     "applyRateLimited": "Too many applications. Please try again later.",
     "contact": "Contact",
     "languages": "Languages",
-    "listedDisclaimer": "SVÖ accepts no liability for the accuracy of this information or the quality of services offered."
+    "listedDisclaimer": "SVÖ accepts no liability for the accuracy of this information or the quality of services offered.",
+    "requestIntro": "Request an introduction via our contact form"
   },
   "jobs": {
     "title": "Jobs",

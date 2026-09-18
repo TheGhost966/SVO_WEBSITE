@@ -1,4 +1,4 @@
-import type { CollectionConfig, FieldAccess } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig, FieldAccess } from 'payload'
 import {
   isEditorOrAbove,
   readPublishedOrLoggedIn,
@@ -11,6 +11,25 @@ import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
 // Field-level access must return a plain boolean (unlike collection-level
 // Access, which may also return a Where query for row filtering).
 const boardOrAdminOnly: FieldAccess = ({ req }) => ['admin', 'board'].includes(req.user?.role ?? '')
+
+// BRIEF-AMENDMENT-03 §2.5: professional proof is now "مطلوب إلزامي" (mandatory) per the client
+// questionnaire. A hard block would stop the board from publishing while verification is still
+// in progress (an editorial/process step, not a system-enforced gate — see DECISIONS.md "Experts
+// slice" § "Verification ownership"), so this only warns, loudly, in the server log — it never
+// throws and never blocks the save. Fires only on the transition into `published`, not on every
+// re-save of an already-published-and-still-unverified listing.
+const warnIfPublishingUnverified: CollectionBeforeChangeHook = ({ data, originalDoc, req }) => {
+  const willBePublished = data.reviewStatus === 'published'
+  const wasAlreadyPublished = originalDoc?.reviewStatus === 'published'
+  if (willBePublished && !wasAlreadyPublished && data.verificationStatus !== 'verified') {
+    req.payload.logger.warn(
+      `Experts: publishing "${data.name}" with verificationStatus="${data.verificationStatus ?? 'unverified'}" — ` +
+        'confirm this person is actually registered with the relevant chamber/authority before publishing ' +
+        '(BRIEF-AMENDMENT-03 §2.5). This is a warning, not a block — the save will proceed.',
+    )
+  }
+  return data
+}
 
 // SECURITY (BRIEF-AMENDMENT-01 §2.1): this collection is publicly readable
 // (published records only) but access.create stays isEditorOrAbove — never
@@ -78,14 +97,45 @@ export const Experts: CollectionConfig = {
       fields: [{ name: 'language', type: 'text', required: true, label: { de: 'Sprache', ar: 'اللغة', en: 'Language' } }],
     },
     {
-      name: 'contactEmail',
-      type: 'email',
-      label: { de: 'Kontakt-E-Mail', ar: 'البريد الإلكتروني', en: 'Contact email' },
+      type: 'row',
+      fields: [
+        {
+          name: 'contactEmail',
+          type: 'email',
+          label: { de: 'Kontakt-E-Mail', ar: 'البريد الإلكتروني', en: 'Contact email' },
+          admin: { width: '70%' },
+        },
+        // BRIEF-AMENDMENT-03 §2.5: questionnaire §7.4 (show email/website publicly) and §7.6
+        // (contact only via an admin-mediated request) directly contradict each other — logged
+        // for the board in DECISIONS.md. Both toggles default OFF (admin-mediated by default,
+        // per §7.6) until the board picks a site-wide policy; a board/admin can still opt a
+        // specific listing into direct display per §7.4 on a case-by-case basis.
+        {
+          name: 'showEmail',
+          type: 'checkbox',
+          defaultValue: false,
+          label: { de: 'E-Mail öffentlich anzeigen', ar: 'إظهار البريد الإلكتروني علنًا', en: 'Show email publicly' },
+          admin: { width: '30%' },
+        },
+      ],
     },
     {
-      name: 'contactPhone',
-      type: 'text',
-      label: { de: 'Telefon', ar: 'الهاتف', en: 'Phone' },
+      type: 'row',
+      fields: [
+        {
+          name: 'contactPhone',
+          type: 'text',
+          label: { de: 'Telefon', ar: 'الهاتف', en: 'Phone' },
+          admin: { width: '70%' },
+        },
+        {
+          name: 'showPhone',
+          type: 'checkbox',
+          defaultValue: false,
+          label: { de: 'Telefon öffentlich anzeigen', ar: 'إظهار الهاتف علنًا', en: 'Show phone publicly' },
+          admin: { width: '30%' },
+        },
+      ],
     },
     {
       name: 'website',
@@ -159,7 +209,7 @@ export const Experts: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
+    beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview, warnIfPublishingUnverified],
     afterChange: [makeRevalidateOnPublish('experts')],
   },
   access: {

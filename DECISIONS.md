@@ -744,6 +744,43 @@ nav, `md:hidden` hamburger, `hidden sm:inline-flex` for the new button) as the p
 already-working mobile menu, and the "Join us" mobile link was added to that same menu markup —
 low risk, but flagged as UNVERIFIED rather than claimed as tested.
 
+## Experts verification warning + admin column + contact-visibility toggles (BRIEF-AMENDMENT-03 §5 item 6)
+
+**Admin list column was already done** — `verificationStatus` has been in `Experts.admin.defaultColumns`
+since the original Experts slice; nothing to add there.
+
+**Added `warnIfPublishingUnverified`, a `beforeChange` hook that logs a server-side warning
+(`payload.logger.warn`) when a listing transitions into `published` while `verificationStatus`
+isn't `verified`** — never throws, never blocks the save, exactly per §2.5's "harden it one notch
+without blocking the board." Fires only on the transition (checks `originalDoc.reviewStatus`),
+not on every re-save of an already-published-and-still-unverified listing.
+
+**Added `showEmail`/`showPhone` checkboxes (both default `false`)** — see "AMENDMENT-03 rulings"
+above for why: the amendment's premise that these already existed was wrong, not its instruction.
+Gated the public detail page's existing unconditional `contactEmail`/`contactPhone` rendering
+behind them; when both are off, the contact box now shows a "request an introduction via our
+contact form" link instead of silently showing nothing. `website` is intentionally left ungated —
+the amendment names only `showEmail`/`showPhone`, not a third toggle, and expanding the gate to a
+field the instruction didn't name would be scope invention, not a correction.
+
+**Migration generated (filesystem-only, purely additive — two new nullable boolean columns, no
+drops) but not applied — stacks behind the four now-pending migrations.**
+
+**Consequence worth flagging clearly, not burying: this change temporarily widened the
+"broken until migrated" surface area.** Verified directly (read-only `information_schema.columns`
+query against the live DB): `show_email`/`show_phone` don't exist on the live `experts` table yet.
+Since Payload's generated query now references these columns, `getExperts`/`getExpertBySlug`
+started failing against the live DB the moment this schema change was made — caught by their
+existing bare try/catch (same pattern as `getSiteSettings`), so it fails *gracefully* (empty
+list) rather than crashing, but it is a real, observed regression versus a moment earlier in this
+same session: the one real `Experts` record ("Dr. Layla Hassan") rendered correctly on the
+homepage during item 3's verification and stopped rendering (silently, no error) once this item's
+migration was generated. This is not a new class of bug — it's the exact same "code schema ahead
+of DB schema" situation `SiteSettings.homeGroup` is already in — but it means the Guide/Roadmaps/
+Experts/homepage-CMS-copy set of "broken until migration recovery runs" now includes ordinary
+Experts browsing too, not just the homepage's new fields. Applying the migration recovery steps
+(DECISIONS.md "Migration path fix") fixes all of these at once, in one pass.
+
 ## `npm run build` was fully broken — pre-existing, unrelated to any planned work, fixed anyway
 
 Discovered while verifying item 2 (`SiteSettings.homeGroup.sectionOrder`) — the Working

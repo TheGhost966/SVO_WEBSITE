@@ -122,7 +122,8 @@
     "applyRateLimited": "Zu viele Anträge. Bitte versuchen Sie es später erneut.",
     "contact": "Kontakt",
     "languages": "Sprachen",
-    "listedDisclaimer": "Der SVÖ übernimmt keine Haftung für die Richtigkeit der Angaben oder die Qualität der angebotenen Dienstleistungen."
+    "listedDisclaimer": "Der SVÖ übernimmt keine Haftung für die Richtigkeit der Angaben oder die Qualität der angebotenen Dienstleistungen.",
+    "requestIntro": "Kontakt über unser Kontaktformular anfragen"
   },
   "jobs": {
     "title": "Stellenangebote",

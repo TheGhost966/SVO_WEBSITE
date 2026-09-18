@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import { Link } from '@/i18n/navigation'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { MediaImage } from '@/components/ui/MediaImage'
 import { getExpertBySlug } from '@/lib/queries'
@@ -108,15 +109,26 @@ export default async function ExpertPage({ params }: Props) {
               {expert.languages.map((l) => l.language).filter(Boolean).join(', ')}
             </p>
           )}
-          {expert.contactEmail && (
+          {expert.showEmail && expert.contactEmail && (
             <a href={`mailto:${expert.contactEmail}`} className="text-sm text-brand-blue hover:text-brand-navy underline">
               {expert.contactEmail}
             </a>
           )}
-          {expert.contactPhone && (
+          {expert.showPhone && expert.contactPhone && (
             <a href={`tel:${expert.contactPhone}`} className="text-sm text-brand-blue hover:text-brand-navy underline">
               {expert.contactPhone}
             </a>
+          )}
+          {/* BRIEF-AMENDMENT-03 §2.5: showEmail/showPhone default off (admin-mediated contact per
+              questionnaire §7.6) — when neither is on, point to the contact form instead of
+              rendering an empty-looking contact box. */}
+          {!expert.showEmail && !expert.showPhone && (
+            <Link
+              href={{ pathname: '/contact' }}
+              className="text-sm text-brand-blue hover:text-brand-navy underline"
+            >
+              {t('requestIntro')}
+            </Link>
           )}
           {expert.website && (
             <a
