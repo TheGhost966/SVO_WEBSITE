@@ -11,7 +11,18 @@ script is broken regardless (`tsx`/ESM-CJS interop bug — see "Known issues"). 
 German title/slug for both are in `CONTENT-NEEDED.md`, ready to paste into the admin UI
 (`/admin/collections/guide-topics`) — needs a human with admin access and DB write rights.
 
-**Applying the three pending migrations still needs an interactive terminal.** Unchanged from the
+**Correction (2026-09-20): the pending count is FIVE, not three.** A read-only
+`PAYLOAD_MIGRATE_STATUS=1` against `.env.local` listed all five as `pending`: `initial_schema`,
+`unlocalize_reference_slugs`, `add_home_group_site_settings`, `add_home_section_order` (AMENDMENT-03
+§2.2), `add_experts_contact_visibility_toggles` (AMENDMENT-03 §2.5). "Three" below and in older
+sections predates the AMENDMENT-03 work. The last two were read line by line on 2026-09-20 and are
+purely additive in `up()`: `add_home_section_order` = one `CREATE TYPE` + one `CREATE TABLE` (+ FK to
+`site_settings` with cascade, two indexes); `add_experts_contact_visibility_toggles` = four
+`ADD COLUMN ... boolean DEFAULT false` on `experts`/`_experts_v`. No `DROP`/`ALTER ... TYPE`/data
+rewrite in either `up()`; their `down()` drops only what `up()` created. Migrations 1–3 remain
+audited in `33e88ad`. Rehearsal on a Neon branch is pending; nothing has been applied to any DB.
+
+**Applying the pending migrations still needs an interactive terminal.** Unchanged from the
 prior session (see "Unlocalized slugs" → "Exact recovery steps" below) — this run's preflight
 re-confirmed all three are still `pending` against `.env.local`'s connection string. Nothing in
 this run attempted to change that; it needs the same manual, interactive recovery steps already
