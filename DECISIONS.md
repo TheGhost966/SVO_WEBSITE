@@ -462,6 +462,14 @@ a workaround-of-a-workaround.
 `PAYLOAD_MIGRATE_CREATE_NAME=<name>`. Set one, boot the server once (`next dev` or `next start`),
 read the result from the console, unset it before the next normal boot.
 
+**`PAYLOAD_MIGRATE_BASELINE=<name>`** (added for the `initial_schema` situation described under
+"Unlocalized slugs"): inserts `<name>` into `payload_migrations` as batch 1 without running its
+`up()`, and deletes the `batch: -1` dev-push sentinel row. Use once, for a database whose schema came
+from dev-mode push. `<name>` must match the migration file's name exactly (e.g.
+`20260915_103709_initial_schema`, no extension). It writes to the DB and is not idempotent — running
+it twice inserts a duplicate row — so rehearse on a Neon branch/snapshot first, run it for one boot
+only, then unset it and follow with `PAYLOAD_MIGRATE_ON_BOOT=1` for the remaining migrations.
+
 **Why not an HTTP route instead** (the other option this file previously suggested): built first,
 then rejected by this session's own security review — a secret-gated endpoint that executes
 privileged DB-schema operations on request is a standing network attack surface regardless of how

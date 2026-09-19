@@ -21,6 +21,10 @@ import type { PostgresAdapter } from '@payloadcms/db-postgres'
  *   PAYLOAD_MIGRATE_STATUS=1        — log which migrations exist vs. have been applied
  *   PAYLOAD_MIGRATE_ON_BOOT=1       — apply all pending migrations
  *   PAYLOAD_MIGRATE_CREATE_NAME=foo — write a new migration file capturing the current schema diff
+ *   PAYLOAD_MIGRATE_BASELINE=<name> — mark <name> as already-applied (batch 1) without running its
+ *                                     up(), and clear the batch:-1 dev-push sentinel row. Use once,
+ *                                     for a database whose schema came from dev-mode push rather
+ *                                     than migrations — see DECISIONS.md "Unlocalized slugs".
  */
 /**
  * Dev-only, unconditional (no opt-in env var needed) — the opposite of the gated operations
@@ -72,7 +76,8 @@ export async function register() {
   const wantsStatus = Boolean(process.env.PAYLOAD_MIGRATE_STATUS)
   const wantsMigrate = Boolean(process.env.PAYLOAD_MIGRATE_ON_BOOT)
   const createName = process.env.PAYLOAD_MIGRATE_CREATE_NAME
-  if (!wantsStatus && !wantsMigrate && !createName) return
+  const baselineName = process.env.PAYLOAD_MIGRATE_BASELINE
+  if (!wantsStatus && !wantsMigrate && !createName && !baselineName) return
 
   // Defense in depth alongside postgresAdapter's push: false — matches the exact guard
   // node_modules/payload/dist/bin/migrate.js sets before payload.init() for the same reason:
@@ -96,6 +101,22 @@ export async function register() {
       if (migrationFiles.length === 0) {
         console.log('  (no migration files found)')
       }
+    }
+
+    if (baselineName) {
+      // Marks a migration as already-applied without running its up() — for exactly the situation
+      // documented in DECISIONS.md "Unlocalized slugs": this database's schema came from dev-mode
+      // push, not from `initial_schema`, so running that file's up() fails on `relation already
+      // exists` (confirmed). Also clears Payload's own `batch: -1` dev-push sentinel row, since
+      // adapter.migrate() checks for it on every future call and re-prompts otherwise — leaving it
+      // in place after baselining would just re-trigger the same prompt for no reason.
+      const { sql } = await import('@payloadcms/db-postgres')
+      const pgAdapter = adapter as unknown as PostgresAdapter
+      await pgAdapter.drizzle.execute(sql`DELETE FROM payload_migrations WHERE batch = -1`)
+      await pgAdapter.drizzle.execute(
+        sql`INSERT INTO payload_migrations (name, batch, created_at, updated_at) VALUES (${baselineName}, 1, now(), now())`,
+      )
+      console.log(`[migrate] baselined "${baselineName}" as already-applied (batch 1), cleared dev-push sentinel`)
     }
 
     if (createName) {
