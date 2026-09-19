@@ -92,7 +92,16 @@ export async function register() {
   try {
     if (wantsStatus) {
       const migrationFiles = await readMigrationFiles({ payload })
-      const { existingMigrations } = await getMigrations({ payload })
+      // A brand-new database has no payload_migrations table yet (migrate() creates it on first
+      // run), so getMigrations throws `relation ... does not exist` — that means "nothing applied".
+      let existingMigrations: Awaited<ReturnType<typeof getMigrations>>['existingMigrations'] = []
+      try {
+        ;({ existingMigrations } = await getMigrations({ payload }))
+      } catch (err) {
+        const cause = (err as { cause?: { message?: string } })?.cause?.message ?? ''
+        if (!/payload_migrations" does not exist/.test(cause)) throw err
+        console.log('[migrate] payload_migrations table does not exist yet — treating as zero applied')
+      }
       console.log('[migrate] status:')
       for (const file of migrationFiles) {
         const applied = existingMigrations.find((m) => m.name === file.name)

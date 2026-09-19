@@ -22,6 +22,32 @@ purely additive in `up()`: `add_home_section_order` = one `CREATE TYPE` + one `C
 rewrite in either `up()`; their `down()` drops only what `up()` created. Migrations 1–3 remain
 audited in `33e88ad`. Rehearsal on a Neon branch is pending; nothing has been applied to any DB.
 
+**Fresh-database migration run (2026-09-20) — supersedes the rehearsal/baselining plan.** The old
+Neon project (AWS US East 2, `ep-icy-violet-aenwmzc4`, built by dev-mode push) held no content worth
+preserving, so it was abandoned rather than baselined. A new Neon project was created in **AWS
+eu-central-1 (Frankfurt)** — the region move is per brief §16.3 (EU data residency for a DSGVO
+association); `.env.local` `DATABASE_URI` now points at `ep-square-dream-b2hnlop9-pooler.c-6.eu-central-1`.
+Before migrating, `information_schema.tables` showed **zero tables** in any non-system schema.
+- `PAYLOAD_MIGRATE_STATUS=1`: all five `pending`, none applied (`payload_migrations` did not exist
+  yet — status now reports that as zero-applied instead of crashing).
+- `PAYLOAD_MIGRATE_ON_BOOT=1`: all five ran in order, no errors, **no baselining** — `initial_schema`
+  (1301ms), `unlocalize_reference_slugs` (64ms), `add_home_group_site_settings` (78ms),
+  `add_home_section_order` (51ms), `add_experts_contact_visibility_toggles` (46ms).
+- `PAYLOAD_MIGRATE_STATUS=1` again: all five `✓ ran (batch 1)`; the dev-boot `[schema-warning]` no
+  longer fires.
+- Schema verified directly in SQL: `site_settings` + `site_settings_locales` carry the `home_group_*`
+  columns; `site_settings_home_group_section_order` exists (`_order`, `_parent_id`, `id`, `section`
+  enum, `enabled`); `show_email`/`show_phone` on `experts` and `version_show_email`/
+  `version_show_phone` on `_experts_v`; `slug` is a plain column on `service_pillars`, `services`,
+  `guide_topics`, `guide_articles`, `roadmaps` with no `slug` left in their `_locales` tables
+  (`categories`, `events`, `news`, `pages` intentionally keep localized slugs).
+- **Slice 0's definition of done (AMENDMENT-02 §2.2) is now genuinely satisfied:** a migration set
+  captured from code applied cleanly to a database that never saw dev-mode push. Caveat: this was
+  the working database for the project, not a separate throwaway — acceptable only because it was
+  empty and brand new.
+- **Not yet verified:** admin-UI behaviour (`homeGroup` editable, `sectionOrder` reorderable) and
+  test records rendering on `/de`, `/ar`, `/en` — no admin user exists yet (`users` is empty).
+
 **Applying the pending migrations still needs an interactive terminal.** Unchanged from the
 prior session (see "Unlocalized slugs" → "Exact recovery steps" below) — this run's preflight
 re-confirmed all three are still `pending` against `.env.local`'s connection string. Nothing in
@@ -364,6 +390,12 @@ real, not hypothetical until proven otherwise. The migration file is committed a
 `unlocalize_reference_slugs` was handled) — it's the same *pending-application* state as that one,
 now stacked one deeper. **Do not add a fourth migration on top before running the recovery steps
 below** — each additional unapplied migration makes the eventual manual recovery larger.
+
+> **HISTORICAL — obsolete as of 2026-09-20.** The baselining/recovery runbook below was written for a
+> database built by dev-mode push. That database was abandoned; migrations now apply from zero on a
+> fresh Frankfurt database (see the "Fresh-database migration run" record at the top of this file).
+> Kept for the record and in case another dev-push database ever needs rescuing —
+> `PAYLOAD_MIGRATE_BASELINE` still exists for exactly that. Not needed on the current path.
 
 **Exact recovery steps** (run locally, interactively, in a normal terminal — not backgrounded):
 1. `$env:PAYLOAD_MIGRATE_ON_BOOT=1` (PowerShell) or `PAYLOAD_MIGRATE_ON_BOOT=1` prefix (bash), then
