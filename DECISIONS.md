@@ -70,7 +70,7 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
     return 200 and show the record in de/ar/en for everything except events (below). Expert with
     `showEmail=false` and a `contactEmail` set does not leak the address in any locale. Not created:
     Media/Partners (Partners requires a logo upload), Pages, Board Members (no public page renders
-    them). **The `TEST …` records are still in the DB — delete before real content goes in.**
+    them). **[DELETED later the same day via `DELETE /api/<collection>/1`; verified 0 rows in every content and `_v` version table. Only the two real Guide topics and the admin user remain.]**
   - **[FIXED the same day — see "Events/News slugs unlocalized" below.]** **Defect found — events slugs were still localized.** `/ar/events/<slug>` and `/en/events/<slug>`
     404 when only the `de` slug is filled, yet the events index in ar/en links to exactly that URL.
     Same bug class AMENDMENT-02 §2.3 fixed for the five reference collections; `events` (and `news`,
