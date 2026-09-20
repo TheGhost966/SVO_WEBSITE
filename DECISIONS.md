@@ -45,8 +45,44 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
   captured from code applied cleanly to a database that never saw dev-mode push. Caveat: this was
   the working database for the project, not a separate throwaway — acceptable only because it was
   empty and brand new.
-- **Not yet verified:** admin-UI behaviour (`homeGroup` editable, `sectionOrder` reorderable) and
-  test records rendering on `/de`, `/ar`, `/en` — no admin user exists yet (`users` is empty).
+- **Admin + render verification (2026-09-20, later the same day) — done, against this DB:**
+  - `SiteSettings.homeGroup` fields are present and editable in `/admin`. Edited `heroHeadline`,
+    saved ("Updated successfully"), and `/de` rendered it. **Revalidate path verified in production
+    mode, not just dev:** `next build` + `next start` (port 3200, `NEXT_PUBLIC_SERVER_URL` set to match
+    so Payload's CSRF origin check passed) — `/de` was `x-nextjs-cache: HIT`, one save later the first
+    request was `MISS` with the new headline, then `HIT` again. An empty `en` field renders the `de`
+    text (locale fallback), as expected.
+  - `sectionOrder` is a reorderable array (drag handles, per-row "Move Up"/"Add Below"/"Duplicate"
+    menu, Visible checkbox). Saved Hero/CTA band/Stats → homepage rendered `hero, ctaBand, stats`;
+    "Move Up" on the third row + save → `hero, stats, ctaBand`. **The literal mouse drag was NOT
+    verified** — a synthetic drag via browser automation did nothing and froze the renderer; treat
+    dnd-kit dragging as untested and "Move Up/Down" as the verified path. Partial lists render only the
+    listed sections (unlisted sections are omitted, not appended).
+  - The two missing Guide topics were created through the admin UI with de + ar titles:
+    `fuehrerschein-verkehr` (Führerschein & Verkehr / القيادة والمواصلات) and `behoerden`
+    (Behörden & Ämter / الجهات الرسمية) — unblocks AMENDMENT-03 §2.4's two missing topics; the other
+    12 of the 14 launch topics still need creating from the Figma exports. `behoerden` does not appear
+    on the Guide index until it has a published article (by design, BRIEF-AMENDMENT-01 §2.8).
+  - One test record per content collection (`TEST …`, ids all 1) created via Payload's REST API from
+    the logged-in admin session (same access control + hooks as the UI form — **not** typed into the
+    UI forms, which dropped the first Save click after programmatic field input): categories,
+    service-pillars, services, guide-articles, roadmaps, experts, news, events. Detail + index pages
+    return 200 and show the record in de/ar/en for everything except events (below). Expert with
+    `showEmail=false` and a `contactEmail` set does not leak the address in any locale. Not created:
+    Media/Partners (Partners requires a logo upload), Pages, Board Members (no public page renders
+    them). **The `TEST …` records are still in the DB — delete before real content goes in.**
+  - **New defect found — events slugs are still localized.** `/ar/events/<slug>` and `/en/events/<slug>`
+    404 when only the `de` slug is filled, yet the events index in ar/en links to exactly that URL.
+    Same bug class AMENDMENT-02 §2.3 fixed for the five reference collections; `events` (and `news`,
+    `pages`, `categories`) were left out. News passed in the test only because slugs were set per
+    locale. Fix = unlocalize `events.slug` (+ likely `news.slug`) with a migration, or make editors
+    fill every locale — a decision, not done.
+  - **`board_members.show_email` is inert, not a duplicate of the Experts toggle:** `defaultValue: false`,
+    same label idea, but no page or query renders board members at all (nothing in `src/` reads them
+    besides the collection/types), so the checkbox gates nothing today. It will only matter once a
+    board-members page exists; whoever builds it must honour `showEmail`/`showLinkedIn`.
+  - Fixed along the way: none of these needed code changes; test writes to the working DB were reset
+    (`heroHeadline` empty, `sectionOrder` empty → default order restored).
 
 **Applying the pending migrations still needs an interactive terminal.** Unchanged from the
 prior session (see "Unlocalized slugs" → "Exact recovery steps" below) — this run's preflight
