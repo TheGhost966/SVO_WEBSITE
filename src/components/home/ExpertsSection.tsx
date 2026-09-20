@@ -1,8 +1,30 @@
 import { Link } from '@/i18n/navigation'
-import { forwardArrow } from '@/i18n/routing'
-import type { ExpertDoc, CategoryRef } from '@/types/payload'
-import { HomeSectionShell, ViewAllCard } from './shared'
+import { BadgeCheck, Globe, MapPin } from 'lucide-react'
+import { MediaImage } from '@/components/ui/MediaImage'
+import { resolveInternalHref } from '@/lib/internalHref'
+import type { ExpertDoc, CategoryRef, ResolvedMedia } from '@/types/payload'
+import { HomeSectionShell, SectionHead } from './shared'
+import { homeCopy } from './copy'
 
+const AVATAR_TINTS = ['#0B4EA2', '#3B8A33', '#8A5A2B', '#6B3F9E']
+
+function initials(name: string): string {
+  return name
+    .replace(/^(dr|prof)\.?\s+/i, '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+}
+
+/**
+ * Figma 5.png: navy band, translucent cards — coloured avatar, verified pill, name, field, city,
+ * languages, "view profile" button — followed by a "Join the network" panel. The verified pill only
+ * shows for `verificationStatus === 'verified'` (never implied); the Figma's filter chips are not
+ * built (the experts index has the real filters).
+ */
 export function ExpertsSection({
   locale,
   experts,
@@ -13,42 +35,95 @@ export function ExpertsSection({
   t: (key: string) => string
 }) {
   if (experts.length === 0) return null
-  const shown = experts.slice(0, 3)
+  const copy = homeCopy(locale)
+  const shown = experts.slice(0, 4)
 
   return (
     <HomeSectionShell id="experts-heading" bg="bg-brand-navy">
-      <div className="flex items-end justify-between gap-4 mb-8">
-        <h2 id="experts-heading" className="text-2xl md:text-3xl font-bold text-white leading-tight">
-          {t('expertsHeading')}
-        </h2>
-        <Link href="/experts" className="text-sm font-semibold text-white/80 hover:text-white shrink-0">
-          {t('allExperts')} {forwardArrow(locale)}
-        </Link>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {shown.map((expert) => (
-          <Link
-            key={expert.id}
-            href={{ pathname: '/experts/[slug]', params: { slug: expert.slug ?? '' } }}
-            className="group bg-white/5 rounded-card border border-white/15 p-6 flex flex-col gap-2 hover:border-brand-green hover:bg-white/10 transition-all"
-          >
-            <h3 className="font-semibold text-white group-hover:text-brand-green transition-colors">{expert.name}</h3>
-            {expert.city && <p className="text-sm text-white/60">{expert.city}</p>}
-            {expert.categories && expert.categories.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {(expert.categories as CategoryRef[])
-                  .filter((c): c is CategoryRef => typeof c !== 'string')
-                  .slice(0, 2)
-                  .map((c) => (
-                    <span key={c.id} className="text-xs bg-brand-green-lt text-brand-green-dk rounded-control px-2 py-0.5">
-                      {c.name}
-                    </span>
-                  ))}
+      <SectionHead
+        id="experts-heading"
+        eyebrow={copy.eyebrow.experts}
+        title={t('expertsHeading')}
+        subtitle={copy.expertsSubtitle}
+        action={{ href: '/experts', label: t('allExperts') }}
+        locale={locale}
+        dark
+      />
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {shown.map((expert, i) => {
+          const name = expert.name ?? '—'
+          const fields = ((expert.categories ?? []) as Array<CategoryRef | string>)
+            .filter((c): c is CategoryRef => typeof c !== 'string' && !!c.name)
+            .map((c) => c.name)
+            .join(' · ')
+          const langs = (expert.languages ?? []).map((l) => l.language).filter(Boolean).join(' · ')
+          const photo = expert.photo && typeof expert.photo !== 'string' ? (expert.photo as ResolvedMedia) : null
+          return (
+            <article
+              key={expert.id}
+              className="flex flex-col rounded-[18px] border border-white/15 bg-white/[0.06] p-6"
+            >
+              <div className="flex items-start justify-between gap-3">
+                {expert.verificationStatus === 'verified' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-brand-green/20 px-3 py-1 text-xs font-medium text-brand-green">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                    {copy.verified}
+                  </span>
+                ) : (
+                  <span />
+                )}
+                {photo ? (
+                  <span className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-full">
+                    <MediaImage media={photo} size="thumbnail" fill />
+                  </span>
+                ) : (
+                  <span
+                    className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+                    style={{ backgroundColor: AVATAR_TINTS[i % AVATAR_TINTS.length] }}
+                    aria-hidden="true"
+                  >
+                    {initials(name)}
+                  </span>
+                )}
               </div>
-            )}
-          </Link>
-        ))}
-        <ViewAllCard href="/experts/apply" label={t('expertsApplyCta')} locale={locale} />
+              <h3 className="mt-4 text-lg font-bold leading-snug text-white">{name}</h3>
+              {fields && <p className="mt-1 text-sm text-white/70">{fields}</p>}
+              <div className="mt-4 flex flex-col gap-2 text-xs text-white/60">
+                {expert.city && (
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {expert.city}
+                  </span>
+                )}
+                {langs && (
+                  <span className="flex items-center gap-1.5">
+                    <Globe className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {langs}
+                  </span>
+                )}
+              </div>
+              <Link
+                href={{ pathname: '/experts/[slug]', params: { slug: expert.slug ?? '' } }}
+                className="mt-6 block rounded-xl bg-white/15 px-4 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-white/25"
+              >
+                {copy.viewProfile}
+              </Link>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="mt-8 flex flex-col gap-5 rounded-[18px] border border-white/15 bg-white/[0.06] p-6 md:flex-row md:items-center md:justify-between md:p-8">
+        <div>
+          <h3 className="text-lg font-bold text-white md:text-xl">{copy.expertCta.heading}</h3>
+          <p className="mt-1 text-sm text-white/65">{copy.expertCta.body}</p>
+        </div>
+        <a
+          href={resolveInternalHref('/experts/apply', locale)}
+          className="inline-flex shrink-0 items-center justify-center rounded-xl bg-brand-green px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dk"
+        >
+          {copy.expertCta.button}
+        </a>
       </div>
     </HomeSectionShell>
   )

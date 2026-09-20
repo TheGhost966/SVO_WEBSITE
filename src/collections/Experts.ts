@@ -6,7 +6,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 // Field-level access must return a plain boolean (unlike collection-level
 // Access, which may also return a Where query for row filtering).
@@ -211,6 +211,7 @@ export const Experts: CollectionConfig = {
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview, warnIfPublishingUnverified],
     afterChange: [makeRevalidateOnPublish('experts')],
+    afterDelete: [makeRevalidateOnDelete('experts')],
   },
   access: {
     read: readPublishedOrLoggedIn,

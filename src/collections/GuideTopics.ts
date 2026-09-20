@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 // Fixed reference list, same pattern as ServicePillars — no reviewStatus, always
 // public, admin-managed. Per BRIEF-AMENDMENT-01 §2.8, the public topic grid query
@@ -56,6 +56,7 @@ export const GuideTopics: CollectionConfig = {
   ],
   hooks: {
     afterChange: [makeRevalidateOnPublish('guide-topics')],
+    afterDelete: [makeRevalidateOnDelete('guide-topics')],
   },
   access: {
     read: () => true,

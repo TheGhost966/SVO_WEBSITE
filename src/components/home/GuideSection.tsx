@@ -1,10 +1,14 @@
 import { Link } from '@/i18n/navigation'
-import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Icon } from '@/components/ui/Icon'
-import { forwardArrow } from '@/i18n/routing'
 import type { GuideTopicDoc } from '@/types/payload'
-import { HomeSectionShell, ViewAllCard } from './shared'
+import { HomeSectionShell, SectionHead } from './shared'
+import { homeCopy } from './copy'
 
+/**
+ * Figma 4.png: cream section, four-column grid of compact horizontal tiles — green icon tile,
+ * topic title, and a one-line muted descriptor. Shows every topic the query returns (the page
+ * fetches up to 12, matching the Figma's 3×4 grid; only topics with a published article appear).
+ */
 export function GuideSection({
   locale,
   topics,
@@ -15,34 +19,36 @@ export function GuideSection({
   t: (key: string) => string
 }) {
   if (topics.length === 0) return null
-  const shown = topics.slice(0, 3)
+  const copy = homeCopy(locale)
 
   return (
-    <HomeSectionShell id="guide-heading" bg="bg-surface">
-      <div className="flex items-end justify-between gap-4 mb-8">
-        <SectionHeader id="guide-heading" title={t('guideHeading')} />
-        <Link href="/guide" className="text-sm font-semibold text-brand-blue hover:text-brand-navy shrink-0">
-          {t('allGuide')} {forwardArrow(locale)}
-        </Link>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {shown.map((topic) => (
+    <HomeSectionShell id="guide-heading" bg="bg-cream">
+      <SectionHead
+        id="guide-heading"
+        eyebrow={copy.eyebrow.guide}
+        title={t('guideHeading')}
+        subtitle={copy.guideSubtitle}
+        action={{ href: '/guide', label: t('allGuide') }}
+        locale={locale}
+      />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {topics.map((topic) => (
           <Link
             key={topic.id}
             href={{ pathname: '/guide/[topic]', params: { topic: topic.slug ?? '' } }}
-            className="group bg-cream rounded-card border border-border p-6 flex flex-col gap-3 hover:border-brand-blue hover:shadow-md transition-all"
+            className="group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-brand-green hover:shadow-md"
           >
-            <span
-              className="w-12 h-12 rounded-card flex items-center justify-center"
-              style={{ backgroundColor: 'var(--color-brand-green-lt)', color: 'var(--color-brand-green-dk)' }}
-            >
-              <Icon name={topic.icon} fallback="🧭" className="w-6 h-6" />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-green-lt text-brand-green-dk">
+              <Icon name={topic.icon} fallback="🧭" className="h-5 w-5" />
             </span>
-            <h3 className="font-semibold text-ink group-hover:text-brand-blue transition-colors">{topic.title}</h3>
-            {topic.description && <p className="text-sm text-ink-70 line-clamp-2">{topic.description}</p>}
+            <span className="min-w-0">
+              <span className="block font-semibold leading-snug text-ink group-hover:text-brand-blue">{topic.title}</span>
+              {topic.description && (
+                <span className="mt-0.5 block truncate text-xs text-ink-50">{topic.description}</span>
+              )}
+            </span>
           </Link>
         ))}
-        <ViewAllCard href="/guide" label={t('allGuide')} locale={locale} />
       </div>
     </HomeSectionShell>
   )

@@ -1,29 +1,15 @@
-import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Icon } from '@/components/ui/Icon'
 import { resolveInternalHref } from '@/lib/internalHref'
 import type { SiteSettingsDoc } from '@/types/payload'
-import { HomeSectionShell } from './shared'
+import { HomeSectionShell, SectionHead } from './shared'
+import { homeCopy } from './copy'
 
-// Reuses real, already-shipped nav/page titles — not invented marketing copy, so no
-// placeholder marker is needed (Working Agreement #3 only requires that for authored copy).
-const DEFAULT_CARDS: Record<string, Array<{ title: string; href: string; icon: string }>> = {
-  de: [
-    { title: 'Österreich-Guide', href: '/guide', icon: 'book-open' },
-    { title: 'Unsere Leistungen', href: '/services', icon: 'scale' },
-    { title: 'Kontakt aufnehmen', href: '/contact', icon: 'mail' },
-  ],
-  ar: [
-    { title: 'دليل النمسا', href: '/guide', icon: 'book-open' },
-    { title: 'خدماتنا', href: '/services', icon: 'scale' },
-    { title: 'تواصل معنا', href: '/contact', icon: 'mail' },
-  ],
-  en: [
-    { title: 'Austria Guide', href: '/guide', icon: 'book-open' },
-    { title: 'Our services', href: '/services', icon: 'scale' },
-    { title: 'Get in touch', href: '/contact', icon: 'mail' },
-  ],
-}
-
+/**
+ * Figma 2.png: four cards on cream, the first one dark navy ("I don't know where to start").
+ * Board-authored `homeGroup.helpCards` still win; the first CMS card takes the dark treatment so
+ * the layout matches whichever source supplies the cards. Copy is placeholder pending sign-off.
+ * The Figma's per-card count tags ("+40 articles", "reply within 48 h") are omitted — not real.
+ */
 export function HelpCardsSection({
   locale,
   siteSettings,
@@ -33,36 +19,53 @@ export function HelpCardsSection({
   siteSettings: SiteSettingsDoc | null
   t: (key: string) => string
 }) {
+  const copy = homeCopy(locale)
   const cmsCards = siteSettings?.homeGroup?.helpCards ?? []
   const cards =
     cmsCards.length > 0
-      ? cmsCards.map((c) => ({ title: c.title, description: c.description, href: resolveInternalHref(c.href, locale), icon: null as string | null }))
-      : (DEFAULT_CARDS[locale] ?? DEFAULT_CARDS.de).map((c) => ({ ...c, description: null as string | null, href: resolveInternalHref(c.href, locale) }))
+      ? cmsCards.map((c, i) => ({
+          title: c.title,
+          description: c.description ?? null,
+          href: resolveInternalHref(c.href, locale),
+          icon: (['compass', 'help-circle', 'users', 'book-open'] as const)[i % 4],
+          dark: i === 0,
+        }))
+      : copy.helpCards.map((c) => ({ ...c, href: resolveInternalHref(c.href, locale) }))
 
   return (
     <HomeSectionShell id="help-cards-heading" bg="bg-cream">
-      <SectionHeader id="help-cards-heading" title={t('helpCardsHeading')} />
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <SectionHead
+        id="help-cards-heading"
+        eyebrow={copy.eyebrow.help}
+        title={t('helpCardsHeading')}
+        subtitle={copy.helpSubtitle}
+        locale={locale}
+      />
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card, i) => (
-          // Plain <a>, not next-intl's typed Link: `card.href` is a runtime string already
-          // resolved by resolveInternalHref (CMS data or a locale-correct default), which can't
-          // be checked against Link's literal pathname-key union at compile time — same pattern
-          // CardGridBlock already uses for its own CMS url field.
+          // Plain <a>: `card.href` is a runtime string already resolved by resolveInternalHref
+          // (CMS data or a locale-correct default), which can't be checked against next-intl's
+          // typed Link union at compile time — same pattern CardGridBlock uses.
           <a
             key={i}
             href={card.href}
-            className="group bg-surface rounded-card border border-border p-6 flex flex-col gap-3 hover:border-brand-blue hover:shadow-md transition-all"
+            className={`group flex flex-col gap-4 rounded-[18px] border p-7 transition-all hover:-translate-y-0.5 hover:shadow-lg ${
+              card.dark ? 'border-brand-navy bg-brand-navy text-white' : 'border-border bg-surface text-ink'
+            }`}
           >
-            {card.icon && (
-              <span
-                className="w-12 h-12 rounded-card flex items-center justify-center"
-                style={{ backgroundColor: 'var(--color-brand-green-lt)', color: 'var(--color-brand-green-dk)' }}
-              >
-                <Icon name={card.icon} className="w-6 h-6" />
-              </span>
+            <span
+              className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                card.dark ? 'bg-white/10 text-brand-green' : 'bg-brand-green-lt text-brand-green-dk'
+              }`}
+            >
+              <Icon name={card.icon} className="h-6 w-6" />
+            </span>
+            <h3 className="text-xl font-bold leading-snug">{card.title}</h3>
+            {card.description && (
+              <p className={`text-sm leading-relaxed ${card.dark ? 'text-white/70' : 'text-ink-70'}`}>
+                {card.description}
+              </p>
             )}
-            <h3 className="font-semibold text-ink group-hover:text-brand-blue transition-colors">{card.title}</h3>
-            {card.description && <p className="text-sm text-ink-70 line-clamp-3">{card.description}</p>}
           </a>
         ))}
       </div>

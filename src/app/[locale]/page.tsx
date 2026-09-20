@@ -63,7 +63,7 @@ export default async function HomePage({ params }: Props) {
     getLatestNews(locale, 3),
     getUpcomingEvents(locale, 3),
     getRoadmaps(locale, 4),
-    getGuideTopics(locale, 4),
+    getGuideTopics(locale, 12),
     getExperts(locale, undefined, 4),
     getHomeStatCounts(),
   ])
@@ -76,7 +76,7 @@ export default async function HomePage({ params }: Props) {
   const jobLinks = siteSettings?.jobResourceLinks ?? []
 
   const sections: Record<HomeSection, React.ReactNode> = {
-    hero: <HeroSection locale={locale} siteSettings={siteSettings} />,
+    hero: <HeroSection locale={locale} siteSettings={siteSettings} roadmap={roadmaps.find((r) => (r.steps?.length ?? 0) > 0) ?? null} />,
     stats: <StatsSection locale={locale} siteSettings={siteSettings} statCounts={statCounts} t={t} />,
     news: <NewsSection locale={locale} news={newsResult.docs} t={t} />,
     events: <EventsSection locale={locale} events={eventsResult.docs} t={t} />,

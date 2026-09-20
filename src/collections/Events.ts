@@ -8,7 +8,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -139,6 +139,7 @@ export const Events: CollectionConfig = {
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
     afterChange: [makeRevalidateOnPublish('events')],
+    afterDelete: [makeRevalidateOnDelete('events')],
   },
   access: {
     read: readPublishedOrLoggedIn,

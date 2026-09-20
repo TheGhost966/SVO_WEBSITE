@@ -49,7 +49,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             <main id="main-content" className="flex-1">
               {children}
             </main>
-            <Footer />
+            <Footer locale={locale} />
             <CookieConsent locale={locale} />
           </div>
         </NextIntlClientProvider>

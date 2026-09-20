@@ -1,4 +1,3 @@
-import { HomeSectionShell } from './shared'
 import type { SiteSettingsDoc } from '@/types/payload'
 import type { HomeStatSource } from '@/lib/queries'
 
@@ -9,6 +8,9 @@ import type { HomeStatSource } from '@/lib/queries'
  * static, non-count trust signals §2.5 names as always-safe (9 Bundesländer, 3 Sprachen,
  * 4 Schwerpunkte). The band never fully disappears: an empty stats band reads as a broken
  * page, not a thin one.
+ *
+ * Figma look (2.png): white strip, large blue numerals over a muted label, hairline below.
+ * The Figma's "+1,200 members" / "+250 experts" figures are not reproduced — nothing backs them.
  */
 const STATIC_FALLBACK: Record<string, Array<{ value: string; label: string }>> = {
   de: [
@@ -17,7 +19,7 @@ const STATIC_FALLBACK: Record<string, Array<{ value: string; label: string }>> =
     { value: '4', label: 'Schwerpunkte' },
   ],
   ar: [
-    { value: '9', label: 'محافظات نمساوية' },
+    { value: '9', label: 'ولايات نمساوية' },
     { value: '3', label: 'لغات' },
     { value: '4', label: 'مجالات رئيسية' },
   ],
@@ -47,18 +49,21 @@ export function StatsSection({
   const tiles = dynamicTiles.length >= 3 ? dynamicTiles : (STATIC_FALLBACK[locale] ?? STATIC_FALLBACK.de)
 
   return (
-    <HomeSectionShell id="stats-heading" bg="bg-brand-green-lt">
+    <section className="bg-surface border-b border-border" aria-labelledby="stats-heading">
       <h2 id="stats-heading" className="sr-only">
         {t('statsHeading')}
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-center">
+      <div
+        className="mx-auto max-w-[1200px] grid gap-8 py-10 md:py-12 grid-cols-2 md:grid-flow-col md:auto-cols-fr"
+        style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
+      >
         {tiles.map((tile, i) => (
-          <div key={i}>
-            <div className="text-3xl md:text-4xl font-bold text-brand-green-dk">{tile.value}</div>
-            <div className="mt-1 text-sm md:text-base text-ink-70 font-medium">{tile.label}</div>
+          <div key={i} className="text-start">
+            <div className="text-4xl md:text-5xl font-bold text-brand-blue leading-none">{tile.value}</div>
+            <div className="mt-2 text-sm md:text-base text-ink-70">{tile.label}</div>
           </div>
         ))}
       </div>
-    </HomeSectionShell>
+    </section>
   )
 }

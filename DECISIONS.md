@@ -84,6 +84,49 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
   - Fixed along the way: none of these needed code changes; test writes to the working DB were reset
     (`heroHeadline` empty, `sectionOrder` empty → default order restored).
 
+**Figma fidelity pass 2 (2026-09-20) — the homepage, header and footer now follow the eleven Figma exports.**
+The client said the built site was not close enough to the Figma. Root cause of the biggest gap was not
+layout but **fonts: `--font-sans`/`--font-arabic` referenced `var(--font-inter)`/`var(--font-cairo)`, which
+nothing defined, so every page rendered in the system serif** (and the `font-sans` class on the layout
+wrapper also overrode the Arabic stack). Fixed: real Cairo (arabic+latin) and Inter (latin+latin-ext)
+Fontsource subsets in `public/fonts` (OFL, licence texts alongside, unicode-range split so German pages
+never fetch Arabic files); stacks now name the families directly; `html[lang=ar]` redefines `--font-sans`.
+Then restyled to the frames: header (80px bar, wordmark + association name, blue active link with green
+underline), hero (navy→blue gradient, badge pill, large headline, situation chips, example-roadmap card),
+white stats strip with large blue numerals, four help cards (first one dark), roadmap cards (step pill, numbered
+steps, navy button), 4-column guide tiles, navy experts band + "join the network" panel, job rows, event
+cards (tinted header band + date box), news cards (photo or rotating brand gradient), volunteer/idea twin cards,
+5-column footer with the nine-Bundesland pill row. Shared `SectionHead` = eyebrow + big title + subtitle +
+outlined "view all" button. New strings live in `src/components/home/copy.ts`; the Arabic hero
+headline/subline are the Figma's own words, everything else is agent-authored placeholder pending board sign-off.
+**Deliberate deviations from the Figma (each has a reason, none is a shortcut):**
+- **No hero search field.** The site has no search; a bar that does nothing reads as broken (also the earlier
+  Slice 3 ruling). Building a real search is a separate feature — offered, not built.
+- **Hero card is an *example roadmap* from the first published roadmap's real steps**, not the Figma's
+  logged-in "3 of 6 steps done" card — no accounts or progress tracking exist. Hidden until a roadmap has steps.
+- **No login / "join us" account buttons, app-store band, quiz bands, QR/seat counts, filter chips.**
+  "Join us" stays a link to the contact form (membership), volunteer/idea link to the contact form with the
+  category preselected.
+- **Not fabricated:** "+1,200 members", "+250 experts", "+40 articles", "reply within 48 h", job types/employers/
+  expiry dates, expert names. Stats keep the real static 9/3/4 tiles (Figma shows four).
+- **No logo image** — none exists (CONTENT-NEEDED.md); a wordmark reproduces the Figma's arrangement until the PNG
+  arrives. Footer contact details come from `SiteSettings.contactGroup` and are omitted until filled.
+- **"Ressourcen" dropdown kept** (AMENDMENT-03 §4).
+**German stress-test log (AMENDMENT-03 §4):** (1) header — "Über uns", "Mitglied werden" and the
+"Syrischer Verband in Österreich" line wrapped onto 2–3 lines; fixed with `whitespace-nowrap`, tighter link
+padding below `xl`, and hiding the tagline below `lg`. (2) hero headline "Alles, was Sie für das Leben in
+Österreich brauchen – an einem Ort." runs to three lines at 52px and left "Ort." alone; fixed with
+`text-balance`. (3) help-card titles ("Ich suche eine Expertin / einen Experten") and chips wrap to two lines
+inside their cards/pills without clipping.
+**Also fixed here:** a deleted published item stayed on the public site until its cache entry expired (up to an
+hour for roadmaps/experts) because the revalidate hook only ran on save. Added `makeRevalidateOnDelete` and
+`afterDelete` to the eight collections that use the change hook.
+**UNVERIFIED:** the populated states of roadmaps / experts / events / jobs / news-with-photo sections in all three
+locales (the DB is empty, and the admin session needed to add sample records had expired — only news
+was seen with data); the mobile-viewport layouts of every restyled section; the footer's legal labels in `/ar` and `/en`,
+which are the German words (`legal.impressum/datenschutz/barrierefreiheit` hold German in all three
+message files — pre-existing, possibly deliberate since legal texts stay German; the board should decide).
+
 **Media storage for Vercel (2026-09-20).** Deploy target is Vercel (Frankfurt, `fra1`, with the Frankfurt
 Neon DB — brief §16.3). Vercel's filesystem is read-only, so `Media`'s `public/media` staticDir cannot
 take uploads there. Added `@payloadcms/storage-vercel-blob@3.88.0` (pinned to Payload's version),

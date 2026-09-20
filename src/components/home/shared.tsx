@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from '@/i18n/navigation'
 import { forwardArrow } from '@/i18n/routing'
 
-/** Shared section container — matches the spacing/max-width already used across the homepage. */
+/** Shared section container — 1200px content width, 120px desktop gutters, per the Figma frames. */
 export function HomeSectionShell({
   id,
   bg = 'bg-surface',
@@ -13,7 +13,7 @@ export function HomeSectionShell({
   children: ReactNode
 }) {
   return (
-    <section className={`py-12 md:py-[84px] ${bg}`} aria-labelledby={id}>
+    <section className={`py-16 md:py-[96px] ${bg}`} aria-labelledby={id}>
       <div
         className="mx-auto max-w-[1200px]"
         style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
@@ -25,30 +25,65 @@ export function HomeSectionShell({
 }
 
 /**
- * The trailing grid cell for a teaser row — always a real link to the section's own index page,
- * never a dead end. Keeps a thin row (1–2 real items) from reading as broken by giving the grid a
- * deliberate final cell instead of an oddly short row.
+ * Figma section head: green eyebrow with a trailing rule, large bold title, muted subtitle, and an
+ * outlined "view all" button on the opposite (end) side. `dark` flips colours for the navy experts band.
+ * The button is a real link to the section's index page — never a dead control.
  */
-export function ViewAllCard({
-  href,
-  label,
+export function SectionHead({
+  id,
+  eyebrow,
+  title,
+  subtitle,
+  action,
   locale,
+  dark = false,
 }: {
-  href: Parameters<typeof Link>[0]['href']
-  label: string
+  id: string
+  eyebrow?: string
+  title: string
+  subtitle?: string
+  action?: { href: Parameters<typeof Link>[0]['href']; label: string }
   locale: string
+  dark?: boolean
 }) {
   return (
-    <Link
-      href={href}
-      className="group bg-cream rounded-card border border-dashed border-border p-6 flex flex-col items-center justify-center text-center gap-2 hover:border-brand-blue hover:bg-surface transition-all min-h-[140px]"
-    >
-      <span className="font-semibold text-brand-blue group-hover:text-brand-navy">
-        {label}
-      </span>
-      <span className="text-brand-blue text-lg" aria-hidden="true">
-        {forwardArrow(locale)}
-      </span>
-    </Link>
+    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-12">
+      <div className="max-w-3xl">
+        {eyebrow && (
+          <div
+            className={`flex items-center gap-3 mb-4 text-xs font-semibold tracking-[0.08em] ${
+              dark ? 'text-brand-green' : 'text-brand-green-dk'
+            }`}
+          >
+            <span>{eyebrow}</span>
+            <span className={`h-px w-7 ${dark ? 'bg-brand-green' : 'bg-brand-green'}`} aria-hidden="true" />
+          </div>
+        )}
+        <h2
+          id={id}
+          className={`text-3xl md:text-[40px] font-bold leading-[1.2] text-balance ${dark ? 'text-white' : 'text-ink'}`}
+        >
+          {title}
+        </h2>
+        {subtitle && (
+          <p className={`mt-4 text-base md:text-lg leading-relaxed ${dark ? 'text-white/75' : 'text-ink-70'}`}>
+            {subtitle}
+          </p>
+        )}
+      </div>
+      {action && (
+        <Link
+          href={action.href}
+          className={`shrink-0 inline-flex items-center gap-2 self-start md:self-auto rounded-control border px-5 py-3 text-sm font-medium transition-colors ${
+            dark
+              ? 'border-white/30 text-white hover:bg-white/10'
+              : 'border-border bg-surface text-brand-blue hover:border-brand-blue'
+          }`}
+        >
+          {action.label}
+          <span aria-hidden="true">{forwardArrow(locale)}</span>
+        </Link>
+      )}
+    </div>
   )
 }

@@ -7,7 +7,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 // Flat collection (no parent topic) — a roadmap is one procedure end-to-end,
 // unlike Guide's topic->article nesting. Same content-freshness fields as
@@ -203,6 +203,7 @@ export const Roadmaps: CollectionConfig = {
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
     afterChange: [makeRevalidateOnPublish('roadmaps')],
+    afterDelete: [makeRevalidateOnDelete('roadmaps')],
   },
   access: {
     read: readPublishedOrLoggedIn,

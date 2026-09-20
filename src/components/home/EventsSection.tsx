@@ -1,9 +1,7 @@
-import { Link } from '@/i18n/navigation'
 import { EventCard } from '@/components/ui/EventCard'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { forwardArrow } from '@/i18n/routing'
 import type { EventDoc } from '@/types/payload'
-import { HomeSectionShell } from './shared'
+import { HomeSectionShell, SectionHead } from './shared'
+import { homeCopy } from './copy'
 
 export function EventsSection({
   locale,
@@ -18,13 +16,15 @@ export function EventsSection({
 
   return (
     <HomeSectionShell id="events-heading" bg="bg-surface">
-      <div className="flex items-end justify-between gap-4 mb-8">
-        <SectionHeader id="events-heading" title={t('upcomingEvents')} />
-        <Link href="/events" className="text-sm font-semibold text-brand-blue hover:text-brand-navy shrink-0">
-          {t('allEvents')} {forwardArrow(locale)}
-        </Link>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <SectionHead
+        id="events-heading"
+        eyebrow={homeCopy(locale).eyebrow.events}
+        title={t('upcomingEvents')}
+        subtitle={homeCopy(locale).eventsSubtitle}
+        action={{ href: '/events', label: t('allEvents') }}
+        locale={locale}
+      />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
           <EventCard key={event.id} event={event} locale={locale} />
         ))}

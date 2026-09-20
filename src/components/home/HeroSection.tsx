@@ -1,53 +1,123 @@
 import { Link } from '@/i18n/navigation'
+import { MapPin } from 'lucide-react'
 import { MediaImage } from '@/components/ui/MediaImage'
-import { ButtonLink } from '@/components/ui/Button'
 import { resolveInternalHref } from '@/lib/internalHref'
-import type { SiteSettingsDoc } from '@/types/payload'
+import { forwardArrow } from '@/i18n/routing'
+import type { RoadmapDoc, SiteSettingsDoc } from '@/types/payload'
+import { homeCopy } from './copy'
 
 /**
- * BRIEF-AMENDMENT-03 §1.1/§2.1: the homepage leads with identity — logo, association name,
- * mission statement, primary CTA — not wayfinding. No search input, no filter chips, no
- * personalised/account-shaped content (§2.4's disposition table: all deleted, none rebuilt here).
+ * Figma hero (`design/figma-homepage-exports/1.png`): navy→blue gradient, badge pill, large headline,
+ * muted subline, situation chips, and a roadmap card opposite the text.
+ *
+ * Deliberate differences from the Figma (see DECISIONS.md "Figma fidelity pass"):
+ *  - no search field — the site has no search yet, and a bar that does nothing reads as broken;
+ *  - the card is an *example roadmap* built from the first published roadmap's real steps, not the
+ *    Figma's logged-in "3 of 6 steps done" progress card (no accounts, no progress tracking exists);
+ *  - no login / join-us buttons (AMENDMENT-02 §2.4 dispositions stand).
+ * Headline/subline: CMS (`SiteSettings.homeGroup`) wins; otherwise the Figma's own wording.
  */
-const FALLBACK: Record<string, { orgName: string; tagline: string; ctaLabel: string }> = {
-  de: { orgName: 'SVÖ — Syrischer Verband in Österreich', tagline: 'Bauen. Verbinden. Umsetzen.', ctaLabel: 'Über uns' },
-  ar: { orgName: 'الاتحاد السوري في النمسا', tagline: 'نبني · نربط · ننفذ', ctaLabel: 'من نحن' },
-  en: { orgName: 'SVÖ — Syrian Association in Austria', tagline: 'Building. Connecting. Delivering.', ctaLabel: 'About us' },
-}
-
 export function HeroSection({
   locale,
   siteSettings,
+  roadmap,
 }: {
   locale: string
   siteSettings: SiteSettingsDoc | null
+  roadmap?: RoadmapDoc | null
 }) {
-  const fallback = FALLBACK[locale] ?? FALLBACK.de
+  const copy = homeCopy(locale)
   const hero = siteSettings?.homeGroup
-  const headline = hero?.heroHeadline || siteSettings?.orgName || fallback.orgName
-  const subline = hero?.heroSubline || siteSettings?.tagline || fallback.tagline
-  const ctaLabel = hero?.heroCtaLabel || fallback.ctaLabel
-  const ctaHref = resolveInternalHref(hero?.heroCtaHref || '/about', locale)
+  const headline = hero?.heroHeadline || copy.heroHeadline
+  const subline = hero?.heroSubline || copy.heroSubline
   const logo = siteSettings?.logo
 
+  const steps = (roadmap?.steps ?? []).filter((s) => s?.title)
+  const shownSteps = steps.slice(0, 4)
+
   return (
-    <section className="bg-brand-navy py-16 md:py-[96px]">
+    <section
+      className="relative overflow-hidden text-white"
+      style={{ background: 'linear-gradient(135deg, #062E57 0%, #0A3F7C 55%, #0B4EA2 100%)' }}
+    >
       <div
-        className="mx-auto max-w-[1200px] flex flex-col items-center text-center gap-6"
-        style={{ paddingInlineStart: 'clamp(24px, 8vw, 120px)', paddingInlineEnd: 'clamp(24px, 8vw, 120px)' }}
+        className={`mx-auto max-w-[1200px] grid gap-12 items-center py-16 md:py-[104px] ${
+          roadmap && shownSteps.length > 0 ? 'lg:grid-cols-[1.15fr_0.85fr]' : ''
+        }`}
+        style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
       >
-        {logo && typeof logo !== 'string' && (
-          <Link href="/" className="inline-block">
-            <MediaImage media={logo} size="original" className="h-16 md:h-20 w-auto" priority />
-          </Link>
-        )}
-        <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight max-w-3xl">{headline}</h1>
-        <p className="text-lg md:text-xl text-white/80 font-medium max-w-2xl">{subline}</p>
-        <div className="mt-2">
-          <ButtonLink href={ctaHref} variant="primary" size="lg">
-            {ctaLabel}
-          </ButtonLink>
+        {/* Text column — first in DOM, so it sits on the start side (right in Arabic, as in the Figma) */}
+        <div className="flex flex-col items-start gap-6">
+          {logo && typeof logo !== 'string' && (
+            <Link href="/" className="inline-block">
+              <MediaImage media={logo} size="original" className="h-14 w-auto" priority />
+            </Link>
+          )}
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm text-white/90">
+            <MapPin className="h-4 w-4 text-brand-green" aria-hidden="true" />
+            {copy.heroBadge}
+          </span>
+          <h1 className="text-4xl md:text-[52px] font-bold leading-[1.25] max-w-4xl text-balance">{headline}</h1>
+          <p className="text-base md:text-xl text-white/75 leading-relaxed max-w-2xl">{subline}</p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            {copy.chips.map((chip) => (
+              <a
+                key={chip.href + chip.label}
+                href={resolveInternalHref(chip.href, locale)}
+                className={`rounded-full border px-4 py-2 text-sm transition-colors ${
+                  chip.active
+                    ? 'border-white/40 bg-white/20 text-white hover:bg-white/30'
+                    : 'border-white/25 text-white/85 hover:bg-white/10'
+                }`}
+              >
+                {chip.label}
+              </a>
+            ))}
+          </div>
         </div>
+
+        {/* Example roadmap card — real CMS steps; hidden when no roadmap has steps yet */}
+        {roadmap && shownSteps.length > 0 && (
+          <div className="rounded-[24px] bg-surface p-6 md:p-7 text-ink shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-ink-50 mb-1">{copy.exampleRoadmap}</p>
+                <h2 className="text-xl font-bold leading-snug">{roadmap.title}</h2>
+                {steps[0]?.responsibleAuthority && (
+                  <p className="mt-1 text-sm text-ink-50">{steps[0].responsibleAuthority}</p>
+                )}
+              </div>
+              <span className="shrink-0 rounded-full bg-brand-green-lt px-3 py-1 text-xs font-medium text-brand-green-dk">
+                {copy.stepsCount(steps.length)}
+              </span>
+            </div>
+            <ol className="mt-5 flex flex-col gap-3">
+              {shownSteps.map((step, i) => (
+                <li key={step.id ?? i} className="flex items-center gap-3 rounded-xl bg-cream px-4 py-3">
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-border text-xs font-semibold text-ink-70"
+                    aria-hidden="true"
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium leading-snug">{step.title}</span>
+                    {(step.timing || step.responsibleAuthority) && (
+                      <span className="block text-xs text-ink-50">{step.timing || step.responsibleAuthority}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <Link
+              href={{ pathname: '/roadmaps/[roadmap]', params: { roadmap: roadmap.slug ?? '' } }}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 py-3.5 text-sm font-semibold text-white hover:bg-brand-blue transition-colors"
+            >
+              {copy.exampleRoadmapCta}
+              <span aria-hidden="true">{forwardArrow(locale)}</span>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )

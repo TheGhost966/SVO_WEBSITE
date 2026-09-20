@@ -1,5 +1,5 @@
 import { revalidateTag } from 'next/cache'
-import type { CollectionAfterChangeHook } from 'payload'
+import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { tags } from '@/lib/payload'
 
 // Next.js 16 requires a second `profile` argument for revalidateTag.
@@ -92,5 +92,19 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
     }
 
     return doc
+  }
+}
+
+/**
+ * Same cache-busting for deletes. `afterChange` alone never fires when a document is deleted, so a
+ * deleted published item kept showing on the public site until its cache entry expired (up to an
+ * hour for roadmaps/experts). Reuses the change hook: with no `previousDoc`, a deleted *published*
+ * doc reads as a published→gone transition (busts); a deleted draft reads as no change (skips).
+ */
+export function makeRevalidateOnDelete(collection: string): CollectionAfterDeleteHook {
+  const onChange = makeRevalidateOnPublish(collection)
+  return async (args) => {
+    await onChange({ ...args, data: args.doc, previousDoc: undefined, operation: 'update' } as never)
+    return args.doc
   }
 }

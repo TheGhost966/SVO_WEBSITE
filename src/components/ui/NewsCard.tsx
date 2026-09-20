@@ -1,12 +1,21 @@
 import { Link } from '@/i18n/navigation'
+import { CalendarDays } from 'lucide-react'
 import { MediaImage } from './MediaImage'
 import { forwardArrow } from '@/i18n/routing'
+import { homeCopy } from '@/components/home/copy'
 import type { NewsDoc, ResolvedMedia } from '@/types/payload'
 
 type Props = {
   article: NewsDoc
   locale: string
 }
+
+// Figma 9.png: articles without a photo get a rotating brand gradient (blue / green / brown).
+const GRADIENTS = [
+  'linear-gradient(135deg, #062E57 0%, #0B4EA2 100%)',
+  'linear-gradient(135deg, #22591D 0%, #3F8F37 100%)',
+  'linear-gradient(135deg, #5E3A17 0%, #8A5A2B 100%)',
+]
 
 function formatDate(iso: string | null | undefined, locale: string): string {
   if (!iso) return ''
@@ -22,51 +31,48 @@ function formatDate(iso: string | null | undefined, locale: string): string {
 }
 
 export function NewsCard({ article, locale }: Props) {
+  const copy = homeCopy(locale)
   const slug = article.slug ?? ''
   const title = article.title ?? '—'
   const coverImage = article.coverImage as ResolvedMedia | null | undefined
+  const hasCover = !!coverImage && typeof coverImage !== 'string'
+  const gradient = GRADIENTS[(Number.parseInt(String(article.id), 10) || 0) % GRADIENTS.length]
+  const category = article.category && typeof article.category !== 'string' ? article.category.name : null
 
   return (
-    <article className="bg-surface rounded-card border border-border overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
-      {/* Cover image */}
-      {coverImage && typeof coverImage !== 'string' && (
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <MediaImage media={coverImage} size="card" fill />
-        </div>
-      )}
+    <article className="flex h-full flex-col overflow-hidden rounded-[18px] border border-border bg-surface transition-shadow hover:shadow-lg">
+      <div className="relative h-44 md:h-[168px]" style={hasCover ? undefined : { background: gradient }}>
+        {hasCover && <MediaImage media={coverImage as ResolvedMedia} size="card" fill />}
+        {category && (
+          <span className="absolute end-4 top-4 rounded-md bg-white/25 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            {category}
+          </span>
+        )}
+      </div>
 
-      <div className="flex flex-col flex-1 p-5 gap-3">
-        {/* Category + date */}
-        <div className="flex items-center gap-2 text-xs text-ink-50 flex-wrap">
-          {article.category && typeof article.category !== 'string' && article.category.name && (
-            <span className="px-2 py-0.5 rounded-[6px] bg-brand-green-lt text-brand-green-dk font-medium">
-              {article.category.name}
-            </span>
-          )}
-          {article.publishedAt && (
-            <time dateTime={article.publishedAt}>{formatDate(article.publishedAt, locale)}</time>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="font-semibold text-ink text-base leading-snug line-clamp-2">
+      <div className="flex flex-1 flex-col gap-3 p-5 md:p-6">
+        <h3 className="text-lg font-bold leading-snug text-ink line-clamp-2">
           <Link href={{ pathname: '/news/[slug]', params: { slug } }} className="hover:text-brand-blue transition-colors">
             {title}
           </Link>
         </h3>
 
-        {/* Excerpt */}
-        {article.excerpt && (
-          <p className="text-sm text-ink-70 line-clamp-3 flex-1">{article.excerpt}</p>
+        {article.excerpt && <p className="line-clamp-2 text-sm leading-relaxed text-ink-70">{article.excerpt}</p>}
+
+        {article.publishedAt && (
+          <p className="flex items-center gap-1.5 text-xs text-ink-50">
+            <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+            <time dateTime={article.publishedAt}>{formatDate(article.publishedAt, locale)}</time>
+          </p>
         )}
 
-        {/* Read more */}
         <Link
           href={{ pathname: '/news/[slug]', params: { slug } }}
-          className="text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors mt-auto"
+          className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-brand-blue transition-colors hover:text-brand-navy"
           aria-label={title}
         >
-          {locale === 'ar' ? 'اقرأ المزيد' : locale === 'en' ? 'Read more' : 'Mehr lesen'} {forwardArrow(locale)}
+          {copy.readMore}
+          <span aria-hidden="true">{forwardArrow(locale)}</span>
         </Link>
       </div>
     </article>

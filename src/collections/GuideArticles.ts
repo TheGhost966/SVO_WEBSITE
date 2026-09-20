@@ -7,7 +7,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 // No admin.preview (unlike News/Events) — the public URL needs the parent
 // topic's slug too (/oesterreich-guide/[topic]/[article]), same two-level
@@ -147,6 +147,7 @@ export const GuideArticles: CollectionConfig = {
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
     afterChange: [makeRevalidateOnPublish('guide-articles')],
+    afterDelete: [makeRevalidateOnDelete('guide-articles')],
   },
   access: {
     read: readPublishedOrLoggedIn,

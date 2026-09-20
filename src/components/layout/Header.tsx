@@ -58,8 +58,8 @@ function GuideMenu({ pathname }: { pathname: string }) {
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`px-4 py-2 rounded-control text-sm font-medium transition-colors inline-flex items-center gap-1 ${
-          isActive ? 'bg-brand-green-lt text-brand-green-dk' : 'text-ink-70 hover:text-ink hover:bg-cream'
+        className={`relative whitespace-nowrap px-2.5 xl:px-4 py-8 text-[15px] font-medium transition-colors inline-flex items-center gap-1 ${
+          isActive ? 'text-brand-blue after:absolute after:inset-x-3 after:-bottom-[1px] after:h-[3px] after:rounded-full after:bg-brand-green' : 'text-ink-70 hover:text-brand-blue'
         }`}
       >
         {t('guideMenu')}
@@ -70,7 +70,7 @@ function GuideMenu({ pathname }: { pathname: string }) {
       {open && (
         <ul
           role="menu"
-          className="absolute top-full mt-1 min-w-[180px] bg-surface border border-border rounded-control shadow-md py-1 z-50 start-0"
+          className="absolute top-full -mt-2 min-w-[200px] bg-surface border border-border rounded-2xl shadow-lg py-2 z-50 start-0"
         >
           {guideMenuItems.map((item) => (
             <li key={item.key} role="none">
@@ -96,18 +96,23 @@ export function Header({ locale }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 bg-surface border-b border-border shadow-sm">
+    <header className="sticky top-0 z-40 bg-surface border-b border-border">
       <div
-        className="mx-auto flex max-w-[var(--max-w-content)] items-center justify-between gap-4 px-6 py-4"
+        className="mx-auto flex max-w-[var(--max-w-content)] items-center justify-between gap-4 px-6 py-0 min-h-[80px]"
         style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
       >
         {/* Logo / wordmark */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-brand-blue text-xl leading-none">
-          SVÖ
+        {/* No logo file exists yet (CONTENT-NEEDED.md) — a wordmark in the Figma's arrangement:
+            bold blue "SVÖ" over the association name in green. Swap for the PNG when it arrives. */}
+        <Link href="/" className="flex flex-col leading-none" aria-label="SVÖ">
+          <span className="text-[28px] font-bold tracking-tight text-brand-blue">SVÖ</span>
+          <span className="mt-1 hidden whitespace-nowrap text-[11px] font-medium text-brand-green-dk lg:block">
+            {locale === 'ar' ? 'الاتحاد السوري في النمسا' : locale === 'en' ? 'Syrian Association in Austria' : 'Syrischer Verband in Österreich'}
+          </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav aria-label={t('home')} className="hidden md:flex items-center gap-1">
+        <nav aria-label={t('home')} className="hidden md:flex items-center">
           {navKeys.map((key) => {
             const href = navHrefs[key]
             const isActive = pathname.startsWith(`/${key}`)
@@ -115,10 +120,8 @@ export function Header({ locale }: Props) {
               <span key={key} className="contents">
                 <Link
                   href={href}
-                  className={`px-4 py-2 rounded-control text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-brand-green-lt text-brand-green-dk'
-                      : 'text-ink-70 hover:text-ink hover:bg-cream'
+                  className={`relative whitespace-nowrap px-2.5 xl:px-4 py-8 text-[15px] font-medium transition-colors ${
+                    isActive ? 'text-brand-blue after:absolute after:inset-x-3 after:-bottom-[1px] after:h-[3px] after:rounded-full after:bg-brand-green' : 'text-ink-70 hover:text-brand-blue'
                   }`}
                 >
                   {t(key)}
@@ -134,7 +137,7 @@ export function Header({ locale }: Props) {
               category preselected — never a dead account-signup button (no accounts exist). */}
           <Link
             href={{ pathname: '/contact', query: { category: 'membership' } }}
-            className="hidden sm:inline-flex px-4 py-2 rounded-control text-sm font-semibold bg-brand-green text-white hover:bg-brand-green-dk transition-colors"
+            className="hidden sm:inline-flex whitespace-nowrap px-4 xl:px-5 py-3 rounded-xl text-sm font-semibold bg-brand-green text-white hover:bg-brand-green-dk transition-colors"
           >
             {t('joinUs')}
           </Link>

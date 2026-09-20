@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
-import { makeRevalidateOnPublish } from '@/hooks/revalidateOnPublish'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 export const ServicePillars: CollectionConfig = {
   slug: 'service-pillars',
@@ -61,6 +61,7 @@ export const ServicePillars: CollectionConfig = {
   ],
   hooks: {
     afterChange: [makeRevalidateOnPublish('service-pillars')],
+    afterDelete: [makeRevalidateOnDelete('service-pillars')],
   },
   access: {
     read: () => true,
