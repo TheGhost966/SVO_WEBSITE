@@ -11,7 +11,7 @@ script is broken regardless (`tsx`/ESM-CJS interop bug — see "Known issues"). 
 German title/slug for both are in `CONTENT-NEEDED.md`, ready to paste into the admin UI
 (`/admin/collections/guide-topics`) — needs a human with admin access and DB write rights.
 
-**Correction (2026-09-20): the pending count is FIVE, not three.** A read-only
+**Correction (2026-09-20): the pending count was FIVE at the time, not three (a sixth, `unlocalize_events_news_slugs`, was added later the same day).** A read-only
 `PAYLOAD_MIGRATE_STATUS=1` against `.env.local` listed all five as `pending`: `initial_schema`,
 `unlocalize_reference_slugs`, `add_home_group_site_settings`, `add_home_section_order` (AMENDMENT-03
 §2.2), `add_experts_contact_visibility_toggles` (AMENDMENT-03 §2.5). "Three" below and in older
@@ -71,7 +71,7 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
     `showEmail=false` and a `contactEmail` set does not leak the address in any locale. Not created:
     Media/Partners (Partners requires a logo upload), Pages, Board Members (no public page renders
     them). **The `TEST …` records are still in the DB — delete before real content goes in.**
-  - **New defect found — events slugs are still localized.** `/ar/events/<slug>` and `/en/events/<slug>`
+  - **[FIXED the same day — see "Events/News slugs unlocalized" below.]** **Defect found — events slugs were still localized.** `/ar/events/<slug>` and `/en/events/<slug>`
     404 when only the `de` slug is filled, yet the events index in ar/en links to exactly that URL.
     Same bug class AMENDMENT-02 §2.3 fixed for the five reference collections; `events` (and `news`,
     `pages`, `categories`) were left out. News passed in the test only because slugs were set per
@@ -83,6 +83,22 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
     board-members page exists; whoever builds it must honour `showEmail`/`showLinkedIn`.
   - Fixed along the way: none of these needed code changes; test writes to the working DB were reset
     (`heroHeadline` empty, `sectionOrder` empty → default order restored).
+
+**Events/News slugs unlocalized (2026-09-20, sixth migration).** The defect above is fixed the same way
+AMENDMENT-02 §2.3 fixed the five reference collections: `Events.slug` and `News.slug` are now one
+non-localized, `unique` column each. Migration `20260920_001819_unlocalize_events_news_slugs` — generated,
+then **hand-edited to backfill from the `de` locale row** before dropping the per-locale columns (the
+generated version copied nothing and would have discarded every slug; same reason as migration 2).
+Base columns stay nullable because both collections have `versions.drafts`. Applied to the Frankfurt DB
+via `PAYLOAD_MIGRATE_ON_BOOT=1` (138ms). Verified on a production build: the seeded test rows' `de`
+slugs moved to the base tables; `/de|ar|en` event and news detail pages all return 200 on the one shared
+slug; hreflang alternates are built from that single slug for all three locales
+(`getNewsAllLocaleSlugs`/`getEventAllLocaleSlugs` were removed — they only made sense for per-locale
+slugs). Consequences: the old per-locale news slugs (`test-khabar`, `test-news`) were deliberately
+dropped and now 404; editors get one slug per news item/event, not three; `categories` and `pages` still
+have localized slugs (categories have no detail route; `pages` is a separate call — only `about`-style
+pages exist). **Any long-running `next dev` must be restarted** — it loaded the old config and its
+queries reference the dropped column. Total migrations: six (`PAYLOAD_MIGRATE_STATUS=1` → all `✓ ran`).
 
 **Applying the pending migrations still needs an interactive terminal.** Unchanged from the
 prior session (see "Unlocalized slugs" → "Exact recovery steps" below) — this run's preflight

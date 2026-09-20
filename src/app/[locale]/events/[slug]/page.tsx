@@ -7,7 +7,7 @@ import { EventCard } from '@/components/ui/EventCard'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { FallbackNotice } from '@/components/ui/FallbackNotice'
 import { ButtonLink } from '@/components/ui/Button'
-import { getEventBySlug, getUpcomingEvents, getEventAllLocaleSlugs } from '@/lib/queries'
+import { getEventBySlug, getUpcomingEvents } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import { buildMetadata } from '@/lib/seo'
 import { eventSchema, breadcrumbSchema } from '@/lib/jsonld'
@@ -99,11 +99,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = EVENT_BASE[locale] ?? EVENT_BASE.de
 
-  const slugsByLocale = await getEventAllLocaleSlugs(event.id)
+  // Slug is unlocalized: every locale shares the one URL segment.
   const languages: Record<string, string> = {}
-  for (const [loc, locSlug] of Object.entries(slugsByLocale)) {
-    const locBase = EVENT_BASE[loc]
-    if (locBase && locSlug) languages[loc] = `${SERVER}${locBase}/${locSlug}`
+  for (const [loc, locBase] of Object.entries(EVENT_BASE)) {
+    languages[loc] = `${SERVER}${locBase}/${slug}`
   }
 
   const coverImage =

@@ -31,14 +31,11 @@ export const News: CollectionConfig = {
     {
       name: 'slug',
       type: 'text',
-      localized: true,
       required: true,
+      unique: true,
       label: { de: 'Slug (URL)', ar: 'الرابط', en: 'Slug (URL)' },
       admin: {
-        description: {
-          de: 'Wird automatisch aus dem Titel generiert. Pro Sprache anpassbar.',
-          en: 'Auto-generated from title. Customizable per language.',
-        },
+        description: 'Not localized — one URL segment shared by all languages (see DECISIONS.md "Unlocalized slugs").',
       },
     },
     {

@@ -6,7 +6,7 @@ import { MediaImage } from '@/components/ui/MediaImage'
 import { NewsCard } from '@/components/ui/NewsCard'
 import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { FallbackNotice } from '@/components/ui/FallbackNotice'
-import { getNewsBySlug, getLatestNews, getNewsAllLocaleSlugs } from '@/lib/queries'
+import { getNewsBySlug, getLatestNews } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import { buildMetadata } from '@/lib/seo'
 import { newsArticleSchema, breadcrumbSchema } from '@/lib/jsonld'
@@ -79,13 +79,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = NEWS_BASE[locale] ?? NEWS_BASE.de
 
-  // Fetch per-locale slugs for hreflang
-  const slugsByLocale = await getNewsAllLocaleSlugs(article.id)
-
+  // Slug is unlocalized: every locale shares the one URL segment.
   const languages: Record<string, string> = {}
-  for (const [loc, locSlug] of Object.entries(slugsByLocale)) {
-    const locBase = NEWS_BASE[loc]
-    if (locBase && locSlug) languages[loc] = `${SERVER}${locBase}/${locSlug}`
+  for (const [loc, locBase] of Object.entries(NEWS_BASE)) {
+    languages[loc] = `${SERVER}${locBase}/${slug}`
   }
 
   const coverImage =

@@ -190,35 +190,6 @@ export const getNewsCategories = unstable_cache(
   { revalidate: 3600, tags: ['categories'] },
 )
 
-/**
- * Fetch a news document with ALL locales so the caller can extract
- * per-locale slugs for hreflang links.
- * Returns `null` on any error.
- */
-export async function getNewsAllLocaleSlugs(
-  id: string,
-): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'news',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    // With locale:'all', localised fields come back as { de: '...', ar: '...', en: '...' }
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([ , v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
-
 export const getEventCategories = unstable_cache(
   async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
     try {
@@ -326,27 +297,6 @@ export const getEventBySlug = unstable_cache(
   ['event-by-slug'],
   { revalidate: 60, tags: [tags.events()] },
 )
-
-export async function getEventAllLocaleSlugs(id: string): Promise<Record<string, string>> {
-  try {
-    const payload = await getPayloadClient()
-    const doc = await payload.findByID({
-      collection: 'events',
-      id,
-      locale: 'all',
-      depth: 0,
-    })
-    const slugField = (doc as { slug?: unknown })?.slug
-    if (!slugField || typeof slugField !== 'object') return {}
-    return Object.fromEntries(
-      Object.entries(slugField as Record<string, unknown>).filter(
-        ([, v]) => typeof v === 'string' && Boolean(v),
-      ),
-    ) as Record<string, string>
-  } catch {
-    return {}
-  }
-}
 
 // ─── Services ─────────────────────────────────────────────────────────────────
 
