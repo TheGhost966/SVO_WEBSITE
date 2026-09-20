@@ -567,6 +567,7 @@ env vars for that specific boot.
   snapshot in `migrations/`* (empty, since none existed) against the config-derived schema — never
   live-DB introspection — so it was safe to run against the working dev DB and would have produced
   the identical file against any DB, including a fresh empty one.
+- **[RESOLVED 2026-09-20 — see "Fresh-database migration run" at the top of this file; all five migrations applied cleanly to an empty Frankfurt DB. Original note kept below.]**
 - **Not verified: actually applying (`PAYLOAD_MIGRATE_ON_BOOT=1`) this migration against a fresh
   database that's never seen dev-mode push.** This session's own tooling denied the action needed to
   provision a throwaway database to test against (`CREATE DATABASE` on the project's Neon instance,
