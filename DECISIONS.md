@@ -84,6 +84,25 @@ Before migrating, `information_schema.tables` showed **zero tables** in any non-
   - Fixed along the way: none of these needed code changes; test writes to the working DB were reset
     (`heroHeadline` empty, `sectionOrder` empty → default order restored).
 
+**Media storage for Vercel (2026-09-20).** Deploy target is Vercel (Frankfurt, `fra1`, with the Frankfurt
+Neon DB — brief §16.3). Vercel's filesystem is read-only, so `Media`'s `public/media` staticDir cannot
+take uploads there. Added `@payloadcms/storage-vercel-blob@3.88.0` (pinned to Payload's version),
+configured in `payload.config.ts` with `enabled: Boolean(BLOB_READ_WRITE_TOKEN)` — **unset = local disk as
+before** (dev, self-hosting); set = uploads go to Vercel Blob. `clientUploads: true` sends files
+browser→Blob so Vercel's 4.5 MB request-body limit doesn't cap photos/PDFs. Companion changes:
+`next.config.ts` `images.remotePatterns` now allows `*.public.blob.vercel-storage.com` (was empty, so
+next/image would have rejected every Blob URL); `seo.ts` prefers the absolute `ogImage.url` over the
+hand-built `/media/<filename>` (wrong under Blob); the handler was **added to
+`admin/importMap.js` by hand** because `payload generate:importmap` hits the same tsx/ESM-CJS bug as
+`seed`/`generate:types` (`ERR_REQUIRE_ASYNC_MODULE`) — regenerating the map by CLI would work only
+after that bug is fixed, and a regenerated map must keep the `VercelBlobClientUploadHandler` entry.
+**Verified:** typecheck, lint, and `next build` pass with the token unset and with a dummy token set;
+with a dummy token the production server boots, `/admin` and the Media create page return 200, and the
+client-upload route is registered (a malformed POST reaches the Blob library's own validation).
+**NOT verified:** an actual upload to a real Blob store, and existing-media migration (none exists —
+Media is empty). Needs a Vercel Blob store connected to the project (creates `BLOB_READ_WRITE_TOKEN`);
+choose the Frankfurt region when creating it.
+
 **Events/News slugs unlocalized (2026-09-20, sixth migration).** The defect above is fixed the same way
 AMENDMENT-02 §2.3 fixed the five reference collections: `Events.slug` and `News.slug` are now one
 non-localized, `unique` column each. Migration `20260920_001819_unlocalize_events_news_slugs` — generated,

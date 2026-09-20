@@ -4,7 +4,7 @@ type SeoDoc = {
   seo?: {
     title?: string | null
     description?: string | null
-    ogImage?: { filename?: string | null } | string | null
+    ogImage?: { filename?: string | null; url?: string | null } | string | null
     noIndex?: boolean | null
   } | null
   title?: string | Record<string, string> | null
@@ -34,8 +34,13 @@ export function buildMetadata({ doc, locale, fallbackTitle, serverUrl }: SeoOpti
 
   const ogImage = doc.seo?.ogImage
   const ogImageUrl =
-    ogImage && typeof ogImage === 'object' && ogImage.filename
-      ? `${base}/media/${ogImage.filename}`
+    ogImage && typeof ogImage === 'object'
+      ? // Blob storage returns an absolute URL; local storage only has the filename.
+        ogImage.url?.startsWith('http')
+        ? ogImage.url
+        : ogImage.filename
+          ? `${base}/media/${ogImage.filename}`
+          : undefined
       : undefined
 
   return {

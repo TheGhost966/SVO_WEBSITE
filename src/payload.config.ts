@@ -4,6 +4,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { en } from '@payloadcms/translations/languages/en'
 import { de } from '@payloadcms/translations/languages/de'
 import { ar } from '@payloadcms/translations/languages/ar'
@@ -103,6 +104,20 @@ export default buildConfig({
   },
 
   // ─── Collections ───────────────────────────────────────────────────────────
+  // ─── Media storage ─────────────────────────────────────────────────────────
+  // Vercel's filesystem is read-only, so uploads go to Vercel Blob there. Enabled only when
+  // BLOB_READ_WRITE_TOKEN is set — without it (local dev, self-hosted) Media keeps writing to
+  // public/media via its staticDir. `clientUploads` sends files browser→Blob directly, which
+  // sidesteps Vercel's 4.5 MB serverless request-body limit for larger photos/PDFs.
+  plugins: [
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN ?? '',
+      clientUploads: true,
+    }),
+  ],
+
   collections: [
     Users,
     Media,

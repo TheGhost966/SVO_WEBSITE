@@ -18,7 +18,8 @@ function toTurbopackAliasPath(absolutePath: string): string {
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [],
+    // Vercel Blob public URLs (Media uploads when BLOB_READ_WRITE_TOKEN is set).
+    remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
     formats: ['image/avif', 'image/webp'],
   },
   turbopack: {
