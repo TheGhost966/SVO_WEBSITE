@@ -2,6 +2,7 @@ import type { CollectionBeforeChangeHook, CollectionConfig, FieldAccess } from '
 import {
   isEditorOrAbove,
   readPublishedOrEditorPlus,
+  updateUnpublishedOrBoardPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -243,7 +244,8 @@ export const Experts: CollectionConfig = {
     // action (expertApplicationAction.ts) with overrideAccess: true, not
     // this REST/GraphQL create endpoint.
     create: isEditorOrAbove,
-    update: isEditorOrAbove,
+    // Editors may not touch published/archived documents (QA S7).
+    update: updateUnpublishedOrBoardPlus,
     delete: ({ req }) => req.user?.role === 'admin',
   },
 }

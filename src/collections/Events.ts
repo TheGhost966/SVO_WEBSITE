@@ -4,6 +4,7 @@ import { bundeslandField } from '@/fields/bundeslandField'
 import {
   isEditorOrAbove,
   readPublishedOrEditorPlus,
+  updateUnpublishedOrBoardPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -146,7 +147,8 @@ export const Events: CollectionConfig = {
     // Version history holds every draft — same audience as unpublished content (QA S6).
     readVersions: isEditorOrAbove,
     create: isEditorOrAbove,
-    update: isEditorOrAbove,
+    // Editors may not touch published/archived documents (QA S7).
+    update: updateUnpublishedOrBoardPlus,
     delete: ({ req }) => req.user?.role === 'admin',
   },
 }
