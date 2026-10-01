@@ -12,9 +12,13 @@ export const isEditorOrAbove: Access = ({ req }) =>
 
 export const isLoggedIn: Access = ({ req }) => !!req.user
 
-/** Public content filtered to published only; authenticated users see everything */
-export const readPublishedOrLoggedIn: Access = ({ req }) => {
-  if (req.user) return true
+/**
+ * Published content for everyone; unpublished (draft / in_review / archived) only for the roles that
+ * work on it — editor, board, admin. `viewer` is read-only and sees what the public sees (QA S6);
+ * logging in alone no longer unlocks drafts.
+ */
+export const readPublishedOrEditorPlus: Access = ({ req }) => {
+  if (['admin', 'board', 'editor'].includes(req.user?.role ?? '')) return true
   return { reviewStatus: { equals: 'published' } }
 }
 

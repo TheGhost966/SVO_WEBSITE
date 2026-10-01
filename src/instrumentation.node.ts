@@ -71,6 +71,11 @@ async function warnIfHomeGroupSchemaMissing() {
 }
 
 export async function register() {
+  // Fail at boot, not on the first request: in production an unset/weak PAYLOAD_SECRET throws here
+  // (QA S3). payload.config.ts calls the same resolver, so this is the earliest of two guards.
+  const { resolvePayloadSecret } = await import('./lib/payloadSecret')
+  resolvePayloadSecret()
+
   if (process.env.NODE_ENV !== 'production') {
     await warnIfHomeGroupSchemaMissing()
   }

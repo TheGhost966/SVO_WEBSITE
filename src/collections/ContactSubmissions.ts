@@ -1,5 +1,18 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
+import { CONTACT_LIMITS } from '@/lib/contactLimits'
+
+/**
+ * `status` and `submittedAt` are server-controlled (QA S2): a new submission always starts as
+ * `new` with the server's clock, whatever the caller sent, and `submittedAt` can never be edited
+ * afterwards. Editors still move `status` through new → read → archived in the inbox.
+ */
+const serverControlledFields: CollectionBeforeChangeHook = ({ data, operation, originalDoc }) => {
+  if (operation === 'create') {
+    return { ...data, status: 'new', submittedAt: new Date().toISOString() }
+  }
+  return { ...data, submittedAt: originalDoc?.submittedAt }
+}
 
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contact-submissions',
@@ -16,6 +29,7 @@ export const ContactSubmissions: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
+      maxLength: CONTACT_LIMITS.name,
       label: { de: 'Name', ar: 'الاسم', en: 'Name' },
     },
     {
@@ -27,17 +41,20 @@ export const ContactSubmissions: CollectionConfig = {
     {
       name: 'subject',
       type: 'text',
+      maxLength: CONTACT_LIMITS.subject,
       label: { de: 'Betreff', ar: 'الموضوع', en: 'Subject' },
     },
     {
       name: 'category',
       type: 'text',
+      maxLength: CONTACT_LIMITS.category,
       label: { de: 'Kategorie', ar: 'الفئة', en: 'Category' },
     },
     {
       name: 'message',
       type: 'textarea',
       required: true,
+      maxLength: CONTACT_LIMITS.message,
       label: { de: 'Nachricht', ar: 'الرسالة', en: 'Message' },
     },
     {
@@ -54,6 +71,11 @@ export const ContactSubmissions: CollectionConfig = {
       name: 'consentGiven',
       type: 'checkbox',
       required: true,
+      // `required` on a checkbox only means "is a boolean" — false (or omitted, which arrives as
+      // false) would pass. A new submission must carry actual consent. Create-only, so legacy rows
+      // stored without consent (via the formerly public REST route) stay editable in the inbox.
+      validate: (value: boolean | null | undefined, { operation }: { operation?: string }) =>
+        operation !== 'create' || value === true || 'Consent is required.',
       label: { de: 'Einwilligung zur Datenverarbeitung erteilt', ar: 'الموافقة على معالجة البيانات', en: 'Data processing consent given' },
     },
     {
@@ -74,8 +96,13 @@ export const ContactSubmissions: CollectionConfig = {
       admin: { date: { displayFormat: 'dd.MM.yyyy HH:mm' } },
     },
   ],
+  hooks: {
+    beforeChange: [serverControlledFields],
+  },
   access: {
-    create: () => true, // public endpoint — form submissions
+    // Not public (QA S2). The contact form writes through its server action
+    // (src/lib/contactAction.ts → Local API), which validates, rate-limits and whitelists fields.
+    create: isEditorOrAbove,
     read: isEditorOrAbove,
     update: isEditorOrAbove,
     delete: ({ req }) => req.user?.role === 'admin',

@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { seoGroup } from '@/fields/seoGroup'
 import {
   isEditorOrAbove,
-  readPublishedOrLoggedIn,
+  readPublishedOrEditorPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -224,7 +224,9 @@ export const Roadmaps: CollectionConfig = {
     afterDelete: [makeRevalidateOnDelete('roadmaps')],
   },
   access: {
-    read: readPublishedOrLoggedIn,
+    read: readPublishedOrEditorPlus,
+    // Version history holds every draft — same audience as unpublished content (QA S6).
+    readVersions: isEditorOrAbove,
     create: isEditorOrAbove,
     update: isEditorOrAbove,
     delete: ({ req }) => req.user?.role === 'admin',

@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { useTranslations } from 'next-intl'
 import { submitContactForm, type ContactFormState } from '@/lib/contactAction'
 import { CONTACT_CATEGORY_VALUES, type ContactCategory } from '@/lib/contactCategories'
+import { CONTACT_LIMITS, CONTACT_MESSAGE_MIN } from '@/lib/contactLimits'
 
 const initial: ContactFormState = { status: 'idle' }
 
@@ -37,9 +38,13 @@ export function ContactForm({ locale, initialCategory }: Props) {
           ? t('validationMessage')
           : state.errorKey === 'no_consent'
             ? t('validationConsent')
-            : state.errorKey === 'required'
-              ? t('validationName')
-              : t('error')
+            : state.errorKey === 'too_long'
+              ? t('validationTooLong')
+              : state.errorKey === 'rate_limited'
+                ? t('rateLimited')
+                : state.errorKey === 'required'
+                  ? t('validationName')
+                  : t('error')
       : null
 
   const categories = CONTACT_CATEGORY_VALUES.map((value) => ({
@@ -53,6 +58,12 @@ export function ContactForm({ locale, initialCategory }: Props) {
     <form action={formAction} noValidate className="space-y-5">
       {/* Hidden locale */}
       <input type="hidden" name="locale" value={locale} />
+
+      {/* Honeypot — hidden from real users via CSS, not type="hidden" (same as the expert form) */}
+      <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+        <label htmlFor="contact-company">Company</label>
+        <input id="contact-company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
 
       {/* Error banner */}
       {errorMessage && (
@@ -71,6 +82,7 @@ export function ContactForm({ locale, initialCategory }: Props) {
             name="name"
             type="text"
             autoComplete="name"
+            maxLength={CONTACT_LIMITS.name}
             placeholder={t('namePlaceholder')}
             required
             className={inputClass}
@@ -81,6 +93,7 @@ export function ContactForm({ locale, initialCategory }: Props) {
             name="email"
             type="email"
             autoComplete="email"
+            maxLength={CONTACT_LIMITS.email}
             placeholder={t('emailPlaceholder')}
             required
             className={inputClass}
@@ -94,6 +107,7 @@ export function ContactForm({ locale, initialCategory }: Props) {
           <input
             name="subject"
             type="text"
+            maxLength={CONTACT_LIMITS.subject}
             placeholder={t('subjectPlaceholder')}
             className={inputClass}
           />
@@ -115,7 +129,8 @@ export function ContactForm({ locale, initialCategory }: Props) {
           rows={6}
           placeholder={t('messagePlaceholder')}
           required
-          minLength={10}
+          minLength={CONTACT_MESSAGE_MIN}
+          maxLength={CONTACT_LIMITS.message}
           className={`${inputClass} resize-y`}
         />
       </Field>

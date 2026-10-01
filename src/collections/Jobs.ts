@@ -3,7 +3,7 @@ import { seoGroup } from '@/fields/seoGroup'
 import { bundeslandField } from '@/fields/bundeslandField'
 import {
   isEditorOrAbove,
-  readPublishedOrLoggedIn,
+  readPublishedOrEditorPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -48,7 +48,9 @@ export const Jobs: CollectionConfig = {
       `${process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'}/de/stellenangebote/${doc.slug}`,
   },
   access: {
-    read: readPublishedOrLoggedIn,
+    read: readPublishedOrEditorPlus,
+    // Version history holds every draft — same audience as unpublished content (QA S6).
+    readVersions: isEditorOrAbove,
     create: isEditorOrAbove,
     update: isEditorOrAbove,
     delete: isEditorOrAbove,

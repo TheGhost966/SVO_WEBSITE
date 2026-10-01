@@ -1,7 +1,7 @@
 import type { CollectionBeforeChangeHook, CollectionConfig, FieldAccess } from 'payload'
 import {
   isEditorOrAbove,
-  readPublishedOrLoggedIn,
+  readPublishedOrEditorPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -12,6 +12,17 @@ import { bundeslandField } from '@/fields/bundeslandField'
 // Field-level access must return a plain boolean (unlike collection-level
 // Access, which may also return a Where query for row filtering).
 const boardOrAdminOnly: FieldAccess = ({ req }) => ['admin', 'board'].includes(req.user?.role ?? '')
+
+// Private applicant data must never reach anonymous REST/GraphQL callers just because the listing is
+// published (QA S1). Field-level `read` access also makes Payload refuse `where`/`sort` on these
+// paths for callers who can't read them, so they can't be used as a search oracle either. The public
+// site reads through the Local API (overrideAccess), so its own showEmail/showPhone rendering is
+// unaffected.
+const editorOrAbove: FieldAccess = ({ req }) => ['admin', 'board', 'editor'].includes(req.user?.role ?? '')
+const readableIfShown =
+  (flag: 'showEmail' | 'showPhone'): FieldAccess =>
+  (args) =>
+    editorOrAbove(args) || (args.siblingData ?? args.doc)?.[flag] === true
 
 // BRIEF-AMENDMENT-03 §2.5: professional proof is now "مطلوب إلزامي" (mandatory) per the client
 // questionnaire. A hard block would stop the board from publishing while verification is still
@@ -109,6 +120,7 @@ export const Experts: CollectionConfig = {
         {
           name: 'contactEmail',
           type: 'email',
+          access: { read: readableIfShown('showEmail') },
           label: { de: 'Kontakt-E-Mail', ar: 'البريد الإلكتروني', en: 'Contact email' },
           admin: { width: '70%' },
         },
@@ -132,6 +144,7 @@ export const Experts: CollectionConfig = {
         {
           name: 'contactPhone',
           type: 'text',
+          access: { read: readableIfShown('showPhone') },
           label: { de: 'Telefon', ar: 'الهاتف', en: 'Phone' },
           admin: { width: '70%' },
         },
@@ -162,6 +175,7 @@ export const Experts: CollectionConfig = {
     {
       name: 'consentOnFile',
       type: 'checkbox',
+      access: { read: editorOrAbove },
       defaultValue: false,
       label: { de: 'Einwilligung liegt vor', ar: 'الموافقة متوفرة', en: 'Consent on file' },
       admin: {
@@ -171,6 +185,7 @@ export const Experts: CollectionConfig = {
     {
       name: 'consentDate',
       type: 'date',
+      access: { read: editorOrAbove },
       label: { de: 'Einwilligung vom', ar: 'تاريخ الموافقة', en: 'Consent date' },
     },
     {
@@ -185,7 +200,7 @@ export const Experts: CollectionConfig = {
       // Field-level access, not just update-time — §2.1: "update access does
       // not gate the value on insert." Only admin/board may ever set this,
       // on create AND update; a plain editor role cannot self-verify.
-      access: { create: boardOrAdminOnly, update: boardOrAdminOnly },
+      access: { read: editorOrAbove, create: boardOrAdminOnly, update: boardOrAdminOnly },
       admin: {
         description: 'Confirm the person is actually registered with the relevant chamber/authority before verifying.',
       },
@@ -194,7 +209,7 @@ export const Experts: CollectionConfig = {
       name: 'verifiedAt',
       type: 'date',
       label: { de: 'Verifiziert am', ar: 'تاريخ التحقق', en: 'Verified at' },
-      access: { create: boardOrAdminOnly, update: boardOrAdminOnly },
+      access: { read: editorOrAbove, create: boardOrAdminOnly, update: boardOrAdminOnly },
     },
     {
       name: 'reviewStatus',
@@ -221,7 +236,9 @@ export const Experts: CollectionConfig = {
     afterDelete: [makeRevalidateOnDelete('experts')],
   },
   access: {
-    read: readPublishedOrLoggedIn,
+    read: readPublishedOrEditorPlus,
+    // Version history holds every draft — same audience as unpublished content (QA S6).
+    readVersions: isEditorOrAbove,
     // Never () => true — the public write path is the Local API server
     // action (expertApplicationAction.ts) with overrideAccess: true, not
     // this REST/GraphQL create endpoint.

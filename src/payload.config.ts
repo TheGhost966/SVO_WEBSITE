@@ -11,6 +11,7 @@ import { ar } from '@payloadcms/translations/languages/ar'
 import nodemailer from 'nodemailer'
 import sharp from 'sharp'
 
+import { resolvePayloadSecret } from '@/lib/payloadSecret'
 import { Users } from '@/collections/Users'
 import { Media } from '@/collections/Media'
 import { Categories } from '@/collections/Categories'
@@ -37,7 +38,9 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   // ─── Server ────────────────────────────────────────────────────────────────
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000',
-  secret: process.env.PAYLOAD_SECRET ?? 'INSECURE_DEV_SECRET_REPLACE_ME',
+  // Throws in production when PAYLOAD_SECRET is missing/weak/a placeholder; dev-only fallback
+  // otherwise (src/lib/payloadSecret.ts, QA S3).
+  secret: resolvePayloadSecret(),
 
   // Required for Media's imageSizes (thumbnail/card/hero) to actually generate —
   // just having `sharp` installed isn't enough, Payload needs the reference.

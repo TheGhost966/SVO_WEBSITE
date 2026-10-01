@@ -17,6 +17,9 @@ function toTurbopackAliasPath(absolutePath: string): string {
 }
 
 const nextConfig: NextConfig = {
+  // QA harness only (qa/security/s3-*): builds the production server into a separate directory so a
+  // test run never overwrites the developer's .next. Unset in normal use → the default '.next'.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     // Vercel Blob public URLs (Media uploads when BLOB_READ_WRITE_TOKEN is set).
     remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],

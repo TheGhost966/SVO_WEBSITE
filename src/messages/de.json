@@ -182,6 +182,8 @@
     "validationEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
     "validationMessage": "Die Nachricht muss mindestens 10 Zeichen lang sein.",
     "validationConsent": "Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.",
+    "validationTooLong": "Eine Eingabe ist zu lang. Bitte kürzen Sie Ihre Nachricht.",
+    "rateLimited": "Zu viele Nachrichten. Bitte versuchen Sie es später erneut.",
     "address": "Adresse",
     "phone": "Telefon",
     "openingHours": "Öffnungszeiten"

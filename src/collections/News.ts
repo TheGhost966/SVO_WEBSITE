@@ -3,7 +3,7 @@ import { seoGroup } from '@/fields/seoGroup'
 import { bundeslandField } from '@/fields/bundeslandField'
 import {
   isEditorOrAbove,
-  readPublishedOrLoggedIn,
+  readPublishedOrEditorPlus,
   syncPublishStatus,
   enforceReviewStatusAccess,
 } from '@/lib/access'
@@ -109,7 +109,9 @@ export const News: CollectionConfig = {
     afterDelete: [makeRevalidateOnDelete('news')],
   },
   access: {
-    read: readPublishedOrLoggedIn,
+    read: readPublishedOrEditorPlus,
+    // Version history holds every draft — same audience as unpublished content (QA S6).
+    readVersions: isEditorOrAbove,
     create: isEditorOrAbove,
     update: isEditorOrAbove,
     delete: ({ req }) => req.user?.role === 'admin',

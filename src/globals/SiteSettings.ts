@@ -1,8 +1,23 @@
-import type { GlobalConfig } from 'payload'
+import type { FieldAccess, GlobalAfterReadHook, GlobalConfig } from 'payload'
 import { revalidateTag } from 'next/cache'
 import { isAdminOrBoard } from '@/lib/access'
 import { tags } from '@/lib/payload'
 import { HOME_SECTIONS, HOME_SECTION_LABELS } from '@/lib/homeSections'
+
+// Internal settings the public site never renders (QA S4): the board's notification addresses and
+// the GDPR retention configuration. Hidden from anonymous/editor/viewer REST responses; the site and
+// notifyBoardOnReview read them through the Local API (overrideAccess), so they keep working.
+const boardOrAdminOnly: FieldAccess = ({ req }) => ['admin', 'board'].includes(req.user?.role ?? '')
+
+// Field read access strips the addresses, but Payload re-initialises a hidden array field as `[]`,
+// which would still advertise the key (and read as "no recipients configured"). Drop it entirely on
+// access-controlled reads; Local API reads (overrideAccess) keep the real value.
+const dropHiddenRecipientsKey: GlobalAfterReadHook = ({ doc, overrideAccess, req }) => {
+  if (!overrideAccess && !['admin', 'board'].includes(req.user?.role ?? '')) {
+    delete doc.boardNotificationEmails
+  }
+  return doc
+}
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -337,6 +352,7 @@ export const SiteSettings: GlobalConfig = {
     {
       name: 'submissionRetentionMonths',
       type: 'number',
+      access: { read: boardOrAdminOnly },
       defaultValue: 12,
       label: { de: 'Aufbewahrungsfrist Kontaktformular (Monate)', ar: 'مدة الاحتفاظ بالبيانات (أشهر)', en: 'Contact form retention (months)' },
       admin: {
@@ -349,6 +365,7 @@ export const SiteSettings: GlobalConfig = {
     {
       name: 'expertApplicationRetentionMonths',
       type: 'number',
+      access: { read: boardOrAdminOnly },
       defaultValue: 12,
       label: {
         de: 'Aufbewahrungsfrist unveröffentlichte Expert:innen-Anträge (Monate)',
@@ -365,6 +382,7 @@ export const SiteSettings: GlobalConfig = {
     {
       name: 'boardNotificationEmails',
       type: 'array',
+      access: { read: boardOrAdminOnly },
       label: { de: 'E-Mail-Empfänger für Überprüfungs-Benachrichtigungen', ar: 'مستلمو البريد الإلكتروني للمراجعة', en: 'Review notification email recipients' },
       fields: [
         {
@@ -382,6 +400,7 @@ export const SiteSettings: GlobalConfig = {
     },
   ],
   hooks: {
+    afterRead: [dropHiddenRecipientsKey],
     afterChange: [
       () => {
         try {

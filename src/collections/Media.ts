@@ -1,6 +1,6 @@
 import path from 'path'
 import type { CollectionConfig } from 'payload'
-import { isEditorOrAbove, isLoggedIn } from '@/lib/access'
+import { isEditorOrAbove } from '@/lib/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -65,6 +65,7 @@ export const Media: CollectionConfig = {
     read: () => true,
     create: isEditorOrAbove,
     update: isEditorOrAbove,
-    delete: isLoggedIn,
+    // Not isLoggedIn: that includes the read-only `viewer` role (QA S5).
+    delete: isEditorOrAbove,
   },
 }
