@@ -55,7 +55,9 @@ export const Jobs: CollectionConfig = {
     create: isEditorOrAbove,
     // Editors may not touch published/archived documents (QA S7).
     update: updateUnpublishedOrBoardPlus,
-    delete: isEditorOrAbove,
+    // Admin only, like every other collection with the review workflow (QA N3). Editors/board take a
+    // posting offline by archiving it (board) — deleting would remove live content without review.
+    delete: ({ req }) => req.user?.role === 'admin',
   },
   hooks: {
     // Order and placement match News/Events deliberately. `notifyBoardOnReview` is a
