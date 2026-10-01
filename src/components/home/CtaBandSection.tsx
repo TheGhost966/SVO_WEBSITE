@@ -1,6 +1,7 @@
 import { Heart, Lightbulb } from 'lucide-react'
 import { ButtonLink } from '@/components/ui/Button'
 import { resolveInternalHref } from '@/lib/internalHref'
+import { SmartLink } from '@/components/ui/SmartLink'
 import { forwardArrow } from '@/i18n/routing'
 import type { SiteSettingsDoc } from '@/types/payload'
 import { homeCopy } from './copy'
@@ -55,13 +56,13 @@ export function CtaBandSection({
           </span>
           <h2 className="mt-6 text-3xl font-bold text-[#1F5E1B]">{volunteer.heading}</h2>
           <p className="mt-3 flex-1 text-base leading-relaxed text-[#2E6B29]">{volunteer.body}</p>
-          <a
+          <SmartLink
             href={resolveInternalHref('/contact?category=volunteering', locale)}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand-green px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dk"
           >
             {volunteer.button}
             <span aria-hidden="true">{forwardArrow(locale)}</span>
-          </a>
+          </SmartLink>
         </div>
         <div className="flex flex-col items-start rounded-[24px] bg-brand-navy p-8 md:p-10">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-brand-green">
@@ -69,13 +70,13 @@ export function CtaBandSection({
           </span>
           <h2 className="mt-6 text-3xl font-bold text-white">{idea.heading}</h2>
           <p className="mt-3 flex-1 text-base leading-relaxed text-white/70">{idea.body}</p>
-          <a
+          <SmartLink
             href={resolveInternalHref('/contact?category=idea', locale)}
             className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand-green px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dk"
           >
             {idea.button}
             <span aria-hidden="true">{forwardArrow(locale)}</span>
-          </a>
+          </SmartLink>
         </div>
       </div>
     </section>

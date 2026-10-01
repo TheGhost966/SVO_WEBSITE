@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes } from 'react'
+import { SmartLink } from './SmartLink'
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
@@ -7,6 +8,7 @@ type Props = AnchorHTMLAttributes<HTMLAnchorElement> & {
   variant?: Variant
   size?: Size
   as?: 'a' | 'button'
+  href?: string
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -30,21 +32,31 @@ export function ButtonLink({
   variant = 'primary',
   size = 'md',
   className = '',
+  href,
   children,
   ...props
 }: Props) {
+  const classes = `
+    inline-flex items-center gap-2 font-semibold rounded-control
+    transition-colors duration-150
+    ${variantClasses[variant]}
+    ${sizeClasses[size]}
+    ${className}
+  `.trim()
+
+  // Without an href there's nothing to navigate to — keep the bare anchor so a
+  // disabled/decorative call site renders the same as before.
+  if (!href) {
+    return (
+      <a {...props} className={classes}>
+        {children}
+      </a>
+    )
+  }
+
   return (
-    <a
-      {...props}
-      className={`
-        inline-flex items-center gap-2 font-semibold rounded-control
-        transition-colors duration-150
-        ${variantClasses[variant]}
-        ${sizeClasses[size]}
-        ${className}
-      `.trim()}
-    >
+    <SmartLink {...props} href={href} className={classes}>
       {children}
-    </a>
+    </SmartLink>
   )
 }

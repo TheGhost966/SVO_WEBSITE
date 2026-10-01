@@ -1,6 +1,8 @@
 import { Briefcase, ExternalLink } from 'lucide-react'
 import { HomeSectionShell, SectionHead } from './shared'
 import { homeCopy } from './copy'
+import { JobCard } from '@/components/ui/JobCard'
+import type { JobDoc } from '@/types/payload'
 
 type JobResourceLink = { id?: string; label?: string | null; url?: string | null; description?: string | null }
 
@@ -14,24 +16,31 @@ function hostOf(url: string | null | undefined): string | null {
 }
 
 /**
- * BRIEF-AMENDMENT-02 §1: this teaser reflects the curated-external-links reality
- * (`SiteSettings.jobResourceLinks`) — no `Jobs` collection exists. Figma 6.png's row layout is used
- * (cream rounded rows, title + meta on the start side, navy button on the end side), but the
- * Figma's type tag / employer / expiry date / hours are NOT invented: the meta line shows the
- * link's real host instead.
+ * Figma 6.png. Real postings from the `jobs` collection now back this teaser, so the frame's type
+ * tag, employer, location and expiry date are actual fields rather than the invented values an
+ * earlier pass refused to fake.
+ *
+ * The curated `SiteSettings.jobResourceLinks` rows stay as the fallback: with no live postings
+ * the section still points people at AMS and the other portals instead of vanishing, which is
+ * what an association with an intermittent board-run board actually looks like.
  */
 export function JobsSection({
   locale,
+  jobs,
   links,
   t,
 }: {
   locale: string
+  jobs: JobDoc[]
   links: JobResourceLink[]
   t: (key: string) => string
 }) {
-  if (links.length === 0) return null
+  if (jobs.length === 0 && links.length === 0) return null
   const copy = homeCopy(locale)
-  const shown = links.slice(0, 4)
+  const shownJobs = jobs.slice(0, 4)
+  // Only pad with portal links when there are few real postings, so the list never reads as a
+  // mix of "apply here" and "go look elsewhere" when there is plenty of the former.
+  const shown = shownJobs.length >= 3 ? [] : links.slice(0, 4 - shownJobs.length)
 
   return (
     <HomeSectionShell id="jobs-heading" bg="bg-surface">
@@ -44,6 +53,11 @@ export function JobsSection({
         locale={locale}
       />
       <ul className="flex flex-col gap-4">
+        {shownJobs.map((job) => (
+          <li key={job.id}>
+            <JobCard job={job} locale={locale} />
+          </li>
+        ))}
         {shown.map((link, i) => {
           const host = hostOf(link.url)
           return (

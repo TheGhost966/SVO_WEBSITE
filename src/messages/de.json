@@ -127,8 +127,28 @@
   },
   "jobs": {
     "title": "Stellenangebote",
-    "intro": "Der SVÖ betreibt keine eigene Jobbörse. Hier finden Sie ausgewählte Anlaufstellen für die Jobsuche in Österreich.",
-    "empty": "Es wurden noch keine Links hinterlegt."
+    "intro": "Offene Stellen, Lehrstellen, Praktika und Ehrenamt — vom Verband geprüft, bevor sie erscheinen.",
+    "empty": "Zurzeit sind keine Stellen ausgeschrieben.",
+    "portals": "Weitere Stellenportale",
+    "portalsIntro": "Anlaufstellen für die Jobsuche in Österreich.",
+    "apply": "Jetzt bewerben",
+    "backToJobs": "Alle Stellenangebote",
+    "expires": "Bewerbungsfrist",
+    "employer": "Arbeitgeber",
+    "location": "Ort",
+    "type": "Anstellungsart",
+    "externalNote": "Die Bewerbung läuft über die Website des Arbeitgebers."
+  },
+  "search": {
+    "title": "Suche",
+    "resultsFor": "Suchergebnisse für „{query}“",
+    "noQuery": "Geben Sie oben in der Startseiten-Suche einen Begriff ein.",
+    "noResults": "Keine Treffer für „{query}“. Versuchen Sie einen anderen Begriff.",
+    "sectionNews": "Nachrichten",
+    "sectionEvents": "Veranstaltungen",
+    "sectionRoadmaps": "Anleitungen",
+    "sectionGuide": "Österreich-Guide",
+    "sectionExperts": "Expert:innen"
   },
   "contact": {
     "title": "Kontakt",

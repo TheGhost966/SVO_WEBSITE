@@ -126,9 +126,29 @@
     "requestIntro": "Request an introduction via our contact form"
   },
   "jobs": {
-    "title": "Jobs",
-    "intro": "SVÖ does not run its own job board. Here are some useful starting points for job hunting in Austria.",
-    "empty": "No links have been added yet."
+    "title": "Jobs & opportunities",
+    "intro": "Vacancies, apprenticeships, internships and volunteering — reviewed by the association before they appear.",
+    "empty": "There are no openings listed right now.",
+    "portals": "Other job portals",
+    "portalsIntro": "Places to look for work in Austria.",
+    "apply": "Apply now",
+    "backToJobs": "All job postings",
+    "expires": "Application deadline",
+    "employer": "Employer",
+    "location": "Location",
+    "type": "Employment type",
+    "externalNote": "Applications go through the employer's own website."
+  },
+  "search": {
+    "title": "Search",
+    "resultsFor": "Search results for “{query}”",
+    "noQuery": "Type a term into the search bar on the homepage.",
+    "noResults": "No matches for “{query}”. Try a different term.",
+    "sectionNews": "News",
+    "sectionEvents": "Events",
+    "sectionRoadmaps": "Roadmaps",
+    "sectionGuide": "Austria Guide",
+    "sectionExperts": "Experts"
   },
   "contact": {
     "title": "Contact",

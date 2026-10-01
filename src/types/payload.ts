@@ -102,6 +102,7 @@ export type ExpertDoc = {
   categories?: Array<CategoryRef | string> | null
   bio?: string | null
   city?: string | null
+  bundesland?: string | null
   languages?: Array<{ id?: string; language?: string | null }> | null
   contactEmail?: string | null
   showEmail?: boolean | null
@@ -136,9 +137,29 @@ export type RoadmapDoc = {
   reviewIntervalMonths?: number | null
   officialSourceUrl?: string | null
   steps?: RoadmapStep[] | null
+  /** Situation-quiz tags (src/lib/quiz.ts). Untagged roadmaps never appear in quiz results. */
+  quizMatches?: string[] | null
   reviewStatus?: string | null
   seo?: SeoField
   /** Set by `getRoadmapBySlug` — true when this locale had no translation and fell back to German. */
+  _isFallback?: boolean
+}
+
+export type JobDoc = {
+  id: string
+  title?: string | null
+  slug?: string | null
+  organisation?: string | null
+  city?: string | null
+  bundesland?: string | null
+  employmentType?: string | null
+  description?: unknown
+  applyUrl?: string | null
+  publishedAt?: string | null
+  expiryDate?: string | null
+  reviewStatus?: string | null
+  seo?: SeoField
+  /** Set by `getJobBySlug` — true when this locale had no translation and fell back to German. */
   _isFallback?: boolean
 }
 

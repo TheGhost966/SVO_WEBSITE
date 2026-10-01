@@ -1,3 +1,5 @@
+import { SmartLink } from './SmartLink'
+
 type Category = { id: string; name?: string | null; slug?: string | null }
 
 type Props = {
@@ -22,7 +24,7 @@ export function CategoryFilter({ categories, currentSlug, allLabel, basePath, ex
       <ul className="flex flex-wrap gap-2" role="list">
         {/* "All" tab */}
         <li>
-          <a
+          <SmartLink
             href={buildUrl(basePath, undefined, extraParams)}
             className={`inline-block px-4 py-2 rounded-control text-sm font-medium transition-colors ${
               !currentSlug
@@ -32,14 +34,14 @@ export function CategoryFilter({ categories, currentSlug, allLabel, basePath, ex
             aria-current={!currentSlug ? 'true' : undefined}
           >
             {allLabel}
-          </a>
+          </SmartLink>
         </li>
 
         {categories.map((cat) => {
           const active = currentSlug === cat.slug
           return (
             <li key={cat.id}>
-              <a
+              <SmartLink
                 href={buildUrl(basePath, cat.slug ?? undefined, extraParams)}
                 className={`inline-block px-4 py-2 rounded-control text-sm font-medium transition-colors ${
                   active
@@ -49,7 +51,7 @@ export function CategoryFilter({ categories, currentSlug, allLabel, basePath, ex
                 aria-current={active ? 'true' : undefined}
               >
                 {cat.name}
-              </a>
+              </SmartLink>
             </li>
           )
         })}

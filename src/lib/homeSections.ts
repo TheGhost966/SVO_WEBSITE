@@ -4,21 +4,26 @@
  * options) and the homepage's own rendering logic, so the two can never drift the way a
  * hand-duplicated list would. Same pattern as `src/lib/contactCategories.ts`.
  *
- * Order and membership are BRIEF-AMENDMENT-03 §2.1's ruling: the homepage leads with identity
- * and activity (hero, stats, news, events), then wayfinding content (help cards, roadmaps,
- * guide, experts, jobs), then a closing CTA. §2.2 makes this order board-editable.
+ * Order matches the client's Figma concept (2026-09-21 re-alignment, superseding the original
+ * AMENDMENT-03 §2.1 order): hero (with its search bar and stats strip), then wayfinding content
+ * in the Figma's own sequence (help cards, roadmaps, guide, experts, jobs, events), then the
+ * volunteer/idea CTA band, then news last, then the app band (Figma 10.png) — which announces
+ * an app that does not exist yet and so is rendered as a "in Vorbereitung" notice rather than
+ * store-download buttons. §2.2 still makes this order board-editable, and the band can be
+ * switched off entirely from SiteSettings like any other section.
  */
 export const HOME_SECTIONS = [
   'hero',
   'stats',
-  'news',
-  'events',
   'helpCards',
   'roadmaps',
   'guide',
   'experts',
   'jobs',
+  'events',
   'ctaBand',
+  'news',
+  'appBand',
 ] as const
 
 export type HomeSection = (typeof HOME_SECTIONS)[number]
@@ -34,6 +39,7 @@ export const HOME_SECTION_LABELS: Record<HomeSection, { de: string; ar: string; 
   experts: { de: 'Expert:innen', ar: 'الخبراء', en: 'Experts' },
   jobs: { de: 'Stellenangebote', ar: 'فرص العمل', en: 'Jobs' },
   ctaBand: { de: 'CTA-Band', ar: 'شريط الدعوة', en: 'CTA band' },
+  appBand: { de: 'App-Band (in Vorbereitung)', ar: 'شريط التطبيق (قيد الإعداد)', en: 'App band (in preparation)' },
 }
 
 export type HomeSectionOrderRow = { section: HomeSection; enabled: boolean }

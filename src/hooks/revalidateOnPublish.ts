@@ -61,6 +61,9 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
         case 'experts':
           bust(tags.experts())
           break
+        case 'jobs':
+          bust(tags.jobs())
+          break
       }
 
       // Blow per-slug caches across all locales

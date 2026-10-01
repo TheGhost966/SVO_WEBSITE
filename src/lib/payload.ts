@@ -18,6 +18,7 @@ export const tags = {
   guide: (locale?: string) => (locale ? `guide-${locale}` : 'guide'),
   roadmaps: (locale?: string) => (locale ? `roadmaps-${locale}` : 'roadmaps'),
   experts: (locale?: string) => (locale ? `experts-${locale}` : 'experts'),
+  jobs: (locale?: string) => (locale ? `jobs-${locale}` : 'jobs'),
   pages: (locale?: string) => (locale ? `pages-${locale}` : 'pages'),
   navigation: (locale?: string) => (locale ? `navigation-${locale}` : 'navigation'),
   siteSettings: () => 'site-settings',

@@ -21,6 +21,8 @@ import type { PostgresAdapter } from '@payloadcms/db-postgres'
  *   PAYLOAD_MIGRATE_STATUS=1        — log which migrations exist vs. have been applied
  *   PAYLOAD_MIGRATE_ON_BOOT=1       — apply all pending migrations
  *   PAYLOAD_MIGRATE_CREATE_NAME=foo — write a new migration file capturing the current schema diff
+ *   SEED_ON_BOOT=1                  — populate the database with configuration + sample content
+ *                                     (seed/index.ts). `npm run seed` sets this for you.
  *   PAYLOAD_MIGRATE_BASELINE=<name> — mark <name> as already-applied (batch 1) without running its
  *                                     up(), and clear the batch:-1 dev-push sentinel row. Use once,
  *                                     for a database whose schema came from dev-mode push rather
@@ -71,6 +73,25 @@ async function warnIfHomeGroupSchemaMissing() {
 export async function register() {
   if (process.env.NODE_ENV !== 'production') {
     await warnIfHomeGroupSchemaMissing()
+  }
+
+  // Seeding runs here for the same reason the migration operations do: a standalone tsx entry
+  // point can't load payload.config.ts (see the comment at the top of seed/index.ts). It is
+  // deliberately *not* grouped with the PAYLOAD_MIGRATE_* block below, because that block sets
+  // PAYLOAD_MIGRATING=true — a flag Payload uses to suppress normal write behaviour, which is
+  // the opposite of what seeding needs.
+  if (process.env.SEED_ON_BOOT) {
+    const { getPayload } = await import('payload')
+    const { default: config } = await import('@payload-config')
+    const { runSeed } = await import('../seed/index')
+    const payload = await getPayload({ config })
+    try {
+      await runSeed(payload)
+      console.log('[seed] complete')
+    } catch (err) {
+      console.error('[seed] failed:', err instanceof Error ? err.stack : err)
+      console.log('[seed] failed')
+    }
   }
 
   const wantsStatus = Boolean(process.env.PAYLOAD_MIGRATE_STATUS)

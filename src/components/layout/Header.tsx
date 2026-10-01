@@ -95,6 +95,33 @@ export function Header({ locale }: Props) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // Every mobile nav link already calls setMenuOpen(false), but that misses the cases where the
+  // route changes without one being clicked — the language switcher, the browser's back button,
+  // a redirect — and left the panel covering the new page. Adjusting during render rather than in
+  // an effect is React's own recommendation for deriving state from a changed input: it closes in
+  // the same pass instead of painting the stale open panel first and re-rendering.
+  const [menuPathname, setMenuPathname] = useState(pathname)
+  if (pathname !== menuPathname) {
+    setMenuPathname(pathname)
+    setMenuOpen(false)
+  }
+
+  // Escape closes the panel, and the page behind it stops scrolling while it's open — without the
+  // lock, scrolling the overlay scrolls the page underneath and the user loses their place.
+  useEffect(() => {
+    if (!menuOpen) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [menuOpen])
+
   return (
     <header className="sticky top-0 z-40 bg-surface border-b border-border">
       <div
@@ -150,6 +177,7 @@ export function Header({ locale }: Props) {
             className="md:hidden p-2 rounded-control text-ink hover:bg-cream"
             aria-label={menuOpen ? t('closeMenu') : t('menu')}
             aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
             onClick={() => setMenuOpen((o) => !o)}
           >
             <svg
@@ -172,7 +200,8 @@ export function Header({ locale }: Props) {
       {/* Mobile menu */}
       {menuOpen && (
         <nav
-          className="md:hidden border-t border-border bg-surface px-6 pb-4"
+          id="mobile-nav"
+          className="md:hidden max-h-[calc(100vh-80px)] overflow-y-auto border-t border-border bg-surface px-6 pb-4"
           aria-label={t('menu')}
         >
           {navKeys.map((key) => {

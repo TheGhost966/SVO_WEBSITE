@@ -8,7 +8,8 @@ import { homeCopy } from './copy'
 /**
  * Figma 3.png: white section, cream cards — step-count pill + icon tile on top, title, the
  * responsible authority, the first three numbered steps, "more steps …", navy start button.
- * The Figma's green "What's my situation? — 4 questions" quiz band is not built (no quiz exists).
+ * The Figma's green "What's my situation? — 4 questions" band sits under the cards and leads to
+ * the real four-question flow at /quiz (src/lib/quiz.ts, src/components/ui/SituationQuiz.tsx).
  */
 export function RoadmapsSection({
   locale,
@@ -82,6 +83,23 @@ export function RoadmapsSection({
             </article>
           )
         })}
+      </div>
+
+      {/* Figma 3.png's green band under the cards. Real, not decorative: it leads to the
+          four-question flow at /quiz, which ranks these same roadmaps by the tags the board sets
+          on each one. */}
+      <div className="mt-8 flex flex-col items-start gap-5 rounded-[22px] bg-brand-green-lt p-7 md:flex-row md:items-center md:justify-between md:p-8">
+        <div>
+          <h3 className="text-xl font-bold text-[#1F5E1B] md:text-2xl">{copy.quiz.heading}</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#2E6B29]">{copy.quiz.body}</p>
+        </div>
+        <Link
+          href="/quiz"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-brand-green px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dk"
+        >
+          {copy.quiz.button}
+          <span aria-hidden="true">{forwardArrow(locale)}</span>
+        </Link>
       </div>
     </HomeSectionShell>
   )

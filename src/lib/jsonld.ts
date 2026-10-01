@@ -223,3 +223,71 @@ export function eventSchema({
     inLanguage: locale,
   }
 }
+
+/**
+ * `JobPosting` structured data — the reason each posting gets its own indexable page rather than
+ * the listing linking straight out to `applyUrl` (BRIEF-AMENDMENT-01 §2.4).
+ *
+ * `validThrough` mirrors the posting's own expiry, so search engines retire the listing on the
+ * same date the site stops serving it. No salary is emitted: the collection has no salary field,
+ * and `baseSalary` is exactly the kind of value that must never be guessed.
+ */
+export function jobPostingSchema({
+  title,
+  description,
+  organisation,
+  city,
+  region,
+  datePosted,
+  validThrough,
+  employmentType,
+  url,
+}: {
+  title: string
+  description?: string | null
+  organisation?: string | null
+  city?: string | null
+  region?: string | null
+  datePosted?: string | null
+  validThrough?: string | null
+  employmentType?: string | null
+  url: string
+}) {
+  // schema.org's controlled vocabulary, not our internal field values.
+  const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
+    full_time: 'FULL_TIME',
+    part_time: 'PART_TIME',
+    apprenticeship: 'OTHER',
+    internship: 'INTERN',
+    volunteer: 'VOLUNTEER',
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title,
+    ...(description ? { description } : {}),
+    ...(datePosted ? { datePosted } : {}),
+    ...(validThrough ? { validThrough } : {}),
+    ...(employmentType && EMPLOYMENT_TYPE_MAP[employmentType]
+      ? { employmentType: EMPLOYMENT_TYPE_MAP[employmentType] }
+      : {}),
+    ...(organisation
+      ? { hiringOrganization: { '@type': 'Organization', name: organisation } }
+      : {}),
+    ...(city || region
+      ? {
+          jobLocation: {
+            '@type': 'Place',
+            address: {
+              '@type': 'PostalAddress',
+              ...(city ? { addressLocality: city } : {}),
+              ...(region ? { addressRegion: region } : {}),
+              addressCountry: 'AT',
+            },
+          },
+        }
+      : {}),
+    url,
+  }
+}

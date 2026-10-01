@@ -1,4 +1,5 @@
 import { backArrow, forwardArrow } from '@/i18n/routing'
+import { SmartLink } from './SmartLink'
 
 type Props = {
   page: number
@@ -30,12 +31,12 @@ export function Pagination({ page, hasNextPage, totalPages, makeUrl, locale }: P
     >
       {/* Prev */}
       {page > 1 ? (
-        <a
+        <SmartLink
           href={makeUrl(page - 1)}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-control border border-border text-sm font-medium text-ink-70 hover:border-brand-blue hover:text-brand-blue transition-colors"
         >
           {prevArrow} {l.prev}
-        </a>
+        </SmartLink>
       ) : (
         <span />
       )}
@@ -47,12 +48,12 @@ export function Pagination({ page, hasNextPage, totalPages, makeUrl, locale }: P
 
       {/* Next */}
       {hasNextPage ? (
-        <a
+        <SmartLink
           href={makeUrl(page + 1)}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-control border border-border text-sm font-medium text-ink-70 hover:border-brand-blue hover:text-brand-blue transition-colors"
         >
           {l.next} {nextArrow}
-        </a>
+        </SmartLink>
       ) : (
         <span />
       )}

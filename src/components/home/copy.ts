@@ -11,6 +11,8 @@ export type HomeCopy = {
   heroBadge: string
   heroHeadline: string
   heroSubline: string
+  searchPlaceholder: string
+  searchCta: string
   chips: Array<{ label: string; href: string; active?: boolean }>
   exampleRoadmap: string
   exampleRoadmapCta: string
@@ -47,6 +49,14 @@ export type HomeCopy = {
     volunteer: { heading: string; body: string; button: string }
     idea: { heading: string; body: string; button: string }
   }
+  /** Figma 3.png's green band under the roadmap cards. */
+  quiz: { heading: string; body: string; button: string }
+  /**
+   * Figma 10.png. The frame shows App Store and Google Play buttons; no app exists, so this
+   * copy announces one in preparation and the section links to the contact form instead of
+   * two dead store badges.
+   */
+  appBand: { badge: string; heading: string; body: string; note: string; button: string }
 }
 
 export const HOME_COPY: Record<string, HomeCopy> = {
@@ -55,6 +65,8 @@ export const HOME_COPY: Record<string, HomeCopy> = {
     heroHeadline: 'Alles, was Sie für das Leben in Österreich brauchen – an einem Ort.',
     heroSubline:
       'Sie müssen das österreichische System nicht vorab kennen. Sagen Sie uns, wie Ihre Situation aussieht – wir führen Sie Schritt für Schritt zur richtigen Information, zur zuständigen Stelle und zur passenden Person.',
+    searchPlaceholder: 'Suche nach Job, Wohnung, Deutschkurs, Expert:in …',
+    searchCta: 'Suchen',
     chips: [
       { label: 'Ich weiß nicht, wo ich anfangen soll', href: '/roadmaps', active: true },
       { label: 'Ich brauche Hilfe', href: '/contact' },
@@ -114,12 +126,26 @@ export const HOME_COPY: Record<string, HomeCopy> = {
         button: 'Idee teilen',
       },
     },
+    quiz: {
+      heading: 'Was ist meine Situation? — nur vier Fragen',
+      body: 'Wo leben Sie? Wie sieht Ihre Situation aus? Wie gut sprechen Sie Deutsch? Was möchten Sie erreichen? — wir schlagen Ihnen sofort die passenden Anleitungen vor.',
+      button: 'Fragen beantworten',
+    },
+    appBand: {
+      badge: 'In Vorbereitung',
+      heading: 'Dieselbe Plattform — in Ihrer Tasche',
+      body: 'Eine SVÖ-App für iOS und Android ist geplant: Anleitungen, Guide, Expert:innen, Veranstaltungen und Hilfeanfragen auf Deutsch und Arabisch.',
+      note: 'Die App ist noch nicht erschienen. Es gibt sie noch in keinem App-Store — wir sagen Ihnen Bescheid, sobald sie verfügbar ist.',
+      button: 'Benachrichtigen Sie mich',
+    },
   },
   ar: {
     heroBadge: 'الاتحاد السوري في النمسا · SVÖ',
     heroHeadline: 'كل ما تحتاجه للحياة في النمسا، في مكان واحد.',
     heroSubline:
       'لا حاجة لأن تعرف النظام النمساوي مسبقًا. قل لنا ما وضعك — ونحن نرشدك خطوة بخطوة إلى المعلومة الصحيحة، والجهة المختصة، والشخص المناسب.',
+    searchPlaceholder: 'ابحث عن عمل، سكن، دورة لغة، خبير…',
+    searchCta: 'ابحث',
     chips: [
       { label: 'ما بعرف من وين أبدأ', href: '/roadmaps', active: true },
       { label: 'أحتاج مساعدة', href: '/contact' },
@@ -179,12 +205,26 @@ export const HOME_COPY: Record<string, HomeCopy> = {
         button: 'شارك فكرتك',
       },
     },
+    quiz: {
+      heading: 'ما هو وضعي؟ — أربعة أسئلة فقط',
+      body: 'أين تعيش؟ ما وضعك الحالي؟ ما مستوى لغتك الألمانية؟ ما الذي تريد تحقيقه؟ — وسنقترح عليك المسارات المناسبة فوراً.',
+      button: 'ابدأ الأسئلة',
+    },
+    appBand: {
+      badge: 'قيد الإعداد',
+      heading: 'نفس المنصة — في جيبك',
+      body: 'يُخطَّط لتطبيق SVÖ لـ iOS و Android: المسارات، الدليل، الخبراء، الفعاليات وطلبات المساعدة بالعربية والألمانية.',
+      note: 'لم يصدر التطبيق بعد، وهو غير متوفر في أي متجر تطبيقات — سنخبرك فور توفره.',
+      button: 'أبلغوني عند التوفر',
+    },
   },
   en: {
     heroBadge: 'SVÖ · Syrian Association in Austria',
     heroHeadline: 'Everything you need for life in Austria, in one place.',
     heroSubline:
       "You don't need to know the Austrian system in advance. Tell us your situation — we guide you step by step to the right information, the responsible office and the right person.",
+    searchPlaceholder: 'Search for a job, housing, a language course, an expert …',
+    searchCta: 'Search',
     chips: [
       { label: "I don't know where to start", href: '/roadmaps', active: true },
       { label: 'I need help', href: '/contact' },
@@ -243,6 +283,18 @@ export const HOME_COPY: Record<string, HomeCopy> = {
         body: 'Got an idea that helps the community? Send it in: the problem it solves, the proposed solution and who benefits.',
         button: 'Share your idea',
       },
+    },
+    quiz: {
+      heading: 'What is my situation? — just four questions',
+      body: 'Where do you live? What is your situation? How is your German? What do you want to achieve? — we will suggest the right roadmaps straight away.',
+      button: 'Answer the questions',
+    },
+    appBand: {
+      badge: 'In preparation',
+      heading: 'The same platform — in your pocket',
+      body: 'An SVÖ app for iOS and Android is planned: roadmaps, the guide, experts, events and help requests, in German and Arabic.',
+      note: 'The app has not been released. It is not in any app store yet — we will let you know as soon as it is available.',
+      button: 'Notify me',
     },
   },
 }

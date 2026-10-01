@@ -19,3 +19,17 @@ export const bundeslandField: Field = {
     { value: 'BGLD', label: { de: 'Burgenland', ar: 'بورغنلاند', en: 'Burgenland' } },
   ],
 }
+
+/**
+ * Display name for a stored Bundesland code. The codes ('W', 'NOE', …) are what goes in the
+ * database; nothing user-facing should ever print them raw.
+ */
+export function bundeslandLabel(code: string | null | undefined, locale: string): string | null {
+  if (!code) return null
+  const option = (bundeslandField as { options?: Array<{ value: string; label: Record<string, string> }> }).options?.find(
+    (o) => o.value === code,
+  )
+  if (!option) return null
+  const lang = locale === 'ar' || locale === 'en' ? locale : 'de'
+  return option.label[lang] ?? option.label.de ?? null
+}

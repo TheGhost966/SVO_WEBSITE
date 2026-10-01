@@ -279,3 +279,20 @@
     font-style: italic;
   }
 }
+
+/*
+ * Honour the OS "reduce motion" setting. The site leans on `transition-colors` for hover
+ * states and `animate-pulse` for the loading skeletons; for a visitor who has asked for less
+ * motion (vestibular disorders, migraine triggers) those should stop, not merely slow down.
+ * Near-zero rather than `none` so transition-end handlers still fire.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

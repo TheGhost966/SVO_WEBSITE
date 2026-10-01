@@ -9,10 +9,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
     "generate:schema": "payload generate:graphQLSchema",
     "db:migrate": "payload migrate",
     "db:migrate:create": "payload migrate:create",
-    "seed": "tsx seed/index.ts"
+    "seed": "node scripts/run-seed.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",

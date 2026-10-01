@@ -4,6 +4,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader'
 import { EventCard } from '@/components/ui/EventCard'
 import { CategoryFilter } from '@/components/ui/CategoryFilter'
 import { Pagination } from '@/components/ui/Pagination'
+import { SmartLink } from '@/components/ui/SmartLink'
 import {
   getUpcomingEventsPaged,
   getPastEvents,
@@ -98,7 +99,7 @@ export default async function EventsIndexPage({ params, searchParams }: Props) {
         {(['upcoming', 'past'] as const).map((v) => {
           const active = (v === 'past') === isPast
           return (
-            <a
+            <SmartLink
               key={v}
               href={makeViewUrl(v)}
               role="tab"
@@ -110,7 +111,7 @@ export default async function EventsIndexPage({ params, searchParams }: Props) {
               }`}
             >
               {labels[v]}
-            </a>
+            </SmartLink>
           )
         })}
       </div>

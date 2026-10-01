@@ -49,7 +49,7 @@ export function StatsSection({
   const tiles = dynamicTiles.length >= 3 ? dynamicTiles : (STATIC_FALLBACK[locale] ?? STATIC_FALLBACK.de)
 
   return (
-    <section className="bg-surface border-b border-border" aria-labelledby="stats-heading">
+    <section className="bg-surface" aria-labelledby="stats-heading">
       <h2 id="stats-heading" className="sr-only">
         {t('statsHeading')}
       </h2>

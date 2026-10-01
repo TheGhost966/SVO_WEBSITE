@@ -1,6 +1,7 @@
 import { MediaImage } from '@/components/ui/MediaImage'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { forwardArrow } from '@/i18n/routing'
+import { SmartLink } from '@/components/ui/SmartLink'
 import type { CardGridBlock as CardGridBlockType, ResolvedMedia } from '@/types/payload'
 
 const colClasses: Record<string, string> = {
@@ -44,12 +45,12 @@ export function CardGridBlock({ block, locale }: { block: CardGridBlockType; loc
                 <p className="text-sm text-ink-70 flex-1">{card.body}</p>
               )}
               {card.url && card.linkLabel && (
-                <a
+                <SmartLink
                   href={card.url}
                   className="text-sm font-semibold text-brand-blue hover:text-brand-navy transition-colors"
                 >
                   {card.linkLabel} {forwardArrow(locale)}
-                </a>
+                </SmartLink>
               )}
             </div>
           ))}

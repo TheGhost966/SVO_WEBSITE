@@ -1,21 +1,23 @@
 import { Link } from '@/i18n/navigation'
-import { MapPin } from 'lucide-react'
+import { MapPin, Search } from 'lucide-react'
 import { MediaImage } from '@/components/ui/MediaImage'
 import { resolveInternalHref } from '@/lib/internalHref'
+import { SmartLink } from '@/components/ui/SmartLink'
 import { forwardArrow } from '@/i18n/routing'
 import type { RoadmapDoc, SiteSettingsDoc } from '@/types/payload'
 import { homeCopy } from './copy'
 
 /**
  * Figma hero (`design/figma-homepage-exports/1.png`): navy→blue gradient, badge pill, large headline,
- * muted subline, situation chips, and a roadmap card opposite the text.
+ * muted subline, a real search bar, situation chips, and a roadmap card opposite the text.
  *
  * Deliberate differences from the Figma (see DECISIONS.md "Figma fidelity pass"):
- *  - no search field — the site has no search yet, and a bar that does nothing reads as broken;
  *  - the card is an *example roadmap* built from the first published roadmap's real steps, not the
  *    Figma's logged-in "3 of 6 steps done" progress card (no accounts, no progress tracking exists);
  *  - no login / join-us buttons (AMENDMENT-02 §2.4 dispositions stand).
  * Headline/subline: CMS (`SiteSettings.homeGroup`) wins; otherwise the Figma's own wording.
+ * The search bar is a real `<form>` GET to `/search` (works without JS) — see `searchSite` in
+ * `src/lib/queries.ts` and `src/app/[locale]/search/page.tsx`.
  */
 export function HeroSection({
   locale,
@@ -50,7 +52,7 @@ export function HeroSection({
         <div className="flex flex-col items-start gap-6">
           {logo && typeof logo !== 'string' && (
             <Link href="/" className="inline-block">
-              <MediaImage media={logo} size="original" className="h-14 w-auto" priority />
+              <MediaImage media={logo} size="original" className="h-14 w-auto" priority sizes="220px" />
             </Link>
           )}
           <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm text-white/90">
@@ -59,9 +61,28 @@ export function HeroSection({
           </span>
           <h1 className="text-4xl md:text-[52px] font-bold leading-[1.25] max-w-4xl text-balance">{headline}</h1>
           <p className="text-base md:text-xl text-white/75 leading-relaxed max-w-2xl">{subline}</p>
+          <form
+            action={resolveInternalHref('/search', locale)}
+            method="get"
+            className="flex w-full max-w-2xl items-center gap-1.5 rounded-full bg-white p-1.5 shadow-lg"
+          >
+            <button
+              type="submit"
+              className="flex shrink-0 items-center gap-2 rounded-full bg-brand-green px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dk"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+              {copy.searchCta}
+            </button>
+            <input
+              type="search"
+              name="q"
+              placeholder={copy.searchPlaceholder}
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink-50 focus:outline-none"
+            />
+          </form>
           <div className="flex flex-wrap gap-3 pt-2">
             {copy.chips.map((chip) => (
-              <a
+              <SmartLink
                 key={chip.href + chip.label}
                 href={resolveInternalHref(chip.href, locale)}
                 className={`rounded-full border px-4 py-2 text-sm transition-colors ${
@@ -71,7 +92,7 @@ export function HeroSection({
                 }`}
               >
                 {chip.label}
-              </a>
+              </SmartLink>
             ))}
           </div>
         </div>

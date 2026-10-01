@@ -116,18 +116,23 @@ export async function Footer({ locale }: { locale: string }) {
             </div>
           </div>
 
+          {/* prefetch={false} throughout: the footer carries ~15 links and repeats on every page,
+              so viewport prefetching fired a request per link for every visitor who scrolled to
+              the bottom, whether or not they meant to go anywhere. Next.js still prefetches on
+              hover/touch-start, which is what actually precedes a click — the navigation stays
+              instant, the speculative traffic goes away. */}
           <nav aria-label={copy.community}>
             <h2 className={headClass}>{copy.community}</h2>
             <ul className="flex flex-col gap-3">
-              <li><Link href="/jobs" className={linkClass}>{tNav('jobs')}</Link></li>
-              <li><Link href="/events" className={linkClass}>{tNav('events')}</Link></li>
+              <li><Link href="/jobs" prefetch={false} className={linkClass}>{tNav('jobs')}</Link></li>
+              <li><Link href="/events" prefetch={false} className={linkClass}>{tNav('events')}</Link></li>
               <li>
-                <Link href={{ pathname: '/contact', query: { category: 'volunteering' } }} className={linkClass}>
+                <Link href={{ pathname: '/contact', query: { category: 'volunteering' } }} prefetch={false} className={linkClass}>
                   {t('volunteer')}
                 </Link>
               </li>
               <li>
-                <Link href={{ pathname: '/contact', query: { category: 'idea' } }} className={linkClass}>
+                <Link href={{ pathname: '/contact', query: { category: 'idea' } }} prefetch={false} className={linkClass}>
                   {t('idea')}
                 </Link>
               </li>
@@ -137,19 +142,19 @@ export async function Footer({ locale }: { locale: string }) {
           <nav aria-label={copy.services}>
             <h2 className={headClass}>{copy.services}</h2>
             <ul className="flex flex-col gap-3">
-              <li><Link href="/guide" className={linkClass}>{tNav('guide')}</Link></li>
-              <li><Link href="/roadmaps" className={linkClass}>{tNav('roadmaps')}</Link></li>
-              <li><Link href="/experts" className={linkClass}>{tNav('experts')}</Link></li>
-              <li><Link href="/services" className={linkClass}>{tNav('services')}</Link></li>
+              <li><Link href="/guide" prefetch={false} className={linkClass}>{tNav('guide')}</Link></li>
+              <li><Link href="/roadmaps" prefetch={false} className={linkClass}>{tNav('roadmaps')}</Link></li>
+              <li><Link href="/experts" prefetch={false} className={linkClass}>{tNav('experts')}</Link></li>
+              <li><Link href="/services" prefetch={false} className={linkClass}>{tNav('services')}</Link></li>
             </ul>
           </nav>
 
           <nav aria-label={copy.association}>
             <h2 className={headClass}>{copy.association}</h2>
             <ul className="flex flex-col gap-3">
-              <li><Link href="/about" className={linkClass}>{tNav('about')}</Link></li>
-              <li><Link href="/news" className={linkClass}>{tNav('news')}</Link></li>
-              <li><Link href="/partners" className={linkClass}>{tNav('partners')}</Link></li>
+              <li><Link href="/about" prefetch={false} className={linkClass}>{tNav('about')}</Link></li>
+              <li><Link href="/news" prefetch={false} className={linkClass}>{tNav('news')}</Link></li>
+              <li><Link href="/partners" prefetch={false} className={linkClass}>{tNav('partners')}</Link></li>
             </ul>
           </nav>
 
@@ -161,7 +166,7 @@ export async function Footer({ locale }: { locale: string }) {
               )}
               {contact?.phone && <li dir="ltr" className="text-start">{contact.phone}</li>}
               {contact?.address && <li className="whitespace-pre-line">{contact.address}</li>}
-              <li><Link href="/contact" className={linkClass}>{copy.contactForm}</Link></li>
+              <li><Link href="/contact" prefetch={false} className={linkClass}>{copy.contactForm}</Link></li>
             </ul>
           </div>
         </div>
@@ -186,7 +191,7 @@ export async function Footer({ locale }: { locale: string }) {
             <ul className="flex flex-wrap gap-x-5 gap-y-1">
               {legalLinks.map(({ href, label }) => (
                 <li key={href}>
-                  <Link href={href} className="text-xs text-white/55 transition-colors hover:text-white">
+                  <Link href={href} prefetch={false} className="text-xs text-white/55 transition-colors hover:text-white">
                     {label}
                   </Link>
                 </li>

@@ -1110,3 +1110,47 @@ So every available loader mode has exactly one blocking bug, and no combination 
 2. Adding that layout then collided with the shared `app/layout.tsx`: Payload's `RootLayout` renders its own `<html>`/`<body>`, and the shared root also did, producing `<html> cannot be a child of <body>` and a hydration error on every admin page. Fixed per Next.js's "multiple root layouts" pattern — deleted `app/layout.tsx` and moved `<html>`/`<body>` into `[locale]/layout.tsx` (which now sets `lang`/`dir` directly from the route's locale instead of patching them in via a pre-hydration script, since it has that value server-side already).
 3. The importMap bug above, on top of both.
 Each was invisible without a live database and a browser — build/typecheck/lint stayed green throughout.
+
+**Figma fidelity pass 3 (2026-09-21) — hero search restored, section order re-aligned to the Figma, experts filter chips.**
+The client rejected pass 2's homepage, asking for it to follow the Figma prototype
+(`figma.com/proto/lHoNyg1UtC4mov2N87RAJz`) more closely. This reverses one of pass 2's own deliberate
+deviations and adds the sections/behaviour that review had deferred:
+- **Hero search is back**, and it is real, not decorative: `HeroSection` now renders a `<form action="/search"
+  method="get">` (works with JS disabled) next to the situation chips. `searchSite()` (`src/lib/queries.ts`)
+  runs a `like` (case-insensitive, partial) match on News/Events/Roadmaps/GuideArticles (by title) and
+  Experts (by name), published items only, capped at 5 per collection — no client-side or third-party
+  search index. Results render at the new `/search` route (`noindex` — a query-string page shouldn't be
+  crawled). This reverses pass 2's "no hero search" call now that the reason (nothing to search) has an
+  actual answer; the roadmaps/guide/experts/jobs/news/events collections being empty in the dev DB just
+  means `/search` honestly reports no matches today, same as the teaser sections already did.
+- **Section order now matches the Figma's own sequence**: hero (with stats inside its band) → help cards →
+  roadmaps → guide → experts → jobs → events → volunteer/idea CTA band → news. `HOME_SECTIONS` in
+  `src/lib/homeSections.ts` reordered accordingly; `SiteSettings.homeGroup.sectionOrder` was confirmed empty
+  in the dev DB (`site_settings_home_group_section_order` has zero rows) so every environment picks up the
+  new `DEFAULT_HOME_SECTION_ORDER` automatically — no migration needed. This supersedes AMENDMENT-03 §2.1's
+  order.
+- **Experts teaser gets real filter chips**, not the Figma's state/language dropdowns (no field on `Experts`
+  backs a state or language filter yet — those would have to be fabricated UI). The chips link to
+  `/experts?cat=<slug>`, the same `?cat=` filter the real experts index already reads, sourced from
+  `getExpertCategories()` (now also fetched on the homepage and passed into `ExpertsSection`).
+- **App Store / Google Play promo band still not built.** No mobile app exists (Phase 1 is the website only —
+  brief §16 names a later phase for a companion app). Building the Figma's download band would assert a
+  product that doesn't exist, which is a harder line than the stats/count fabrications pass 2 already
+  refused — flagged to the client rather than silently built or silently dropped.
+- **Root cause of "doesn't look like the Figma" was mostly missing content, not the components.** A direct
+  count against the dev DB (`ep-square-dream-b2hnlop9-pooler`, the connection string `.env.local` actually
+  points at) showed `news=0 events=0 roadmaps=0 guide_articles=0 experts=0` — the TEST records logged as
+  deleted earlier this project were never replaced with real board-authored content, so six of the
+  homepage's ten sections render nothing (`RoadmapsSection`/`GuideSection`/`ExpertsSection`/`JobsSection`/
+  `NewsSection`/`EventsSection` all `return null` on an empty query) regardless of how closely the component
+  code follows the Figma. Confirmed by rendering the actual page in a browser before making any change, per
+  the standing verify-state discipline. **Not fixed here** — seeding realistic Roadmaps/Guide
+  articles/Experts/Events/News is a content task (and possibly its own conversation), not a design one; the
+  client should decide whether to seed sample data for visual review or wait for real board content.
+Verified: typecheck and lint clean; the live dev server (`localhost:3001`, a fresh instance — port 3000 was
+already occupied by another running copy) checked for `/ar`, `/de`, and `/ar/search?q=...` (correctly
+empty-result on the empty DB); visual comparison against the Figma prototype via a real browser session
+(not `get_design_context` — the Figma MCP connector hit its Starter-plan rate limit mid-session).
+**NOT verified:** English locale beyond a homepage skim; mobile-viewport rendering of the new search bar
+(the browser-automation tool's window resize did not visibly change the captured screenshot's viewport this
+session — worth a manual phone check); the populated-state appearance of any of the six empty sections.

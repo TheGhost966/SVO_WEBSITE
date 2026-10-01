@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc, ExpertDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, JobDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc, ExpertDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -440,21 +440,32 @@ export const getGuideTopics = unstable_cache(
         depth: 0,
         limit: 50,
       })
-      const withArticles = await Promise.all(
-        topics.docs.map(async (topic) => {
-          const count = await payload.count({
-            collection: 'guide-articles',
-            where: {
-              and: [
-                { topic: { equals: topic.id } },
-                { reviewStatus: { equals: 'published' } },
-              ],
-            },
+      // One query for every published article's topic id, rather than a `count` per topic —
+      // that fired N+1 round trips at Postgres to answer a question ("which topics have at
+      // least one article?") that a single pass over the join column already answers.
+      const articles = await payload.find({
+        collection: 'guide-articles',
+        where: { reviewStatus: { equals: 'published' } },
+        depth: 0,
+        pagination: false,
+        select: { topic: true },
+      })
+      const topicsWithArticles = new Set(
+        articles.docs
+          .map((a) => {
+            const topic = (a as { topic?: unknown }).topic
+            // `depth: 0` leaves the relationship as a raw id, but a polymorphic/object shape
+            // is still possible — normalise both to the plain id before comparing.
+            if (topic && typeof topic === 'object' && 'id' in topic) return String((topic as { id: unknown }).id)
+            return topic == null ? null : String(topic)
           })
-          return count.totalDocs > 0 ? topic : null
-        }),
+          .filter((id): id is string => id !== null),
       )
-      return (withArticles.filter((t): t is NonNullable<typeof t> => t !== null) as unknown as GuideTopicDoc[]).slice(0, limit)
+
+      return (topics.docs.filter((topic) => topicsWithArticles.has(String(topic.id))) as unknown as GuideTopicDoc[]).slice(
+        0,
+        limit,
+      )
     } catch {
       return []
     }
@@ -734,6 +745,99 @@ export const getHomeStatCounts = unstable_cache(
   { revalidate: 3600, tags: [tags.experts(), tags.guide(), tags.roadmaps(), tags.events()] },
 )
 
+// ─── Site search ────────────────────────────────────────────────────────────
+
+export type SearchResults = {
+  news: NewsDoc[]
+  events: EventDoc[]
+  roadmaps: RoadmapDoc[]
+  guideArticles: GuideArticleDoc[]
+  experts: ExpertDoc[]
+}
+
+/**
+ * Backs the hero search bar (`/search?q=`) — a real `like` (case-insensitive, partial) match on
+ * each collection's title/name field, published items only, capped at 5 per collection. Not
+ * wrapped in `unstable_cache`: the cache key would be the raw query string, so every distinct
+ * search would grow the cache indefinitely for no benefit on a low-traffic site.
+ */
+const EMPTY_SEARCH: SearchResults = { news: [], events: [], roadmaps: [], guideArticles: [], experts: [] }
+
+/**
+ * The only query in this file that used to run uncached: five `find`s straight to Postgres on
+ * every hit of `/search?q=…`, which any visitor can trigger with an arbitrary string. Caching by
+ * (locale, query, limit) means a repeated or shared search costs nothing, and a burst of traffic
+ * on one term collapses to a single round trip. Five minutes — long enough to absorb a spike,
+ * short enough that newly published content shows up without a deploy.
+ */
+const searchSiteCached = unstable_cache(
+  async (locale: string, q: string, limitPerType: number): Promise<SearchResults> => {
+    try {
+      const payload = await getPayloadClient()
+      const loc = locale as 'de' | 'ar' | 'en'
+      const [news, events, roadmaps, guideArticles, experts] = await Promise.all([
+        payload.find({
+          collection: 'news',
+          where: { and: [{ reviewStatus: { equals: 'published' } }, { title: { like: q } }] },
+          locale: loc,
+          depth: 1,
+          limit: limitPerType,
+        }),
+        payload.find({
+          collection: 'events',
+          where: { and: [{ reviewStatus: { equals: 'published' } }, { title: { like: q } }] },
+          locale: loc,
+          depth: 1,
+          limit: limitPerType,
+        }),
+        payload.find({
+          collection: 'roadmaps',
+          where: { and: [{ reviewStatus: { equals: 'published' } }, { title: { like: q } }] },
+          locale: loc,
+          depth: 0,
+          limit: limitPerType,
+        }),
+        payload.find({
+          collection: 'guide-articles',
+          where: { and: [{ reviewStatus: { equals: 'published' } }, { title: { like: q } }] },
+          locale: loc,
+          depth: 1,
+          limit: limitPerType,
+        }),
+        payload.find({
+          collection: 'experts',
+          where: { and: [{ reviewStatus: { equals: 'published' } }, { name: { like: q } }] },
+          locale: loc,
+          depth: 0,
+          limit: limitPerType,
+        }),
+      ])
+      return {
+        news: news.docs as unknown as NewsDoc[],
+        events: events.docs as unknown as EventDoc[],
+        roadmaps: roadmaps.docs as unknown as RoadmapDoc[],
+        guideArticles: guideArticles.docs as unknown as GuideArticleDoc[],
+        experts: experts.docs as unknown as ExpertDoc[],
+      }
+    } catch {
+      return EMPTY_SEARCH
+    }
+  },
+  ['site-search'],
+  {
+    revalidate: 300,
+    tags: [tags.news(), tags.events(), tags.roadmaps(), tags.guide(), tags.experts()],
+  },
+)
+
+export async function searchSite(locale: string, query: string, limitPerType = 5): Promise<SearchResults> {
+  // Normalise before it reaches the cache key so `Wien`, `wien ` and `  WIEN` are one entry
+  // rather than three, and cap the length so a long random string can't mint unbounded entries.
+  const q = query.trim().slice(0, 100).toLowerCase()
+  if (!q) return EMPTY_SEARCH
+  return searchSiteCached(locale, q, limitPerType)
+}
+
 // ─── Site settings + Partners ─────────────────────────────────────────────────
 
 export const getSiteSettings = unstable_cache(
@@ -771,4 +875,101 @@ export const getPartners = unstable_cache(
   },
   ['partners'],
   { revalidate: 3600, tags: ['partners'] },
+)
+
+// ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Published, unexpired postings only.
+ *
+ * The expiry filter lives here rather than in a cleanup job because it has to be true of every
+ * read: a stored `expiryDate` that nothing checks is just a note (BRIEF-AMENDMENT-01 §2.5), and
+ * the Jobs slice was originally scoped down precisely because nobody was named to prune stale
+ * postings by hand. With the filter in the query, a posting stops being public on its expiry date
+ * whether or not anyone remembers.
+ *
+ * `revalidate: 300` rather than the usual 3600: a cached list outlives the moment a posting
+ * expires, and five minutes is a tolerable window for showing a job that closed today.
+ */
+export const getJobs = unstable_cache(
+  async (locale: string, limit = 50): Promise<JobDoc[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const now = new Date().toISOString()
+      const result = await payload.find({
+        collection: 'jobs',
+        where: {
+          and: [
+            { reviewStatus: { equals: 'published' } },
+            { expiryDate: { greater_than: now } },
+          ],
+        },
+        sort: '-publishedAt',
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit,
+      })
+      return result.docs as unknown as JobDoc[]
+    } catch {
+      return []
+    }
+  },
+  ['jobs'],
+  { revalidate: 300, tags: [tags.jobs()] },
+)
+
+export const getJobBySlug = unstable_cache(
+  async (slug: string, locale: string): Promise<JobDoc | null> => {
+    try {
+      const payload = await getPayloadClient()
+      const now = new Date().toISOString()
+      const result = await payload.find({
+        collection: 'jobs',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { reviewStatus: { equals: 'published' } },
+            // An expired posting 404s rather than rendering — otherwise a shared or indexed link
+            // keeps serving a closed vacancy long after it left the listing.
+            { expiryDate: { greater_than: now } },
+          ],
+        },
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 1,
+        limit: 1,
+      })
+      return (result.docs[0] as unknown as JobDoc) ?? null
+    } catch {
+      return null
+    }
+  },
+  ['job-by-slug'],
+  { revalidate: 300, tags: [tags.jobs()] },
+)
+
+/** Slugs for `generateStaticParams` — same expiry rule, so expired postings stop being prerendered. */
+export const getJobSlugs = unstable_cache(
+  async (): Promise<string[]> => {
+    try {
+      const payload = await getPayloadClient()
+      const now = new Date().toISOString()
+      const result = await payload.find({
+        collection: 'jobs',
+        where: {
+          and: [
+            { reviewStatus: { equals: 'published' } },
+            { expiryDate: { greater_than: now } },
+          ],
+        },
+        depth: 0,
+        limit: 200,
+        select: { slug: true },
+      })
+      return result.docs.map((d) => (d as { slug?: string }).slug).filter((v): v is string => Boolean(v))
+    } catch {
+      return []
+    }
+  },
+  ['job-slugs'],
+  { revalidate: 300, tags: [tags.jobs()] },
 )

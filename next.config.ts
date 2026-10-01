@@ -21,6 +21,52 @@ const nextConfig: NextConfig = {
     // Vercel Blob public URLs (Media uploads when BLOB_READ_WRITE_TOKEN is set).
     remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
     formats: ['image/avif', 'image/webp'],
+    // Optimised renditions are derived from an immutable source URL, so there's no reason to
+    // re-run the optimiser (or re-download the bytes) for 60s-old entries — the default. A year
+    // matches how long the upstream Blob URL itself is good for.
+    minimumCacheTTL: 31536000,
+    // The site's images land in a 380px card, a ~760px content column, or full-bleed. Trimming
+    // the default ladder (16 widths) to the ones the layouts actually request means fewer
+    // optimiser invocations and a smaller srcset per tag.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 64, 128, 200, 256, 384],
+  },
+  // Compresses HTML/JSON responses. On by default, but stated here because turning it off
+  // silently triples the transfer size of the RSC payloads that drive client navigation.
+  compress: true,
+  // The `X-Powered-By: Next.js` header is a free byte on every single response and tells
+  // attackers what to target.
+  poweredByHeader: false,
+  async headers() {
+    return [
+      // NB: no rule for `/_next/static/:path*` — Next.js already serves those content-hashed
+      // assets as `public, max-age=31536000, immutable`, and `next build` warns that overriding
+      // Cache-Control there can break its dev behaviour. The /public paths below get no such
+      // treatment by default, which is why they do need rules.
+      {
+        // Files under /public are served with `max-age=0` by default, so every navigation used
+        // to revalidate all eight font files. Their names carry the subset and weight, so a
+        // change means a new filename — they're safe to pin for a year.
+        source: '/fonts/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        // Locally-stored Media uploads (the fallback path when BLOB_READ_WRITE_TOKEN is unset).
+        // Payload writes a new filename on replace, but not on every edit, so this revalidates
+        // daily rather than being pinned outright.
+        source: '/media/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
+      },
+      {
+        source: '/:path*',
+        headers: [
+          // Stops a browser from MIME-sniffing a response into something executable.
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Don't leak the full URL (including ?q= search terms) to third-party origins.
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ]
   },
   turbopack: {
     resolveAlias: {

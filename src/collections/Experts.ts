@@ -7,6 +7,7 @@ import {
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
 import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
+import { bundeslandField } from '@/fields/bundeslandField'
 
 // Field-level access must return a plain boolean (unlike collection-level
 // Access, which may also return a Where query for row filtering).
@@ -80,6 +81,12 @@ export const Experts: CollectionConfig = {
       type: 'textarea',
       localized: true,
       label: { de: 'Über', ar: 'نبذة', en: 'Bio' },
+    },
+    {
+      // Added so the situation quiz can point people at experts in their own state, and so the
+      // experts index can filter by region — the Figma shows a region dropdown there, which
+      // DECISIONS.md had recorded as unbuildable while only free-text `city` existed.
+      ...bundeslandField,
     },
     {
       name: 'city',

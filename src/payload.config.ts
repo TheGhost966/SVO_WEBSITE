@@ -22,6 +22,7 @@ import { GuideTopics } from '@/collections/GuideTopics'
 import { GuideArticles } from '@/collections/GuideArticles'
 import { Roadmaps } from '@/collections/Roadmaps'
 import { Experts } from '@/collections/Experts'
+import { Jobs } from '@/collections/Jobs'
 import { BoardMembers } from '@/collections/BoardMembers'
 import { Partners } from '@/collections/Partners'
 import { Pages } from '@/collections/Pages'
@@ -95,6 +96,15 @@ export default buildConfig({
       titleSuffix: '— SVÖ Admin',
     },
     dateFormat: 'dd.MM.yyyy',
+    components: {
+      // Onboarding panel above the collection cards on /admin. The board are volunteers rather
+      // than CMS users, and the default dashboard is a bare grid of fifteen cards that says
+      // nothing about what the site still needs — this names the empty collections, maps each
+      // content type to the public page it fills, and spells out the review workflow.
+      // Path string, not an import: Payload resolves it through the generated importMap
+      // (`npm run generate:importmap` after changing this).
+      beforeDashboard: ['@/components/admin/DashboardGuide#DashboardGuide'],
+    },
   },
 
   // ─── Admin UI language (dashboard chrome, not content) ────────────────────
@@ -130,6 +140,7 @@ export default buildConfig({
     GuideArticles,
     Roadmaps,
     Experts,
+    Jobs,
     BoardMembers,
     Partners,
     Pages,

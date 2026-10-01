@@ -1,5 +1,6 @@
 import { Icon } from '@/components/ui/Icon'
 import { resolveInternalHref } from '@/lib/internalHref'
+import { SmartLink } from '@/components/ui/SmartLink'
 import type { SiteSettingsDoc } from '@/types/payload'
 import { HomeSectionShell, SectionHead } from './shared'
 import { homeCopy } from './copy'
@@ -46,7 +47,7 @@ export function HelpCardsSection({
           // Plain <a>: `card.href` is a runtime string already resolved by resolveInternalHref
           // (CMS data or a locale-correct default), which can't be checked against next-intl's
           // typed Link union at compile time — same pattern CardGridBlock uses.
-          <a
+          <SmartLink
             key={i}
             href={card.href}
             className={`group flex flex-col gap-4 rounded-[18px] border p-7 transition-all hover:-translate-y-0.5 hover:shadow-lg ${
@@ -66,7 +67,7 @@ export function HelpCardsSection({
                 {card.description}
               </p>
             )}
-          </a>
+          </SmartLink>
         ))}
       </div>
     </HomeSectionShell>

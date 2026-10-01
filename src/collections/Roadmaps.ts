@@ -8,6 +8,7 @@ import {
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
 import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
+import { QUIZ_TAGS, QUIZ_TAG_LABELS } from '@/lib/quiz'
 
 // Flat collection (no parent topic) — a roadmap is one procedure end-to-end,
 // unlike Guide's topic->article nesting. Same content-freshness fields as
@@ -50,6 +51,23 @@ export const Roadmaps: CollectionConfig = {
       type: 'text',
       label: { de: 'Icon', ar: 'أيقونة', en: 'Icon' },
       admin: { description: 'Lucide icon name, e.g. "file-text". Falls back to an emoji if empty.' },
+    },
+    {
+      // Drives the "Was ist meine Situation?" quiz (Figma 3.png). Options come from
+      // src/lib/quiz.ts so the tags a board member can tick here and the answers a visitor can
+      // give in the quiz are generated from one list and can't drift apart.
+      name: 'quizMatches',
+      type: 'select',
+      hasMany: true,
+      options: QUIZ_TAGS.map((value) => ({ value, label: QUIZ_TAG_LABELS[value] })),
+      label: { de: 'Passt zu (Quiz)', ar: 'يناسب (الاستبيان)', en: 'Matches (quiz)' },
+      admin: {
+        description: {
+          de: 'Für welche Situationen und Ziele ist diese Anleitung die richtige Antwort? Wird nur vom Situations-Quiz ausgewertet. Ohne Auswahl erscheint die Anleitung nie in den Quiz-Ergebnissen.',
+          ar: 'لأي المواقف والأهداف يُعد هذا المسار مناسباً؟ يُستخدم فقط في استبيان الوضع. بدون اختيار لن يظهر المسار في نتائج الاستبيان.',
+          en: 'Which situations and goals is this roadmap the right answer for? Used only by the situation quiz. With nothing ticked it never appears in quiz results.',
+        },
+      },
     },
     // ── Content freshness (BRIEF-AMENDMENT-01 §2.6) — same as GuideArticles ──
     {

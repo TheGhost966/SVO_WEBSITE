@@ -8,7 +8,9 @@ import {
   getRoadmaps,
   getGuideTopics,
   getExperts,
+  getExpertCategories,
   getHomeStatCounts,
+  getJobs,
 } from '@/lib/queries'
 import { DEFAULT_HOME_SECTION_ORDER, type HomeSection } from '@/lib/homeSections'
 import { HeroSection } from '@/components/home/HeroSection'
@@ -21,6 +23,7 @@ import { GuideSection } from '@/components/home/GuideSection'
 import { ExpertsSection } from '@/components/home/ExpertsSection'
 import { JobsSection } from '@/components/home/JobsSection'
 import { CtaBandSection } from '@/components/home/CtaBandSection'
+import { AppBandSection } from '@/components/home/AppBandSection'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -58,14 +61,16 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale)
   const t = await getTranslations('home')
 
-  const [siteSettings, newsResult, eventsResult, roadmaps, guideTopics, experts, statCounts] = await Promise.all([
+  const [siteSettings, newsResult, eventsResult, roadmaps, guideTopics, experts, expertCategories, statCounts, jobs] = await Promise.all([
     getSiteSettings(locale),
     getLatestNews(locale, 3),
     getUpcomingEvents(locale, 3),
     getRoadmaps(locale, 4),
     getGuideTopics(locale, 12),
     getExperts(locale, undefined, 4),
+    getExpertCategories(),
     getHomeStatCounts(),
+    getJobs(locale, 4),
   ])
 
   const configuredOrder = siteSettings?.homeGroup?.sectionOrder
@@ -83,9 +88,10 @@ export default async function HomePage({ params }: Props) {
     helpCards: <HelpCardsSection locale={locale} siteSettings={siteSettings} t={t} />,
     roadmaps: <RoadmapsSection locale={locale} roadmaps={roadmaps} t={t} />,
     guide: <GuideSection locale={locale} topics={guideTopics} t={t} />,
-    experts: <ExpertsSection locale={locale} experts={experts} t={t} />,
-    jobs: <JobsSection locale={locale} links={jobLinks} t={t} />,
+    experts: <ExpertsSection locale={locale} experts={experts} categories={expertCategories} t={t} />,
+    jobs: <JobsSection locale={locale} jobs={jobs} links={jobLinks} t={t} />,
     ctaBand: <CtaBandSection locale={locale} siteSettings={siteSettings} />,
+    appBand: <AppBandSection locale={locale} />,
   }
 
   return (

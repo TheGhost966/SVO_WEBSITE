@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { preload } from 'react-dom'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, setRequestLocale } from 'next-intl/server'
@@ -28,8 +29,40 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale)
 
-  const messages = await getMessages()
+  const allMessages = await getMessages()
   const isRtl = isRtlLocale(locale)
+
+  // `getMessages()` returns all 16 namespaces, and everything handed to NextIntlClientProvider is
+  // serialised into the RSC payload of every page — so the browser was downloading the copy for
+  // news, events, services, guide, roadmaps, jobs, search, partners, legal and footer purely to
+  // render a nav bar. Server components call `getTranslations` and read messages directly on the
+  // server, so they are unaffected by this; only `useTranslations` in a client component reads
+  // from the provider.
+  //
+  // KEEP IN SYNC: adding `useTranslations('x')` to a `'use client'` component means adding `'x'`
+  // here, or that component throws MISSING_MESSAGE at runtime. Current client consumers:
+  //   nav      → components/layout/Header.tsx
+  //   contact  → components/ui/ContactForm.tsx
+  //   experts  → components/ui/ExpertApplicationForm.tsx
+  const CLIENT_NAMESPACES = ['nav', 'contact', 'experts'] as const
+  const messages = Object.fromEntries(
+    CLIENT_NAMESPACES.filter((ns) => ns in allMessages).map((ns) => [ns, allMessages[ns]]),
+  )
+
+  // The @font-face rules live in globals.css, so the browser only discovers the font files
+  // after it has downloaded and parsed that stylesheet — text sits in the fallback face until
+  // then, and swaps late. Preloading the two faces that are certain to paint above the fold
+  // (body 400 + heading 700 of the locale's own script) starts those fetches in parallel with
+  // the CSS. Deliberately only two: every extra preload competes with the ones that matter.
+  //
+  // Via react-dom's `preload` rather than a literal <link>: React hoists a rendered <link> into
+  // <head> but also leaves the original in place, so the tag was emitted twice.
+  const preloadFonts = isRtl
+    ? ['/fonts/cairo/cairo-arabic-400-normal.woff2', '/fonts/cairo/cairo-arabic-700-normal.woff2']
+    : ['/fonts/inter/inter-latin-400-normal.woff2', '/fonts/inter/inter-latin-700-normal.woff2']
+  for (const href of preloadFonts) {
+    preload(href, { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' })
+  }
 
   return (
     // This route group provides its own complete document (Next.js "multiple
