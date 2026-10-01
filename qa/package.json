@@ -1,0 +1,17 @@
+{
+  "name": "svo-website-qa",
+  "private": true,
+  "type": "module",
+  "description": "Black-box QA suite for the SVÖ website. Runs the app against a disposable embedded Postgres. Never points at a real database.",
+  "scripts": {
+    "test:p0": "vitest run --config vitest.config.ts",
+    "test:s3": "vitest run --config vitest.s3.config.ts",
+    "test:all": "npm run test:p0 && npm run test:s3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "embedded-postgres": "^17.10.0-beta.17",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
