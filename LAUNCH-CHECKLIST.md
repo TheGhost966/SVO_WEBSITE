@@ -239,3 +239,41 @@ Contact Submissions. Checked specifically:
 | A4 | After archiving, news, events, guide articles and experts answer **200 with an empty page** instead of 404 (this is F3). Services, roadmaps and jobs answer 404 | see F3 |
 | A5 | The Status dropdown and the "last administrator" message are English/German mixed; Payload's own toasts follow the account language | Phase 4 |
 | A6 | Not exercised through the form: choosing a Status in the dropdown (the automated browser could not open it in a background window). The request it sends is covered by the A1 tests | tester pass |
+
+### Independent tester (same evening)
+
+A fresh tester agent, without knowledge of the fixes, walked the production build as all four roles
+(about 115 browser steps): review workflow end to end for news and events including the board
+e-mail in the mail sink, localized fields, image upload, relationships, version restore, delete
+permissions, Site Settings and Navigation, and the public site after every change. Screenshots were
+not possible (the automated browser window runs in the background); evidence is toast text, status
+codes and page content.
+
+**Confirmed working:** editor draft → in review → e-mail to the board address → board publishes →
+live → archived → gone, for news and events; a single Save button for board and admin; an editor
+sees published and archived documents read-only; no role can raise its own role or see other
+accounts; the viewer is read-only everywhere; alt text is enforced on uploads; version restore by
+the board reaches the public page. Publish, edit, archive and delete showed on the public site
+within 2–7 seconds for news, events, guide articles, services and jobs.
+
+| # | Tester finding | Status |
+|---|---|---|
+| T2-01 | **The Navigation global does nothing.** Saving header or footer entries changes the API and never the site: the public header and footer are written in code (`src/components/layout`) and do not read the global | **Open — needs a decision:** wire the header and footer to the global, or remove the global from the admin so nobody edits it in vain |
+| T2-02 | A new partner never appeared on the partner page | **Fixed** — partners had no cache hook |
+| T2-03 | "Unpublish" in the document menu reported success and changed nothing | **Fixed** — the entry is removed; the Status field is the only switch |
+| T2-04 | A cover image stored on the server itself was a broken image (`/_next/image` answered 400 for the absolute URL) | **Fixed** in `MediaImage`. Only affects uploads without Vercel Blob (local disk, self-hosting) |
+| T2-05 | Renaming a category did not reach the news list | **Fixed** — categories had no cache hook. The same report for guide topics and service pillars did **not reproduce** in three repeated edits each |
+| T2-06 | Archived, deleted and unknown news / events / guide / expert URLs answer 200 with the not-found page | **Open** — this is F3 |
+| T2-07 | The About page stayed on its "Inhalt ausstehend" placeholder after a page with slug `about` was published | **Partly fixed:** pages had no cache hook at all, and a page with only a German slug was not found in Arabic and English — both fixed. **Still true:** the page must have the slug `about` and at least one layout block, and the layout is per language; the placeholder text is German in all three languages (F8) |
+| T2-08 | Homepage copy entered in German also replaces the Arabic and English built-in texts | **Open** — fields fall back to German before the built-in default. Fill all three languages, or decide the fallback order |
+| T2-09 | An editor could pick "Published" in the Status field; it saved with a success message and silently went back | **Fixed** — an editor is only offered Draft and In review |
+| T2-10 | An editor sees "Restore" on versions of a published document; it fails with a generic error | **Open**, minor |
+| T2-11 | An editor can delete media and board members, and edits to categories, guide topics and service pillars go live without review | **Open — as configured.** Decide whether that is wanted |
+| T2-12 | The help text for the homepage section order lists a default order that is not the real one; a non-empty list hides every section not in it | **Open**, admin texts (phase 4) |
+| T2-13 | Server log: `MISSING_MESSAGE: events.filterAll` in all three languages | **Fixed** |
+| T2-14 | Related roadmaps on a guide article are saved but not shown on the article page | **Open** — the page does not render the field |
+| T2-15 | The slug is required and not suggested from the title | **Open**, admin layout (phase 4) |
+| T2-16 | Cosmetic: no favicon; field help mixes German and English and mentions `DECISIONS.md`; versions listed by date only; "Unauthorized, you must be logged in" shown to a logged-in viewer; Contact Submissions offers "Create New"; the review e-mail links to `/admin`, not to the document | **Open**, phase 4 |
+
+Regression tests for the fixed items: `qa/security/prod-propagation.test.ts` (19 tests on the
+production build; with the fixes removed the five new ones fail).
