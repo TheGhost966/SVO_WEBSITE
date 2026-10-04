@@ -2,7 +2,7 @@ import type EmbeddedPostgres from 'embedded-postgres'
 import { startPostgres, stopPostgres } from './postgres'
 import { buildTemplateDatabase, verifyTemplateMigrations } from './migrate'
 import { snapshotRepoFiles } from './repoFiles'
-import { removeProdBuild } from './prodBuild'
+import { removeHarnessDistDirs } from './app'
 
 export const S3_PORT = 3101
 
@@ -16,12 +16,12 @@ export default async function setup() {
   const teardown = async () => {
     await stopPostgres(pg)
     restoreRepoFiles()
-    // Production build shared by the production tests (harness/prodBuild.ts) — never the developer's .next.
-    removeProdBuild()
+    // Includes the production build shared by the production tests (harness/prodBuild.ts).
+    removeHarnessDistDirs()
   }
   try {
     // A build left behind by a killed run must not be mistaken for this run's build.
-    removeProdBuild()
+    removeHarnessDistDirs()
     pg = await startPostgres()
     await buildTemplateDatabase(pg, S3_PORT)
     await verifyTemplateMigrations(pg)

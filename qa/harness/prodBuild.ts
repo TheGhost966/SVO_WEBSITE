@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { randomBytes } from 'node:crypto'
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { APP_ROOT } from './paths'
-import { buildApp, type AppEnv } from './app'
+import { buildApp, distDirFor, removeDistDir, type AppEnv } from './app'
 import { cloneTemplate } from './db'
 import { qaDatabaseUri } from './safety'
 
-/** Where the production-startup suites build to (NEXT_DIST_DIR) — never the developer's .next. */
-export const PROD_DIST_DIR = '.next/qa-prod'
+/** Where the production-startup suites build to (NEXT_DIST_DIR): qa/.tmp/next-prod, never the developer's .next. */
+export const PROD_DIST_DIR = distDirFor('prod')
 export const PROD_PORT = 3102
 const BUILD_DB = 'svo_qa_test_prod_build'
 
@@ -27,7 +27,7 @@ export function prodEnv(db: string, secret: string | undefined, extra: AppEnv = 
 }
 
 export function removeProdBuild() {
-  rmSync(path.join(APP_ROOT, PROD_DIST_DIR), { recursive: true, force: true, maxRetries: 10, retryDelay: 300 })
+  removeDistDir(PROD_DIST_DIR)
 }
 
 /**

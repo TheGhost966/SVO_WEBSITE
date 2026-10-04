@@ -37,7 +37,6 @@ npm-debug.log*
 # DB backups (scripts/backup-db.mjs) — real data dumps, never commit
 backups/
 
-# QA harness artifacts (qa/README.md): embedded Postgres data, evidence dumps, S3 prod build
+# QA harness artifacts (qa/README.md): embedded Postgres data + per-boot Next dist dirs, evidence dumps
 qa/.tmp/
 qa/evidence/
-.next/qa-prod/

@@ -429,43 +429,45 @@ export const getServicePillars = unstable_cache(
  * of its own, so without this filter all topics would be publicly "live" the
  * moment they're created, with nothing behind them).
  */
+/** Upper bound for the topic grid — GuideTopics is a short, fixed reference list. */
+const MAX_GUIDE_TOPICS = 50
+
 export const getGuideTopics = unstable_cache(
   async (locale: string, limit = 50): Promise<GuideTopicDoc[]> => {
     try {
       const payload = await getPayloadClient()
+      // "Which topics have at least one published article?" — a DISTINCT over the join column.
+      // The answer is bounded by the number of topics, not the number of articles; the previous
+      // version read every published article (`pagination: false`) on each homepage render to get
+      // it, which BRIEF-AMENDMENT-02 §2.7 rules out.
+      const withArticles = await payload.findDistinct({
+        collection: 'guide-articles',
+        field: 'topic',
+        where: { reviewStatus: { equals: 'published' } },
+        depth: 0,
+        limit: MAX_GUIDE_TOPICS,
+      })
+      const topicIds = withArticles.values
+        .map((row) => {
+          const topic = (row as { topic?: unknown }).topic
+          // `depth: 0` leaves the relationship as a raw id, but an object shape is still
+          // possible — normalise both to the plain id.
+          if (topic && typeof topic === 'object' && 'id' in topic) return (topic as { id: number | string }).id
+          return topic == null ? null : (topic as number | string)
+        })
+        .filter((id): id is number | string => id !== null)
+      if (topicIds.length === 0) return []
+
+      // The caller's limit goes into the query, not into a slice() of a larger result.
       const topics = await payload.find({
         collection: 'guide-topics',
+        where: { id: { in: topicIds } },
         sort: 'order',
         locale: locale as 'de' | 'ar' | 'en',
         depth: 0,
-        limit: 50,
+        limit: Math.min(limit, MAX_GUIDE_TOPICS),
       })
-      // One query for every published article's topic id, rather than a `count` per topic —
-      // that fired N+1 round trips at Postgres to answer a question ("which topics have at
-      // least one article?") that a single pass over the join column already answers.
-      const articles = await payload.find({
-        collection: 'guide-articles',
-        where: { reviewStatus: { equals: 'published' } },
-        depth: 0,
-        pagination: false,
-        select: { topic: true },
-      })
-      const topicsWithArticles = new Set(
-        articles.docs
-          .map((a) => {
-            const topic = (a as { topic?: unknown }).topic
-            // `depth: 0` leaves the relationship as a raw id, but a polymorphic/object shape
-            // is still possible — normalise both to the plain id before comparing.
-            if (topic && typeof topic === 'object' && 'id' in topic) return String((topic as { id: unknown }).id)
-            return topic == null ? null : String(topic)
-          })
-          .filter((id): id is string => id !== null),
-      )
-
-      return (topics.docs.filter((topic) => topicsWithArticles.has(String(topic.id))) as unknown as GuideTopicDoc[]).slice(
-        0,
-        limit,
-      )
+      return topics.docs as unknown as GuideTopicDoc[]
     } catch {
       return []
     }

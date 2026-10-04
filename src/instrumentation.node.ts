@@ -70,6 +70,9 @@ async function warnIfHomeGroupSchemaMissing() {
   }
 }
 
+/** The real environment: reads through this alias are not replaced by build-time constants. */
+const runtimeEnv: NodeJS.ProcessEnv = process.env
+
 export async function register() {
   // Fail at boot, not on the first request: in production an unset/weak PAYLOAD_SECRET throws here
   // (QA S3). payload.config.ts calls the same resolver, so this is the earliest of two guards.
@@ -85,7 +88,12 @@ export async function register() {
   // deliberately *not* grouped with the PAYLOAD_MIGRATE_* block below, because that block sets
   // PAYLOAD_MIGRATING=true — a flag Payload uses to suppress normal write behaviour, which is
   // the opposite of what seeding needs.
-  if (process.env.SEED_ON_BOOT) {
+  //
+  // `process.env.SEED_ON_BOOT` is a compile-time constant here (next.config.ts `env`), and the
+  // comparison is written so the bundler can fold it: unless the variable was set when this server
+  // (or build) started, the branch is dead code and seed/ — 70 KB of sample content — is neither
+  // compiled at boot nor shipped in the production bundle.
+  if (process.env.SEED_ON_BOOT === '1') {
     const { getPayload } = await import('payload')
     const { default: config } = await import('@payload-config')
     const { runSeed } = await import('../seed/index')
@@ -97,6 +105,9 @@ export async function register() {
       console.error('[seed] failed:', err instanceof Error ? err.stack : err)
       console.log('[seed] failed')
     }
+  } else if (runtimeEnv.SEED_ON_BOOT) {
+    // Set at runtime against a bundle compiled without it (e.g. `next start` on a normal build).
+    console.log('[seed] failed: this build does not contain the seed module. Use `npm run seed`, or set SEED_ON_BOOT=1 for the build as well.')
   }
 
   // First administrator (QA S14). The HTTP first-register route is closed in production, so this

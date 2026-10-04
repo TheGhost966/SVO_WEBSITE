@@ -24,5 +24,10 @@ they replaced the earlier `REPRODUCES Sx` characterization tests on the same req
 the finding has come back — fix the code, don't loosen the test.
 
 The P0 server sends mail to a local SMTP sink (`harness/smtpSink.ts`, 127.0.0.1:2526) that records
-recipients in `.tmp/mail.jsonl`; nothing is delivered. The S3 suite also runs a real production
-`next build` into `.next/qa-prod` (deleted at teardown) — expect ~2 minutes.
+recipients in `.tmp/mail.jsonl`; nothing is delivered. The S3/S14 suite also runs a real production
+`next build` into `.tmp/next-prod` — expect ~2 minutes.
+
+**The harness never uses the app's `.next`.** Every server it boots gets its own `NEXT_DIST_DIR`
+(`.tmp/next-<boot name>`, `harness/app.ts`), removed when that server stops and swept again at
+setup and teardown. `harness/repoFiles.ts` puts `tsconfig.json` and `next-env.d.ts` back, including
+the `include` entries Next adds for each of those directories.

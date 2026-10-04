@@ -4,7 +4,7 @@ import type { TestProject } from 'vitest/node'
 import type EmbeddedPostgres from 'embedded-postgres'
 import { startPostgres, stopPostgres, createDatabase } from './postgres'
 import { buildTemplateDatabase, verifyTemplateMigrations, TEMPLATE_DB } from './migrate'
-import { startApp, type RunningApp } from './app'
+import { startApp, removeHarnessDistDirs, type RunningApp } from './app'
 import { qaDatabaseUri } from './safety'
 import { Api } from './api'
 import { seed, type Fixtures } from './seed'
@@ -43,9 +43,11 @@ export default async function setup(project: TestProject) {
     await new Promise((r) => (smtp ? smtp.close(r) : r(undefined)))
     await stopPostgres(pg)
     cleanupQaMedia()
+    removeHarnessDistDirs()
     restoreRepoFiles()
   }
   try {
+    removeHarnessDistDirs() // left behind by a killed run
     pg = await startPostgres()
     const migrateLog = await buildTemplateDatabase(pg, P0_PORT)
     const migrations = await verifyTemplateMigrations(pg)

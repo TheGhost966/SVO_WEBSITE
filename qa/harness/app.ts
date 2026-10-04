@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { spawn, execSync, type ChildProcess } from 'node:child_process'
-import { createWriteStream, mkdirSync } from 'node:fs'
-import { APP_ROOT, LOG_DIR } from './paths'
+import { createWriteStream, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { APP_ROOT, LOG_DIR, TMP_DIR } from './paths'
 import { assertSafeDatabaseUri } from './safety'
 
 /**
@@ -38,6 +38,44 @@ const APP_ENV_KEYS = [
 export type AppEnv = Record<string, string | undefined>
 
 /**
+ * Every harness boot compiles into its own NEXT_DIST_DIR under qa/.tmp — never the app's `.next`.
+ * Sharing `.next` left QA fixture data in the developer's fetch-cache (served again by the next
+ * normal `npm run dev`) and let two boots with different databases read each other's cached
+ * responses. The path is project-relative because Next requires distDir to stay inside the project.
+ */
+export const HARNESS_DIST_PREFIX = 'qa/.tmp/next-'
+export const distDirFor = (name: string) => HARNESS_DIST_PREFIX + name.replace(/[^a-zA-Z0-9_-]+/g, '-')
+
+export function assertHarnessDistDir(distDir: string | undefined): asserts distDir is string {
+  if (!distDir || !/^qa\/\.tmp\/next-[a-zA-Z0-9_-]+$/.test(distDir)) {
+    throw new Error(
+      `[qa-safety] NEXT_DIST_DIR must be a directory under qa/.tmp/ named next-* (got ${JSON.stringify(distDir)}): the harness never builds into the app's .next`,
+    )
+  }
+}
+
+/** Best effort: Windows can hold a just-killed server's files for a moment; teardown sweeps again. */
+export function removeDistDir(distDir: string): void {
+  assertHarnessDistDir(distDir)
+  try {
+    rmSync(path.join(APP_ROOT, distDir), { recursive: true, force: true, maxRetries: 10, retryDelay: 300 })
+  } catch {
+    // still locked — removeHarnessDistDirs() at teardown / next setup gets it
+  }
+}
+
+/** Removes every dist directory a harness boot (of this or a killed earlier run) left in qa/.tmp. */
+export function removeHarnessDistDirs(): void {
+  let entries: string[] = []
+  try {
+    entries = readdirSync(TMP_DIR)
+  } catch {
+    return // qa/.tmp doesn't exist yet
+  }
+  for (const entry of entries) if (entry.startsWith('next-')) removeDistDir(`qa/.tmp/${entry}`)
+}
+
+/**
  * NODE_ENV=test is load-bearing: @next/env skips `.env.local` in test mode
  * (node_modules/@next/env: `d!=="test"&&".env.local"`), so the real Neon URL and SMTP credentials
  * in .env.local are never loaded into the app under test. The explicit values below are a second,
@@ -46,7 +84,7 @@ export type AppEnv = Record<string, string | undefined>
  * SMTP points at 127.0.0.1:1 (nothing listens there): sends fail fast with ECONNREFUSED, which the
  * app logs and swallows. No email can leave this machine.
  */
-export function buildAppEnv(port: number, overrides: AppEnv): NodeJS.ProcessEnv {
+export function buildAppEnv(name: string, port: number, overrides: AppEnv): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env }
   for (const key of APP_ENV_KEYS) delete env[key]
   const merged: AppEnv = {
@@ -62,6 +100,7 @@ export function buildAppEnv(port: number, overrides: AppEnv): NodeJS.ProcessEnv 
     BOARD_NOTIFICATION_EMAIL: 'qa-board-env@test.invalid',
     CONTACT_FORWARD_EMAIL: 'qa-inbox@test.invalid',
     BLOB_READ_WRITE_TOKEN: '',
+    NEXT_DIST_DIR: distDirFor(name),
     ...overrides,
   }
   for (const [k, v] of Object.entries(merged)) {
@@ -69,6 +108,7 @@ export function buildAppEnv(port: number, overrides: AppEnv): NodeJS.ProcessEnv 
     else env[k] = v
   }
   assertSafeDatabaseUri(env.DATABASE_URI)
+  assertHarnessDistDir(env.NEXT_DIST_DIR)
   return env
 }
 
@@ -102,7 +142,7 @@ async function sleep(ms: number) {
 
 type StartOptions = {
   name: string
-  /** `dev` (default) or `start` (serve a production build — needs NODE_ENV=production + NEXT_DIST_DIR). */
+  /** `dev` (default) or `start` (serve a production build — needs NODE_ENV=production + the build's NEXT_DIST_DIR). */
   command?: 'dev' | 'start'
   port: number
   env: AppEnv
@@ -119,7 +159,9 @@ type StartOptions = {
 
 export async function startApp(opts: StartOptions): Promise<RunningApp> {
   const { name, port, timeoutMs = 300_000 } = opts
-  const env = buildAppEnv(port, opts.env)
+  const env = buildAppEnv(name, port, opts.env)
+  // A dist dir named after this boot is this boot's own; a shared production build is not.
+  const ownDistDir = env.NEXT_DIST_DIR === distDirFor(name) ? env.NEXT_DIST_DIR : null
   mkdirSync(LOG_DIR, { recursive: true })
   const logFile = path.join(LOG_DIR, `${name}.log`)
   const log = createWriteStream(logFile)
@@ -144,8 +186,9 @@ export async function startApp(opts: StartOptions): Promise<RunningApp> {
     killTree(child)
     for (let i = 0; i < 50 && child.exitCode === null && child.signalCode === null; i++) await sleep(100)
     log.end()
-    // Next's dev server holds a lock under .next/dev — give the OS a moment to release it.
+    // The server holds a lock under its dist dir — give the OS a moment to release it.
     await sleep(1500)
+    if (ownDistDir) removeDistDir(ownDistDir)
   }
   const app: RunningApp = { baseUrl, logFile, output: () => output, stop }
 
@@ -182,10 +225,10 @@ export async function startApp(opts: StartOptions): Promise<RunningApp> {
  * `next build` for the production-startup tests. NODE_ENV=production; `__NEXT_PROCESSED_ENV=true`
  * makes @next/env skip every .env* file (node_modules/@next/env: `if(process.env.__NEXT_PROCESSED_ENV
  * ...) return [process.env]`), so .env.local can't leak in even though this isn't test mode.
- * Output goes to NEXT_DIST_DIR, never the developer's .next.
+ * Output goes to the NEXT_DIST_DIR in `env` (qa/.tmp/next-*), never the developer's .next.
  */
 export async function buildApp(name: string, port: number, env: AppEnv, timeoutMs = 900_000): Promise<{ code: number | null; output: string }> {
-  const fullEnv = buildAppEnv(port, env)
+  const fullEnv = buildAppEnv(name, port, env)
   mkdirSync(LOG_DIR, { recursive: true })
   const log = createWriteStream(path.join(LOG_DIR, `${name}.log`))
   let output = ''
@@ -220,7 +263,8 @@ export async function startAppExpectingFailure(
   opts: StartOptions,
   observeMs = 60_000,
 ): Promise<{ exited: boolean; exitCode: number | null; served200: boolean; statuses: number[]; output: string }> {
-  const env = buildAppEnv(opts.port, opts.env)
+  const env = buildAppEnv(opts.name, opts.port, opts.env)
+  const ownDistDir = env.NEXT_DIST_DIR === distDirFor(opts.name) ? env.NEXT_DIST_DIR : null
   mkdirSync(LOG_DIR, { recursive: true })
   const log = createWriteStream(path.join(LOG_DIR, `${opts.name}.log`))
   let output = ''
@@ -256,5 +300,6 @@ export async function startAppExpectingFailure(
   for (let i = 0; i < 50 && child.exitCode === null && child.signalCode === null; i++) await sleep(100)
   log.end()
   await sleep(1500)
+  if (ownDistDir) removeDistDir(ownDistDir)
   return { exited, exitCode, served200: statuses.includes(200), statuses, output }
 }

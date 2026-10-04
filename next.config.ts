@@ -17,9 +17,16 @@ function toTurbopackAliasPath(absolutePath: string): string {
 }
 
 const nextConfig: NextConfig = {
-  // QA harness only (qa/security/s3-*): builds the production server into a separate directory so a
-  // test run never overwrites the developer's .next. Unset in normal use → the default '.next'.
+  // QA harness only (qa/harness/app.ts): every harness server compiles into its own directory
+  // under qa/.tmp, so a test run never touches the developer's .next. Unset in normal use → '.next'.
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  env: {
+    // Inlined at compile time so `if (process.env.SEED_ON_BOOT === '1')` in
+    // src/instrumentation.node.ts is a constant: with the variable unset (every normal boot and
+    // every production build) the bundler drops that branch and never compiles seed/ at all.
+    // `npm run seed` sets it before starting its server.
+    SEED_ON_BOOT: process.env.SEED_ON_BOOT ? '1' : '',
+  },
   images: {
     // Vercel Blob public URLs (Media uploads when BLOB_READ_WRITE_TOKEN is set).
     remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
