@@ -38,8 +38,9 @@ That includes `master` as it stands today. It is fixed on `launch-hardening`.
 | C10 | **No `sitemap.xml`, `robots.txt` or favicon** — all three answer 404 on the production build | Launch basics. The favicon needs the logo the board still owes; each miss also costs a 77 KB 404 page. | 2–3 h |
 | C11 | **CSP path rule is a prefix match** — `/administrator` or `/apiary` (404 pages) get no policy | Harmless today (no such routes), wrong by construction. Use `/((?!(?:admin|api|media|_next)(?:/|$)).*)` in `next.config.ts`. | 15 min (+ test) |
 
-Found by the functional and accessibility review on the production build — **none of these is fixed**
-(they arrived too late in the session to change and re-test):
+Found by the functional and accessibility review on the production build. **F1 is fixed (commit
+`6f83f88`, not re-measured in a browser); F2–F8 are not** — they arrived too late in the session to
+change and re-test:
 
 | # | Item | Where | Size |
 |---|---|---|---|
@@ -173,7 +174,7 @@ Run on 2026-10-04 against this branch.
 
 | Check | Result |
 |---|---|
-| `qa: npm run test:p0` | 10 files, 499 tests passed |
+| `qa: npm run test:p0` | 10 files, 503 tests passed |
 | `qa: npm run test:s3` | 3 files, 53 tests passed (S3, S14, production build) |
 | `npm run typecheck` / `npm run lint` | exit 0 / exit 0 |
 | `npm run build` | exit 0, 185 pages generated |
@@ -198,7 +199,7 @@ anonymously.
 de / ar / en, every homepage link, real slugs down to service detail): all answered 200, no dead links
 on the three homepages, no link leaving its locale. The browser console was clean on `/de`, `/ar`,
 `/de/kontakt` and `/admin/login` — no Content-Security-Policy violations. Arabic is otherwise sound:
-`lang="ar" dir="rtl"`, mirrored header, logical properties, flipped arrows. Defects: F1–F8 above. The
+`lang="ar" dir="rtl"`, mirrored header, logical properties, flipped arrows. Defects: F1–F8 above (F1 since fixed). The
 header and the "Ressourcen" menu were a real keyboard test in Chrome; the contact form was a DOM and
 code review (nothing was submitted). Not checked: the contact form's error and success flow (needs a
 POST), the mobile menu, header overflow at other widths, a visual RTL pass (screenshots failed).

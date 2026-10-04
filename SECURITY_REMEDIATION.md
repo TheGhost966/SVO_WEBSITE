@@ -253,12 +253,12 @@ fix reverted, the new regression tests run, the failures recorded, the fix resto
 
 | Command | Result |
 |---|---|
-| `npm run test:p0` | **Test Files 10 passed (10) · Tests 499 passed (499)** (including S21, below) |
+| `npm run test:p0` | **Test Files 10 passed (10) · Tests 503 passed (503)** (including S21, below) |
 | `npm run test:s3` | **Test Files 3 passed (3) · Tests 53 passed (53)** (S3, S14 and the production-build file; one shared `next build`) |
 | `npm run typecheck` | exit 0 |
 | `npm run lint` | exit 0 |
 
-Total: **552 tests** (394 before this pass).
+Total: **556 tests** (394 before this pass).
 
 ## S21: anonymous read and bulk update of `users` (found in the fifth-phase review, 2026-10-04)
 
