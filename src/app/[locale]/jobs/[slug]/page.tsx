@@ -11,6 +11,7 @@ import { getJobBySlug, getJobSlugs } from '@/lib/queries'
 import { buildMetadata } from '@/lib/seo'
 import { jobPostingSchema, breadcrumbSchema } from '@/lib/jsonld'
 import { backArrow } from '@/i18n/routing'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const JOBS_BASE: Record<string, string> = {
   de: '/de/stellenangebote',
@@ -98,27 +99,24 @@ export default async function JobDetailPage({ params }: Props) {
       className="mx-auto max-w-[800px] py-12 md:py-[84px]"
       style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
     >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
-            jobPostingSchema({
-              title: job.title ?? '',
-              organisation: job.organisation,
-              city: job.city,
-              region,
-              datePosted: job.publishedAt,
-              validThrough: job.expiryDate,
-              employmentType: job.employmentType,
-              url,
-            }),
-            breadcrumbSchema([
-              { name: HOME_LABEL[locale] ?? HOME_LABEL.de, url: `${SERVER}/${locale}` },
-              { name: JOBS_LABEL[locale] ?? JOBS_LABEL.de, url: `${SERVER}${base}` },
-              { name: job.title ?? '', url },
-            ]),
+      <JsonLd
+        data={[
+          jobPostingSchema({
+            title: job.title ?? '',
+            organisation: job.organisation,
+            city: job.city,
+            region,
+            datePosted: job.publishedAt,
+            validThrough: job.expiryDate,
+            employmentType: job.employmentType,
+            url,
+          }),
+          breadcrumbSchema([
+            { name: HOME_LABEL[locale] ?? HOME_LABEL.de, url: `${SERVER}/${locale}` },
+            { name: JOBS_LABEL[locale] ?? JOBS_LABEL.de, url: `${SERVER}${base}` },
+            { name: job.title ?? '', url },
           ]),
-        }}
+        ]}
       />
 
       <Breadcrumb

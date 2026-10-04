@@ -1,7 +1,7 @@
 /**
  * schema.org structured data builders.
- * Each function returns a plain object — serialize to JSON with JSON.stringify
- * and inject into a <script type="application/ld+json"> tag.
+ * Each function returns a plain object. Render it with <JsonLd data={…} />
+ * (src/components/ui/JsonLd.tsx) — never with JSON.stringify into a <script> by hand.
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3000'
@@ -290,4 +290,27 @@ export function jobPostingSchema({
       : {}),
     url,
   }
+}
+
+// ─── Serialisation (QA S17) ───────────────────────────────────────────────────
+
+const JSON_LD_ESCAPES: Record<string, string> = {
+  '<': '\\u003c',
+  '>': '\\u003e',
+  '&': '\\u0026',
+  '\u2028': '\\u2028',
+  '\u2029': '\\u2029',
+}
+
+/**
+ * JSON for the inside of a JSON-LD script element (rendered by src/components/ui/JsonLd.tsx).
+ *
+ * Plain `JSON.stringify` is not enough there: the HTML parser ends the element at the first
+ * `</script` it sees, wherever it is, so a title containing `</script><script>…` closes the data
+ * block and starts a real script (stored XSS from any editor account). `<`, `>` and `&` are
+ * written as \uXXXX escapes — still the same JSON string to every parser, but inert to HTML —
+ * and so are U+2028/U+2029, which are valid in JSON but line terminators to older JS engines.
+ */
+export function serializeJsonLd(data: unknown): string {
+  return (JSON.stringify(data) ?? 'null').replace(/[<>&\u2028\u2029]/g, (char) => JSON_LD_ESCAPES[char])
 }

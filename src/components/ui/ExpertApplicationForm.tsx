@@ -34,7 +34,9 @@ export function ExpertApplicationForm({ locale, categories }: Props) {
     state.status === 'error'
       ? state.errorKey === 'invalid_email'
         ? t('applyValidationEmail')
-        : state.errorKey === 'no_consent'
+        : state.errorKey === 'invalid_website'
+          ? t('applyValidationWebsite')
+          : state.errorKey === 'no_consent'
           ? t('applyValidationConsent')
           : state.errorKey === 'rate_limited'
             ? t('applyRateLimited')

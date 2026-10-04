@@ -11,6 +11,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { buildMetadata } from '@/lib/seo'
 import { newsArticleSchema, breadcrumbSchema } from '@/lib/jsonld'
 import type { ResolvedMedia } from '@/types/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 // Locale → base URL path for news articles
 const NEWS_BASE: Record<string, string> = {
@@ -162,14 +163,8 @@ export default async function NewsArticlePage({ params }: Props) {
   return (
     <>
       {/* Structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
-      />
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbData} />
 
       <article>
         {/* Cover image — full-width above the fold */}

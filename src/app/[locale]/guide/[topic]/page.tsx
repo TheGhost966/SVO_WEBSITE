@@ -11,6 +11,7 @@ import {
   getGuideArticlesByTopic,
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const GUIDE_BASE: Record<string, string> = {
   de: '/de/oesterreich-guide',
@@ -113,7 +114,7 @@ export default async function GuideTopicPage({ params, searchParams }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbData) }} />
+      <JsonLd data={crumbData} />
 
       {/* Topic hero */}
       <div className="py-12 md:py-16" style={{ backgroundColor: 'var(--color-brand-green-lt)' }}>

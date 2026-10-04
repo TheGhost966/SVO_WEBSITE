@@ -10,6 +10,7 @@ import { roadmapSchema, breadcrumbSchema } from '@/lib/jsonld'
 import { getRoadmapBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { RoadmapStep } from '@/types/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const ROADMAPS_BASE: Record<string, string> = {
   de: '/de/anleitungen',
@@ -125,8 +126,8 @@ export default async function RoadmapPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbData) }} />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={crumbData} />
 
       <article
         className="mx-auto max-w-[1200px]"

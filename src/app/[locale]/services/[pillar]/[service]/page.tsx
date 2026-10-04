@@ -16,6 +16,7 @@ import {
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { ResolvedMedia } from '@/types/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const SERVICES_BASE: Record<string, string> = {
   de: '/de/leistungen',
@@ -121,8 +122,8 @@ export default async function ServiceDetailPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbData) }} />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={crumbData} />
 
       <article>
         {/* Cover image */}

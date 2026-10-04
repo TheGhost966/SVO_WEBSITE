@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb'
 import { MediaImage } from '@/components/ui/MediaImage'
 import { getExpertBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
+import { safeExternalUrl } from '@/lib/safeUrl'
 import type { ResolvedMedia } from '@/types/payload'
 
 const HOME_LABEL: Record<string, string> = { de: 'Startseite', ar: 'الرئيسية', en: 'Home' }
@@ -61,6 +62,7 @@ export default async function ExpertPage({ params }: Props) {
   if (!expert) notFound()
 
   const image = expert.photo && typeof expert.photo !== 'string' ? (expert.photo as ResolvedMedia) : null
+  const websiteHref = safeExternalUrl(expert.website)
 
   return (
     <article
@@ -130,9 +132,10 @@ export default async function ExpertPage({ params }: Props) {
               {t('requestIntro')}
             </Link>
           )}
-          {expert.website && (
+          {/* QA S16: rendered only as an absolute http(s)/mailto link — never the stored string as is. */}
+          {websiteHref && (
             <a
-              href={expert.website}
+              href={websiteHref}
               target="_blank"
               rel="noopener noreferrer nofollow"
               className="text-sm text-brand-blue hover:text-brand-navy underline"

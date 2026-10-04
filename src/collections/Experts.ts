@@ -9,6 +9,7 @@ import {
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
 import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 import { bundeslandField } from '@/fields/bundeslandField'
+import { validateExternalUrl } from '@/lib/safeUrl'
 
 // Field-level access must return a plain boolean (unlike collection-level
 // Access, which may also return a Where query for row filtering).
@@ -162,6 +163,9 @@ export const Experts: CollectionConfig = {
       name: 'website',
       type: 'text',
       label: { de: 'Website', ar: 'الموقع الإلكتروني', en: 'Website' },
+      // QA S16: this value arrives from the public application form and is rendered as a link.
+      // Only absolute http(s) / mailto URLs are storable; the page checks again when it renders.
+      validate: (value: unknown, { req }: { req?: { i18n?: { language?: string } } }) => validateExternalUrl(value, req?.i18n?.language),
     },
     // No photo field on the public application — the board attaches one
     // after verification, via the admin panel only (§2.1).

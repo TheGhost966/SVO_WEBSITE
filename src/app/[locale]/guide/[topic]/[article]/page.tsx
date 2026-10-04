@@ -16,6 +16,7 @@ import {
 } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/payload'
 import type { ResolvedMedia } from '@/types/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const GUIDE_BASE: Record<string, string> = {
   de: '/de/oesterreich-guide',
@@ -147,8 +148,8 @@ export default async function GuideArticlePage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbData) }} />
+      <JsonLd data={jsonLd} />
+      <JsonLd data={crumbData} />
 
       <article>
         {image && (

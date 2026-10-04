@@ -24,6 +24,9 @@ export async function startPostgres(): Promise<EmbeddedPostgres> {
     password: QA_PG_PASSWORD,
     port: QA_PG_PORT,
     persistent: false,
+    // Like production (Neon): UTF-8. initdb's default on Windows is the OS code page (WIN1252), which
+    // cannot store Arabic text or characters such as U+2028 — inserts then fail with a 500.
+    initdbFlags: ['--encoding=UTF8'],
     onLog: () => {},
   })
   await pg.initialise()

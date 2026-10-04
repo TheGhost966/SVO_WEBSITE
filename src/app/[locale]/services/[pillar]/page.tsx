@@ -13,6 +13,7 @@ import {
 import { getPayloadClient } from '@/lib/payload'
 import { forwardArrow } from '@/i18n/routing'
 import type { ResolvedMedia, ServiceDoc } from '@/types/payload'
+import { JsonLd } from '@/components/ui/JsonLd'
 
 const SERVICES_BASE: Record<string, string> = {
   de: '/de/leistungen',
@@ -100,7 +101,7 @@ export default async function PillarPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbData) }} />
+      <JsonLd data={crumbData} />
 
       {/* Pillar hero */}
       <div

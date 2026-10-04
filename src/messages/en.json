@@ -118,6 +118,7 @@
     "applyError": "Something went wrong. Please try again.",
     "applyValidationRequired": "Please fill in your name and email address.",
     "applyValidationEmail": "Please enter a valid email address.",
+    "applyValidationWebsite": "Please enter a valid web address (https://…).",
     "applyValidationConsent": "Please agree to the processing of your data.",
     "applyRateLimited": "Too many applications. Please try again later.",
     "contact": "Contact",

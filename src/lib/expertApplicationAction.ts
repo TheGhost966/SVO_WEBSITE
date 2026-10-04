@@ -4,10 +4,11 @@ import { headers } from 'next/headers'
 import { getPayloadClient } from '@/lib/payload'
 import { uniqueSlug } from '@/lib/slug'
 import { checkRateLimit } from '@/lib/rateLimit'
+import { safeExternalUrl, withDefaultScheme } from '@/lib/safeUrl'
 
 export type ExpertApplicationState = {
   status: 'idle' | 'success' | 'error'
-  errorKey?: 'required' | 'invalid_email' | 'no_consent' | 'rate_limited' | 'server_error'
+  errorKey?: 'required' | 'invalid_email' | 'invalid_website' | 'no_consent' | 'rate_limited' | 'server_error'
 }
 
 // SECURITY (BRIEF-AMENDMENT-01 §2.1): this is the ONLY sanctioned public
@@ -31,7 +32,9 @@ export async function submitExpertApplication(
   const languagesRaw = (formData.get('languages') as string | null)?.trim() ?? ''
   const contactEmail = (formData.get('contactEmail') as string | null)?.trim() ?? ''
   const contactPhone = (formData.get('contactPhone') as string | null)?.trim() ?? ''
-  const website = (formData.get('website') as string | null)?.trim() ?? ''
+  const websiteInput = (formData.get('website') as string | null)?.trim() ?? ''
+  // QA S16: only an absolute http(s)/mailto URL is stored. `www.example.org` gets https:// first.
+  const website = websiteInput ? safeExternalUrl(withDefaultScheme(websiteInput)) : null
   const categoryId = (formData.get('category') as string | null)?.trim() ?? ''
   const consent = formData.get('consent') === 'on'
 
@@ -39,6 +42,7 @@ export async function submitExpertApplication(
   if (!contactEmail.includes('@') || !contactEmail.includes('.')) {
     return { status: 'error', errorKey: 'invalid_email' }
   }
+  if (websiteInput && !website) return { status: 'error', errorKey: 'invalid_website' }
   if (!consent) return { status: 'error', errorKey: 'no_consent' }
 
   // Per-IP throttling (§2.1) — 3 applications per hour per IP.

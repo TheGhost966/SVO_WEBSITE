@@ -118,6 +118,7 @@
     "applyError": "حدث خطأ. يرجى المحاولة مرة أخرى.",
     "applyValidationRequired": "يرجى إدخال الاسم والبريد الإلكتروني.",
     "applyValidationEmail": "يرجى إدخال بريد إلكتروني صحيح.",
+    "applyValidationWebsite": "يرجى إدخال عنوان موقع صحيح (https://…).",
     "applyValidationConsent": "يرجى الموافقة على معالجة بياناتك.",
     "applyRateLimited": "عدد كبير جدًا من الطلبات. يرجى المحاولة لاحقًا.",
     "contact": "التواصل",

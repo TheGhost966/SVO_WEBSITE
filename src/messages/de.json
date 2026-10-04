@@ -118,6 +118,7 @@
     "applyError": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
     "applyValidationRequired": "Bitte füllen Sie Name und E-Mail-Adresse aus.",
     "applyValidationEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    "applyValidationWebsite": "Bitte geben Sie eine gültige Webadresse an (https://…).",
     "applyValidationConsent": "Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.",
     "applyRateLimited": "Zu viele Anträge. Bitte versuchen Sie es später erneut.",
     "contact": "Kontakt",
