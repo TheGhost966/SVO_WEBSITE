@@ -13,6 +13,9 @@
  *   S7: reviewed collections update — editors only on draft / in_review documents (board/admin on
  *       all). The matrix's update cells target fresh draft documents; published/archived targets are
  *       covered in s7-s8-review-workflow.test.ts.
+ *   3b (ruling of 2026-10-04): media / board-members delete editorPlus → boardPlus; categories,
+ *       guide-topics and service-pillars create / update / delete → boardPlus (editors keep read).
+ *       These three were not in the matrix before; what they hold goes live without review.
  * History: the S5/S6 "REPRODUCES" blocks (QA_FINDINGS_P0.md) are inverted below on the same requests.
  * The matrix is the spec, not something to edit until green.
  */
@@ -26,12 +29,16 @@ const api = new Api(fx.baseUrl)
 const ctx = { pillarId: fx.pillarId, topicId: fx.topicId }
 const tokenOf = (a: Actor) => (a === 'anonymous' ? null : fx.tokens[a])
 
-type Rule = 'public' | 'loggedIn' | 'editorPlus' | 'adminOnly' | 'publishedOrEditorPlus'
+type Rule = 'public' | 'loggedIn' | 'editorPlus' | 'boardPlus' | 'adminOnly' | 'publishedOrEditorPlus'
 type Policy = { read: Rule; create: Rule; update: Rule; delete: Rule }
 
 const CURRENT_POLICY: Record<string, Policy> = {
-  media: { read: 'public', create: 'editorPlus', update: 'editorPlus', delete: 'editorPlus' },
-  'board-members': { read: 'public', create: 'editorPlus', update: 'editorPlus', delete: 'editorPlus' },
+  media: { read: 'public', create: 'editorPlus', update: 'editorPlus', delete: 'boardPlus' },
+  'board-members': { read: 'public', create: 'editorPlus', update: 'editorPlus', delete: 'boardPlus' },
+  // Taxonomy: no review workflow, every change is live at once — board and admin only.
+  categories: { read: 'public', create: 'boardPlus', update: 'boardPlus', delete: 'boardPlus' },
+  'guide-topics': { read: 'public', create: 'boardPlus', update: 'boardPlus', delete: 'boardPlus' },
+  'service-pillars': { read: 'public', create: 'boardPlus', update: 'boardPlus', delete: 'boardPlus' },
   news: { read: 'publishedOrEditorPlus', create: 'editorPlus', update: 'editorPlus', delete: 'adminOnly' },
   events: { read: 'publishedOrEditorPlus', create: 'editorPlus', update: 'editorPlus', delete: 'adminOnly' },
   services: { read: 'publishedOrEditorPlus', create: 'editorPlus', update: 'editorPlus', delete: 'adminOnly' },
@@ -55,6 +62,8 @@ function allows(rule: Rule, actor: Actor, status?: ReviewStatus): boolean {
       return actor !== 'anonymous'
     case 'editorPlus':
       return ['editor', 'board', 'admin'].includes(actor)
+    case 'boardPlus':
+      return ['board', 'admin'].includes(actor)
     case 'adminOnly':
       return actor === 'admin'
     case 'publishedOrEditorPlus':
@@ -69,6 +78,7 @@ function updatePatch(collection: string): Record<string, unknown> {
   switch (collection) {
     case 'experts':
     case 'board-members':
+    case 'categories':
       return { name: 'QA updated' }
     case 'media':
       return { alt: 'QA updated alt' }
@@ -97,7 +107,14 @@ function seededTargets(collection: string): Array<{ label: string; id: string | 
     const docs = fx.docs[collection as (typeof REVIEWED_COLLECTIONS)[number]]
     return REVIEW_STATUSES.map((s) => ({ label: s, id: docs[s], status: s }))
   }
-  const id = { media: fx.mediaId, 'board-members': fx.boardMemberId, 'contact-submissions': fx.contactSubmissionId }[collection]!
+  const id = {
+    media: fx.mediaId,
+    'board-members': fx.boardMemberId,
+    'contact-submissions': fx.contactSubmissionId,
+    categories: fx.categoryId,
+    'guide-topics': fx.topicId,
+    'service-pillars': fx.pillarId,
+  }[collection]!
   return [{ label: 'doc', id }]
 }
 
@@ -158,7 +175,8 @@ describe('S5 — delete on media / board-members', () => {
     expect(after.status).toBe(200)
   })
 
-  const EXPECTED_DELETE: Record<Actor, number> = { anonymous: 403, viewer: 403, editor: 200, board: 200, admin: 200 }
+  // 3b: an editor no longer deletes media or board members.
+  const EXPECTED_DELETE: Record<Actor, number> = { anonymous: 403, viewer: 403, editor: 403, board: 200, admin: 200 }
   for (const collection of ['media', 'board-members']) {
     it.each(ACTORS)(`REGRESSION S5: ${collection} delete — %s gets the exact expected status`, async (actor) => {
       const id = await freshDocId(collection)

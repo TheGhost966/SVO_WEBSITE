@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isEditorOrAbove } from '@/lib/access'
+import { isAdminOrBoard } from '@/lib/access'
 import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 export const Categories: CollectionConfig = {
@@ -49,10 +49,12 @@ export const Categories: CollectionConfig = {
     afterChange: [makeRevalidateOnPublish('categories')],
     afterDelete: [makeRevalidateOnDelete('categories')],
   },
+  // No review workflow here: every change is live at once, on every page that uses it. So this is
+  // board and admin work; editors read (they pick from these lists) but do not change them.
   access: {
     read: () => true,
-    create: isEditorOrAbove,
-    update: isEditorOrAbove,
-    delete: ({ req }) => req.user?.role === 'admin',
+    create: isAdminOrBoard,
+    update: isAdminOrBoard,
+    delete: isAdminOrBoard,
   },
 }

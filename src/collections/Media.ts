@@ -1,6 +1,6 @@
 import path from 'path'
 import type { CollectionConfig } from 'payload'
-import { isEditorOrAbove } from '@/lib/access'
+import { isAdminOrBoard, isEditorOrAbove } from '@/lib/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -66,6 +66,7 @@ export const Media: CollectionConfig = {
     create: isEditorOrAbove,
     update: isEditorOrAbove,
     // Not isLoggedIn: that includes the read-only `viewer` role (QA S5).
-    delete: isEditorOrAbove,
+    // Deleting is not undoable and is not part of the review workflow: board and admin only.
+    delete: isAdminOrBoard,
   },
 }

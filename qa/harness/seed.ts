@@ -49,6 +49,7 @@ export type Fixtures = {
   slugs: Record<ReviewedCollection, Record<ReviewStatus, string>>
   mediaId: string | number
   boardMemberId: string | number
+  categoryId: string | number
   contactSubmissionId: string | number
 }
 
@@ -116,6 +117,9 @@ export function buildDoc(
       return { name: 'QA Sender', email: 'qa-sender@test.invalid', message: 'QA message long enough', consentGiven: true }
     case 'categories':
       return { name: `QA cat ${slug}`, slug, type: 'news' }
+    case 'guide-topics':
+    case 'service-pillars':
+      return { title, slug, order: 1 }
     default:
       throw new Error(`no builder for ${collection}`)
   }
@@ -203,6 +207,7 @@ export async function seed(api: Api): Promise<Fixtures> {
 
   const media = must(await createAs(api, 'media', tokens.admin, ctx), 'media upload')
   const boardMember = must(await createAs(api, 'board-members', tokens.admin, ctx), 'board member')
+  const category = must(await createAs(api, 'categories', tokens.admin, ctx), 'category')
   const submission = must(await createAs(api, 'contact-submissions', tokens.admin, ctx), 'contact submission')
 
   // ── SiteSettings with the private fields S4 looks for ─────────────────────
@@ -229,6 +234,7 @@ export async function seed(api: Api): Promise<Fixtures> {
     slugs,
     mediaId: media.id,
     boardMemberId: boardMember.id,
+    categoryId: category.id,
     contactSubmissionId: submission.id,
   }
 }
