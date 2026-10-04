@@ -16,6 +16,84 @@ function toTurbopackAliasPath(absolutePath: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`
 }
 
+// ─── Security headers (QA S13) ────────────────────────────────────────────────
+
+const isProd = process.env.NODE_ENV === 'production'
+/** Media uploads on Vercel Blob — the same host images.remotePatterns allows below. */
+const BLOB = 'https://*.public.blob.vercel-storage.com'
+
+const csp = (directives: Record<string, string[]>) =>
+  Object.entries(directives)
+    .map(([name, values]) => [name, ...values].join(' '))
+    .join('; ')
+
+/**
+ * Public site — enforced. Everything is same-origin: fonts and the cookie banner are self-hosted
+ * and there are no third-party scripts, frames or API calls.
+ *
+ * `script-src` and `style-src` keep 'unsafe-inline': Next.js writes its hydration data as inline
+ * <script> blocks, and the alternative (a per-request nonce) forces every page to render
+ * dynamically — it would switch off the ISR caching the whole site is built on. What the policy
+ * still buys: no script, style, font, frame, form target or connection from any other origin, no
+ * plugins, no <base> rewriting, no framing by other sites. Development additionally needs
+ * 'unsafe-eval' (React's dev tooling) and websockets (hot reload); a production build gets neither.
+ */
+const PUBLIC_CSP = csp({
+  'default-src': ["'self'"],
+  'script-src': ["'self'", "'unsafe-inline'", ...(isProd ? [] : ["'unsafe-eval'"])],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'img-src': ["'self'", 'data:', 'blob:', BLOB],
+  'font-src': ["'self'"],
+  'connect-src': ["'self'", ...(isProd ? [] : ['ws:', 'wss:'])],
+  'media-src': ["'self'", BLOB],
+  'object-src': ["'none'"],
+  'frame-src': ["'none'"],
+  'worker-src': ["'self'", 'blob:'],
+  'manifest-src': ["'self'"],
+  'base-uri': ["'self'"],
+  'form-action': ["'self'"],
+  'frame-ancestors': ["'self'"],
+})
+
+/**
+ * Admin panel — Report-Only on purpose. Payload's admin UI is third-party code whose exact needs
+ * (inline styles, blob: previews, direct-to-Blob uploads) have not been observed under an enforced
+ * policy yet, and a broken editor is worse than a missing header. This is the policy to enforce
+ * once the browser console stays clean of "[Report Only]" entries during normal editing.
+ */
+const ADMIN_CSP_REPORT_ONLY = csp({
+  'default-src': ["'self'"],
+  'script-src': ["'self'", "'unsafe-inline'", ...(isProd ? [] : ["'unsafe-eval'"])],
+  'style-src': ["'self'", "'unsafe-inline'"],
+  'img-src': ["'self'", 'data:', 'blob:', BLOB],
+  'font-src': ["'self'", 'data:'],
+  'connect-src': ["'self'", BLOB, 'https://vercel.com', ...(isProd ? [] : ['ws:', 'wss:'])],
+  'media-src': ["'self'", 'blob:', BLOB],
+  'object-src': ["'none'"],
+  'frame-src': ["'self'"],
+  'worker-src': ["'self'", 'blob:'],
+  'base-uri': ["'self'"],
+  'form-action': ["'self'"],
+})
+
+/** Clickjacking protection is enforced everywhere, the admin panel included — it cannot break a page. */
+const FRAME_ANCESTORS_ONLY = "frame-ancestors 'self'"
+
+const BASELINE_SECURITY_HEADERS = [
+  // Stops a browser from MIME-sniffing a response into something executable.
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  // Don't leak the full URL (including ?q= search terms) to third-party origins.
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  // For browsers that predate CSP frame-ancestors.
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  // The site uses none of these; neither may anything that ever gets embedded in it.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()' },
+  // Production only: browsers ignore HSTS over plain HTTP anyway, and pinning `localhost` to HTTPS
+  // for two years would break every other local dev server. No includeSubDomains / preload — that
+  // is a decision about the whole domain (see LAUNCH-CHECKLIST.md).
+  ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000' }] : []),
+]
+
 const nextConfig: NextConfig = {
   // QA harness only (qa/harness/app.ts): every harness server compiles into its own directory
   // under qa/.tmp, so a test run never touches the developer's .next. Unset in normal use → '.next'.
@@ -67,14 +145,21 @@ const nextConfig: NextConfig = {
         source: '/media/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }],
       },
+      // QA S13 — see the constants above this config object.
+      { source: '/:path*', headers: BASELINE_SECURITY_HEADERS },
       {
-        source: '/:path*',
-        headers: [
-          // Stops a browser from MIME-sniffing a response into something executable.
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          // Don't leak the full URL (including ?q= search terms) to third-party origins.
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        ],
+        // Public pages: everything except the admin panel, the API, uploaded media and Next's own
+        // assets. A negative match, so a public route added later is covered without touching this.
+        source: '/((?!admin|api|media|_next).*)',
+        headers: [{ key: 'Content-Security-Policy', value: PUBLIC_CSP }],
+      },
+      {
+        source: '/:area(admin|api|media)/:path*',
+        headers: [{ key: 'Content-Security-Policy', value: FRAME_ANCESTORS_ONLY }],
+      },
+      {
+        source: '/admin/:path*',
+        headers: [{ key: 'Content-Security-Policy-Report-Only', value: ADMIN_CSP_REPORT_ONLY }],
       },
     ]
   },
