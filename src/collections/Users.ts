@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAdmin, isAdminOrSelf } from '@/lib/access'
+import { firstRegisterEndpoint, preventLastAdminDelete } from '@/lib/firstAdmin'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -45,5 +46,11 @@ export const Users: CollectionConfig = {
     read: isAdminOrSelf,
     update: isAdminOrSelf,
     delete: isAdmin,
+  },
+  // QA S14: replaces Payload's open first-register (closed in production, role forced to admin
+  // elsewhere) and keeps at least one administrator. See src/lib/firstAdmin.ts.
+  endpoints: [firstRegisterEndpoint],
+  hooks: {
+    beforeDelete: [preventLastAdminDelete],
   },
 }

@@ -8,7 +8,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     include: ['security/**/*.test.ts'],
-    exclude: ['security/s3-*.test.ts'],
+    exclude: ['security/s3-*.test.ts', 'security/s14-*.test.ts'],
     globalSetup: ['harness/globalSetup.ts'],
     fileParallelism: false,
     testTimeout: 180_000,

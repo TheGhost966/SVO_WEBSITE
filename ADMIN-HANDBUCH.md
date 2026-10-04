@@ -7,8 +7,18 @@ Administrator:innen.
 
 Admin-Bereich: **`https://[domain]/admin`** (lokal beim Testen: `http://localhost:3000/admin`)
 
-Beim ersten Aufruf wird ein Administrator-Konto angelegt. Danach vergibt ein Administrator
-Zugänge für weitere Personen unter **System → Users**.
+**Das erste Administrator-Konto** wird nicht im Browser angelegt, sondern einmalig von der
+Entwicklung bei der Einrichtung der Website (Befehl `npm run create-admin`, siehe `README.md`,
+Abschnitt „Deployment“). Auf der Live-Website ist die Registrierung über den Browser absichtlich
+gesperrt — sonst könnte sich auf einer frisch aufgesetzten Website jede beliebige Person als
+erste:r Administrator:in eintragen.
+
+Danach vergibt ein Administrator Zugänge für weitere Personen unter **System → Users**.
+
+**Es muss immer mindestens ein Administrator-Konto geben.** Das letzte verbleibende
+Administrator-Konto lässt sich deshalb nicht löschen. Wer es ersetzen möchte, gibt zuerst einer
+anderen Person die Rolle *Administrator* und löscht erst dann das alte Konto. Empfehlung: zwei
+Administrator-Konten führen, damit bei einem vergessenen Passwort niemand ausgesperrt ist.
 
 Jede Person kann in ihrem eigenen Konto (oben rechts) die Sprache des Admin-Bereichs zwischen
 Deutsch, Arabisch und Englisch umstellen — unabhängig davon, in welcher Sprache man gerade

@@ -63,7 +63,9 @@ npm run dev
 ```
 
 The site runs at `http://localhost:3000/de` (also `/ar`, `/en`). The admin panel is at
-`http://localhost:3000/admin` — the first visit prompts you to create the initial admin user.
+`http://localhost:3000/admin` — in development the first visit prompts you to create the initial
+user, which is always an `admin`. A production build never does this; see
+[First administrator](#first-administrator).
 
 To see a populated site instead of empty collections, run the seed script once the database
 schema exists (Payload creates it automatically on first run in dev):
@@ -87,6 +89,7 @@ News, Events, Board Members, or Partners — that content needs to come from the
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint over the whole repo |
 | `npm run seed` | Populate the database with starter content (see above) |
+| `npm run create-admin` | Create the first administrator on an empty `users` table (see [First administrator](#first-administrator)) |
 | `npm run generate:types` | Regenerate `src/payload-types.ts` from the current collection config (requires a connected DB) |
 | `npm run generate:schema` | Regenerate the GraphQL schema |
 | `npm run db:migrate` | Run pending Payload/Drizzle migrations |
@@ -152,9 +155,42 @@ Whatever the target, the release steps are:
 
 ```bash
 npm run build
-npm run db:migrate   # apply any pending migrations before starting the new build
+npm run db:migrate     # apply any pending migrations before starting the new build
+npm run create-admin   # first release only — see "First administrator" below
 npm run start
 ```
+
+`PAYLOAD_SECRET` must be set (32+ random characters) for both `build` and `start`; a production
+process refuses to run with a missing, short or placeholder secret.
+
+### First administrator
+
+A production build answers `POST /api/users/first-register` with **403**, always — otherwise
+whoever reaches a freshly deployed site first could make themselves administrator. The first
+account is created from the command line instead, **before the site is announced**:
+
+```bash
+# against the production database: set DATABASE_URI in this shell first
+npm run create-admin
+```
+
+It asks for email, display name and password (not echoed, 12+ characters), then:
+
+- acts **only if the `users` table is empty** — on any other database it prints `skipped` and
+  changes nothing, so it is safe to re-run;
+- always creates an `admin`;
+- never prints or logs the password.
+
+It works by booting a temporary server on `127.0.0.1:3998` with `CREATE_ADMIN_ON_BOOT=1`
+(`src/instrumentation.node.ts`) — the same pattern as `npm run seed`. Where no shell is available
+next to the app, set `CREATE_ADMIN_ON_BOOT=1`, `CREATE_ADMIN_EMAIL`, `CREATE_ADMIN_PASSWORD` and
+`CREATE_ADMIN_NAME` in the environment for **one** boot of the production server, check the log
+for `[create-admin] created administrator …`, then remove all four again.
+
+After that, further users are created in the admin panel (System → Users). The last remaining
+administrator cannot be deleted; keep two admin accounts so a lost password does not lock
+everyone out. There is no self-service recovery if the only admin loses access — contact the
+developer: **[developer contact — fill in before handover]**.
 
 ## Backup & restore
 

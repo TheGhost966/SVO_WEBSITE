@@ -1,9 +1,12 @@
 import { defineConfig } from 'vitest/config'
 
-/** S3 (PAYLOAD_SECRET) suite — boots app variants with different secrets, so it runs on its own. */
+/**
+ * Boot-variant suites — S3 (PAYLOAD_SECRET) and S14 (first admin). They boot app variants with
+ * different secrets / boot flags, including one shared production build, so they run on their own.
+ */
 export default defineConfig({
   test: {
-    include: ['security/s3-*.test.ts'],
+    include: ['security/s3-*.test.ts', 'security/s14-*.test.ts'],
     globalSetup: ['harness/globalSetupS3.ts'],
     fileParallelism: false,
     testTimeout: 600_000,

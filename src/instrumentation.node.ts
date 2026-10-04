@@ -99,6 +99,23 @@ export async function register() {
     }
   }
 
+  // First administrator (QA S14). The HTTP first-register route is closed in production, so this
+  // boot flag is the only way to create the first account there. It reads no request, does nothing
+  // once any user exists, and logs the outcome — never the password.
+  if (process.env.CREATE_ADMIN_ON_BOOT) {
+    const { getPayload } = await import('payload')
+    const { default: config } = await import('@payload-config')
+    const { createFirstAdmin } = await import('./lib/firstAdmin')
+    try {
+      const payload = await getPayload({ config })
+      const result = await createFirstAdmin(payload)
+      if (result.outcome === 'created') console.log(`[create-admin] created administrator ${result.email}`)
+      else console.log(`[create-admin] ${result.outcome}: ${result.reason}`)
+    } catch (err) {
+      console.log(`[create-admin] failed: ${err instanceof Error ? err.message : String(err)}`)
+    }
+  }
+
   const wantsStatus = Boolean(process.env.PAYLOAD_MIGRATE_STATUS)
   const wantsMigrate = Boolean(process.env.PAYLOAD_MIGRATE_ON_BOOT)
   const createName = process.env.PAYLOAD_MIGRATE_CREATE_NAME

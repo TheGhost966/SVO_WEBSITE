@@ -12,12 +12,16 @@
  * Everything runs against throwaway servers on 127.0.0.1 (3101 dev, 3102 production) backed by the
  * embedded Postgres. Tokens are only minted for QA users inside those databases. The production
  * secret is generated per run and asserted never to appear in server output.
+ *
+ * S14: production no longer registers the first user over HTTP, so the production block creates its
+ * QA admin the way a real deployment does — the CREATE_ADMIN_ON_BOOT flag behind
+ * `npm run create-admin` (qa/security/s14-first-admin.test.ts covers that flag itself).
  */
 import { randomBytes } from 'node:crypto'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { buildApp, startApp, startAppExpectingFailure, type RunningApp } from '../harness/app'
+import { startApp, startAppExpectingFailure, type RunningApp } from '../harness/app'
 import { cloneTemplate, queryQaDb } from '../harness/db'
 import { qaDatabaseUri } from '../harness/safety'
 import { Api } from '../harness/api'
@@ -26,6 +30,7 @@ import { decode, payloadKey, randomUUID, signHS256, verifiesWith } from '../harn
 import { writeEvidence } from '../harness/evidence'
 import { APP_ROOT } from '../harness/paths'
 import { S3_PORT } from '../harness/globalSetupS3'
+import { ensureProdBuild, prodEnv as buildProdEnv, PROD_PORT } from '../harness/prodBuild'
 import { DEV_ONLY_FALLBACK_SECRET, MIN_PRODUCTION_SECRET_LENGTH, resolvePayloadSecret } from '../../src/lib/payloadSecret'
 
 const FALLBACK = 'INSECURE_DEV_SECRET_REPLACE_ME'
@@ -212,29 +217,21 @@ describe('S3 — non-production runtime with PAYLOAD_SECRET set to an empty stri
 })
 
 /**
- * Production: one real `next build` (NODE_ENV=production, valid generated secret, output in
- * .next/qa-prod), then `next start` once per secret variant. `__NEXT_PROCESSED_ENV=true` makes Next
- * skip every .env* file, so "missing" really means missing — .env.local can't fill it in.
+ * Production: one real `next build` (NODE_ENV=production, valid generated secret — shared with the
+ * S14 file through harness/prodBuild.ts), then `next start` once per secret variant.
+ * `__NEXT_PROCESSED_ENV=true` makes Next skip every .env* file, so "missing" really means missing —
+ * .env.local can't fill it in.
  */
 describe('S3 — production (next build + next start, NODE_ENV=production)', () => {
-  const PROD_PORT = S3_PORT + 1
   const DB = 'svo_qa_test_s3_prod'
   const validSecret = randomBytes(32).toString('hex')
-  const prodEnv = (secret: string | undefined) => ({
-    NODE_ENV: 'production',
-    __NEXT_PROCESSED_ENV: 'true',
-    NEXT_DIST_DIR: '.next/qa-prod',
-    DATABASE_URI: qaDatabaseUri(DB),
-    PAYLOAD_SECRET: secret,
-  })
-  const redact = (s: string) => s.split(validSecret).join('<valid-secret>')
+  const prodEnv = (secret: string | undefined) => buildProdEnv(DB, secret)
   const failures: Record<string, unknown> = {}
 
   beforeAll(async () => {
     await cloneTemplate(DB)
-    const build = await buildApp('s3-prod-build', PROD_PORT, prodEnv(validSecret))
-    evidence.prodBuild = { exitCode: build.code, secretInOutput: build.output.includes(validSecret) }
-    if (build.code !== 0) throw new Error(`next build failed (${build.code}):\n${redact(build.output).slice(-3000)}`)
+    // Throws if the build fails or prints its (separate, discarded) build-time secret.
+    evidence.prodBuild = await ensureProdBuild()
   })
 
   afterAll(() => {
@@ -242,12 +239,18 @@ describe('S3 — production (next build + next start, NODE_ENV=production)', () 
   })
 
   it('REGRESSION S3: production + valid PAYLOAD_SECRET → starts, serves, signs sessions with that secret, never logs it', async () => {
-    const app = await startApp({ name: 's3-prod-valid', port: PROD_PORT, command: 'start', env: prodEnv(validSecret) })
+    const app = await startApp({
+      name: 's3-prod-valid',
+      port: PROD_PORT,
+      command: 'start',
+      env: { ...prodEnv(validSecret), CREATE_ADMIN_ON_BOOT: '1', CREATE_ADMIN_EMAIL: userEmail('admin'), CREATE_ADMIN_PASSWORD: PASSWORD, CREATE_ADMIN_NAME: 'QA Admin' },
+    })
     try {
       const api = new Api(app.baseUrl)
       expect((await api.get('/api/users/init')).status).toBe(200)
-      const reg = await api.post('/api/users/first-register', { email: userEmail('admin'), password: PASSWORD, name: 'QA Admin', role: 'admin' })
-      expect(reg.status).toBeLessThan(300)
+      // The QA admin comes from the create-admin boot flag; production first-register is closed (S14).
+      expect(app.output()).toContain(`[create-admin] created administrator ${userEmail('admin')}`)
+      expect(app.output()).not.toContain(PASSWORD)
       const token = await api.login(userEmail('admin'), PASSWORD)
       expect((await api.get('/api/users/me', token)).body?.user?.role).toBe('admin')
       expect(verifiesWith(token, payloadKey(validSecret))).toBe(true)
