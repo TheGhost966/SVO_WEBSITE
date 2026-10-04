@@ -276,3 +276,18 @@ review against the production build, reproduced on the disposable database, fixe
 
 **If any earlier build was ever reachable from the internet, treat the accounts as compromised** —
 see `LAUNCH-CHECKLIST.md` section 0.
+
+## C1: `?draft=true` served the versions tables to anonymous callers (admin pass, 2026-10-04)
+
+`LAUNCH-CHECKLIST.md` §1.1 C1 (the brief for this pass calls it "F1"). Found by the security review of
+the previous pass, reproduced on the disposable database in this one, fixed on `master`.
+
+| | |
+|---|---|
+| **Root cause** | With `draft=true` Payload does not read the collection table. `find` queries the versions table for rows with `latest = true` and applies the read rule to the *version*; `findByID` and relationship population swap the live row for a newer draft version. `readPublishedOrEditorPlus` returns `reviewStatus = published` for anonymous and viewer, so with `draft=true` it meant "the newest version calls itself published" instead of "this row is live" |
+| **Effect on the unfixed code** | Reproduced on all 8 versioned collections (`qa/evidence/run-c1-prefix.txt`, 27 of 28 tests fail). Anonymous and viewer got: **(1)** the unreviewed text of a draft saved over a live document — by list, by id, through a populated relationship, and as a `where` oracle on the draft text; **(2)** a document whose live row is not published but whose latest version says it is; **(3)** the versions of a row deleted directly in the database (`parent_id` becomes NULL, `ON DELETE SET NULL`), returned as documents with `id: null` — the "27 rows against 4" on `jobs` in the development database |
+| **Fix** | `liveRowOnlyBelowEditor`, a `beforeOperation` hook (`src/lib/access.ts`): for a read by anyone below editor the `draft` flag is dropped before the operation runs, so the request is answered from the live row. `withLiveRowReads` in `src/payload.config.ts` adds it to every collection that has drafts, so a ninth one cannot be forgotten. Relationship population goes through the same operation and is covered. Editor, board and admin keep the draft view (the admin panel needs it); Local API calls with `overrideAccess` (the public site's own queries) are untouched |
+| **Leftover data** | Migration `20261004_142000_delete_orphaned_versions` deletes version rows without a parent in the eight versions tables (child rows cascade). No schema change. It is **pending on the development database** until migrations are applied there (`PAYLOAD_MIGRATE_ON_BOOT=1`) |
+| **Regression tests** | `qa/security/c1-draft-versions-leak.test.ts` (28): per collection — newer version over a live document, latest version "published" over an unpublished row, orphaned versions; plus the admin panel's real "Save draft" request, a populated relationship, and controls that editor/board/admin still get the draft view. `qa/security/c1-orphan-versions-migration.test.ts` (2): the migration applied on boot removes exactly the orphans and the rows hanging off them |
+| **Mutation check** | Hook removed from `payload.config.ts`: 26 of 28 fail (`qa/evidence/run-c1-mutant.txt`; the two that pass are the controls). Restored: 28 pass |
+| **Behaviour changed** | For anonymous and viewer `?draft=true` is now a no-op. Nothing else changes |

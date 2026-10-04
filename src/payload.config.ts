@@ -12,6 +12,7 @@ import nodemailer from 'nodemailer'
 import sharp from 'sharp'
 
 import { resolvePayloadSecret } from '@/lib/payloadSecret'
+import { withLiveRowReads } from '@/lib/access'
 import { Users } from '@/collections/Users'
 import { Media } from '@/collections/Media'
 import { Categories } from '@/collections/Categories'
@@ -131,6 +132,8 @@ export default buildConfig({
     }),
   ],
 
+  // `withLiveRowReads`: in every collection with drafts, callers below editor read the live row
+  // even with `?draft=true` (QA C1, src/lib/access.ts).
   collections: [
     Users,
     Media,
@@ -148,7 +151,7 @@ export default buildConfig({
     Partners,
     Pages,
     ContactSubmissions,
-  ],
+  ].map(withLiveRowReads),
 
   // ─── Globals ───────────────────────────────────────────────────────────────
   globals: [SiteSettings, Navigation],

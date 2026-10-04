@@ -1,4 +1,7 @@
-import type { Access, CollectionBeforeChangeHook } from 'payload'
+import type { Access, CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig } from 'payload'
+
+/** The roles that work on unpublished content. */
+const EDITOR_PLUS = ['admin', 'board', 'editor']
 
 // ─── Collection-level access ──────────────────────────────────────────────────
 
@@ -7,8 +10,7 @@ export const isAdmin: Access = ({ req }) => req.user?.role === 'admin'
 export const isAdminOrBoard: Access = ({ req }) =>
   ['admin', 'board'].includes(req.user?.role ?? '')
 
-export const isEditorOrAbove: Access = ({ req }) =>
-  ['admin', 'board', 'editor'].includes(req.user?.role ?? '')
+export const isEditorOrAbove: Access = ({ req }) => EDITOR_PLUS.includes(req.user?.role ?? '')
 
 export const isLoggedIn: Access = ({ req }) => !!req.user
 
@@ -18,8 +20,45 @@ export const isLoggedIn: Access = ({ req }) => !!req.user
  * logging in alone no longer unlocks drafts.
  */
 export const readPublishedOrEditorPlus: Access = ({ req }) => {
-  if (['admin', 'board', 'editor'].includes(req.user?.role ?? '')) return true
+  if (EDITOR_PLUS.includes(req.user?.role ?? '')) return true
   return { reviewStatus: { equals: 'published' } }
+}
+
+/**
+ * Below editor, a read is always answered from the live row: `draft=true` is ignored (QA C1).
+ *
+ * With `draft: true` Payload does not read the collection table. `find` queries the versions table
+ * (`latest = true`) and applies the read rule above to the *version*; `findByID` and relationship
+ * population swap the live row for a newer draft version. So `reviewStatus = published` then means
+ * "the newest version calls itself published", not "this is what is live" — and anonymous callers
+ * were served a draft saved over a live document, a version marked published whose live row is not,
+ * and the versions (`id: null`) of rows deleted directly in the database.
+ *
+ * Nobody below editor has any business in the versions table, so the flag is dropped before the
+ * operation runs, rather than trying to make every version-side query safe. Local API calls that
+ * override access (the public site's own queries, hooks) are left alone.
+ */
+export const liveRowOnlyBelowEditor: CollectionBeforeOperationHook = ({ args, operation, overrideAccess, req }) => {
+  if (operation !== 'read' || overrideAccess) return args
+  if (EDITOR_PLUS.includes(req.user?.role ?? '')) return args
+  if ((args as { draft?: boolean }).draft) return { ...args, draft: false }
+  return args
+}
+
+/**
+ * Applied to every collection in payload.config.ts: a collection with drafts gets
+ * {@link liveRowOnlyBelowEditor}, so one added later cannot be forgotten.
+ */
+export function withLiveRowReads(collection: CollectionConfig): CollectionConfig {
+  const hasDrafts = typeof collection.versions === 'object' && Boolean(collection.versions.drafts)
+  if (!hasDrafts) return collection
+  return {
+    ...collection,
+    hooks: {
+      ...collection.hooks,
+      beforeOperation: [liveRowOnlyBelowEditor, ...(collection.hooks?.beforeOperation ?? [])],
+    },
+  }
 }
 
 /**
