@@ -205,3 +205,37 @@ code review (nothing was submitted). Not checked: the contact form's error and s
 POST), the mobile menu, header overflow at other widths, a visual RTL pass (screenshots failed).
 
 **Performance review.** See 1.4.
+
+## Admin pass (2026-10-04, evening)
+
+The admin panel was walked in a real browser against a **production build** on the disposable QA
+database (`qa: npm run stack -- up --fresh`), as admin, board, editor and viewer: every collection
+list, create form and edit form, both globals, the account page and the version list — about 50
+pages per role.
+
+**What was clean.** No console errors, no failed requests and no error toasts on any page for any
+role. The only 404 is the missing favicon (C10). The refusals are the intended ones: board, editor
+and viewer see only their own account and cannot open `users/create`; the viewer gets 404 on
+Contact Submissions. Checked specifically:
+
+- every role can open and save its own account; the role field is read-only below admin
+- board saving Site Settings keeps the notification recipients and retention settings
+- editor saving an Experts draft keeps the contact data, consent and verification fields
+- an editor opening a published document gets a read-only form without a Save button, not an error
+- deleting the only administrator in the panel is refused with a clear message (in English)
+
+**What was broken, and is fixed.**
+
+| # | Finding | Fix | Tests |
+|---|---|---|---|
+| A1 | **Payload's two buttons contradicted the Status field.** "Save Draft" stores a version and leaves the document row alone, so: the board edits a published document, sees "saved", and the form reloads with the old text; the board sets Archived and the document stays online; an editor's "in review" existed only in a version. "Publish changes" showed "Status: Published" to an editor although nothing was published | Every save writes the document row (`saveToLiveRow`, `src/lib/access.ts`); the eight reviewed collections show one Save button and Payload's own status line is hidden (`withSingleSave`). The Status field alone decides what is live. **Changed behaviour:** changes can no longer be parked on a live document, and a draft must pass required-field validation to be saved | `qa/security/a1-single-save.test.ts` (29; 25 fail on the old code) |
+| A3 | **Edits to a published document never reached the public site** — in all seven collections with a detail page. The cache hook only fired when a document moved into or out of `published`. Archived and deleted news also stayed online: the news detail query carried a cache tag nothing ever cleared | Commit `91e4042`: the hook fires whenever the document is or was published; the news detail query uses the collection tag. Publish, edit, archive and delete now show on `/de`, `/ar` and `/en` in under a second | `qa/security/prod-propagation.test.ts` (14, production build; 8 fail on the old code) |
+
+**Still open from this pass.**
+
+| # | Item | Size |
+|---|---|---|
+| A2 | `npm run generate:importmap` (and the other `payload` CLI commands) crash with `ERR_REQUIRE_ASYNC_MODULE` — the known "no standalone script can load payload.config" problem. The committed import map is correct (the admin loads every component) and was extended by hand for A1; a new admin component needs the same manual entry in `src/app/(payload)/admin/importMap.js` | unknown |
+| A4 | After archiving, news, events, guide articles and experts answer **200 with an empty page** instead of 404 (this is F3). Services, roadmaps and jobs answer 404 | see F3 |
+| A5 | The Status dropdown and the "last administrator" message are English/German mixed; Payload's own toasts follow the account language | Phase 4 |
+| A6 | Not exercised through the form: choosing a Status in the dropdown (the automated browser could not open it in a background window). The request it sends is covered by the A1 tests | tester pass |
