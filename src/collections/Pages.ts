@@ -8,6 +8,7 @@ import {
   enforceReviewStatusAccess,
 } from '@/lib/access'
 import { notifyBoardOnReview } from '@/hooks/notifyBoardOnReview'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 import { Hero } from '@/blocks/Hero'
 import { RichTextBlock } from '@/blocks/RichText'
 import { ImageText } from '@/blocks/ImageText'
@@ -73,6 +74,8 @@ export const Pages: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [enforceReviewStatusAccess, syncPublishStatus, notifyBoardOnReview],
+    afterChange: [makeRevalidateOnPublish('pages')],
+    afterDelete: [makeRevalidateOnDelete('pages')],
   },
   access: {
     read: readPublishedOrEditorPlus,

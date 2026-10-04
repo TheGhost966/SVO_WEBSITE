@@ -11,6 +11,10 @@
  *
  * Per collection with a detail page, in German, Arabic and English: publish → the page shows it;
  * edit → the page shows the new text; archive → the text is gone; delete → gone.
+ *
+ * The independent tester of the same pass (T2-02, T2-04, T2-05, T2-07, T2-13) added: partners,
+ * categories and pages had no cache hook at all; a cover image stored on the server itself came out
+ * as a broken image; the events list logged a missing translation.
  */
 import { randomBytes } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -19,7 +23,7 @@ import { startApp, type RunningApp } from '../harness/app'
 import { cloneTemplate } from '../harness/db'
 import { writeEvidence } from '../harness/evidence'
 import { ensureProdBuild, prodEnv, PROD_PORT } from '../harness/prodBuild'
-import { buildDoc, PASSWORD, uniq } from '../harness/seed'
+import { buildDoc, mediaForm, PASSWORD, uniq } from '../harness/seed'
 
 const DB = 'svo_qa_test_prod_propagation'
 const ADMIN_EMAIL = 'qa-propagation-admin@test.invalid'
@@ -136,5 +140,103 @@ describe('production: what the board saves reaches the public site', () => {
     expect((await api.delete(`/api/${collection}/${doc.id}`, token)).status).toBe(200)
     expect(await settles(paths, (p) => !p.html.includes(marker)), `${collection}: deleted content is no longer served`).not.toBeNull()
     await api.delete(`/api/${collection}/${draft.body.doc.id}`, token)
+  })
+
+  const upload = async () => {
+    const res = await api.request('POST', '/api/media', { token, form: mediaForm('QA propagation image') })
+    if (res.status !== 201) throw new Error(`upload: ${res.status} ${res.text.slice(0, 300)}`)
+    return res.body.doc as { id: number; url: string; filename: string }
+  }
+
+  it('REGRESSION T2-02: a partner shows on the partner page when created, renamed and deleted', async () => {
+    const paths = ['/de/partner', '/ar/partners', '/en/partners']
+    const first = uniq('QAPROP-PARTNER-FIRST')
+    const second = uniq('QAPROP-PARTNER-SECOND')
+    // The page is in the cache before the partner exists — the state the tester found it in.
+    for (const p of await Promise.all(paths.map(page))) expect(p.status).toBe(200)
+
+    const logo = await upload()
+    const created = await api.post('/api/partners', { name: first, logo: logo.id, type: 'partner', order: 1 }, token)
+    expect(created.status, created.text.slice(0, 200)).toBe(201)
+    const id = created.body.doc.id
+    expect(await settles(paths, (p) => p.html.includes(first)), 'new partner listed').not.toBeNull()
+
+    expect((await api.patch(`/api/partners/${id}`, { name: second }, token)).status).toBe(200)
+    expect(await settles(paths, (p) => p.html.includes(second) && !p.html.includes(first)), 'renamed partner listed').not.toBeNull()
+
+    expect((await api.delete(`/api/partners/${id}`, token)).status).toBe(200)
+    expect(await settles(paths, (p) => !p.html.includes(second)), 'deleted partner gone').not.toBeNull()
+    await api.delete(`/api/media/${logo.id}`, token)
+  })
+
+  it('REGRESSION T2-05: renaming a category shows on the news list', async () => {
+    const paths = ['/de/nachrichten', '/ar/news', '/en/news']
+    const first = uniq('QAPROP-CAT-FIRST')
+    const second = uniq('QAPROP-CAT-SECOND')
+    const category = await api.post('/api/categories', { name: first, slug: uniq('qaprop-cat'), type: 'news' }, token)
+    expect(category.status, category.text.slice(0, 200)).toBe(201)
+    const news = await api.post('/api/news', { ...buildDoc('news', {}, 'published'), category: category.body.doc.id }, token)
+    expect(news.status, news.text.slice(0, 200)).toBe(201)
+    expect(await settles(paths, (p) => p.html.includes(first)), 'category on the news list').not.toBeNull()
+
+    expect((await api.patch(`/api/categories/${category.body.doc.id}`, { name: second }, token)).status).toBe(200)
+    expect(await settles(paths, (p) => p.html.includes(second) && !p.html.includes(first)), 'renamed category on the news list').not.toBeNull()
+
+    await api.delete(`/api/news/${news.body.doc.id}`, token)
+    await api.delete(`/api/categories/${category.body.doc.id}`, token)
+  })
+
+  it('REGRESSION T2-07: publishing and editing the "about" page shows on /ueber-uns and /about', async () => {
+    const paths = ['/de/ueber-uns', '/ar/about', '/en/about']
+    const first = uniq('QAPROP-ABOUT-FIRST')
+    const second = uniq('QAPROP-ABOUT-SECOND')
+    for (const p of await Promise.all(paths.map(page))) expect(p.status).toBe(200)
+
+    const created = await api.post('/api/pages', { title: first, slug: 'about', reviewStatus: 'published' }, token)
+    expect(created.status, created.text.slice(0, 200)).toBe(201)
+    expect(await settles(paths, (p) => p.html.includes(first)), 'published page picked up').not.toBeNull()
+
+    expect((await api.patch(`/api/pages/${created.body.doc.id}`, { title: second }, token)).status).toBe(200)
+    expect(await settles(paths, (p) => p.html.includes(second) && !p.html.includes(first)), 'edit picked up').not.toBeNull()
+
+    expect((await api.delete(`/api/pages/${created.body.doc.id}`, token)).status).toBe(200)
+    expect(await settles(paths, (p) => !p.html.includes(second)), 'deleted page gone').not.toBeNull()
+  })
+
+  it('REGRESSION T2-04: a cover image stored on this server is served through the image optimiser, not as a broken image', async () => {
+    const image = await upload()
+    const news = await api.post('/api/news', { ...buildDoc('news', {}, 'published'), coverImage: image.id }, token)
+    expect(news.status, news.text.slice(0, 200)).toBe(201)
+    const path = DETAIL.news('de', news.body.doc.slug)
+    expect(await settles([path], (p) => p.status === 200 && p.html.includes('/_next/image?url=')), 'page with an optimised image').not.toBeNull()
+
+    const html = (await page(path)).html.replace(/&amp;/g, '&')
+    const sources = [...html.matchAll(/\/_next\/image\?url=([^&"\s]+)&w=(\d+)&q=(\d+)/g)].filter((m) => decodeURIComponent(m[1]).includes(image.filename.replace(/\.png$/, '')))
+    expect(sources.length, 'the cover image is on the page').toBeGreaterThan(0)
+    const statuses: Record<string, number> = {}
+    for (const m of sources.slice(0, 3)) {
+      // next/image answers 400 for an absolute URL whose host is not allow-listed.
+      expect(decodeURIComponent(m[1]), 'image URL is relative to this site').toMatch(/^\//)
+      const res = await fetch(`${app.baseUrl}${m[0]}`, { signal: AbortSignal.timeout(180_000) })
+      await res.arrayBuffer()
+      statuses[m[0]] = res.status
+      expect(res.status, m[0]).toBe(200)
+    }
+    evidence.coverImage = statuses
+    await api.delete(`/api/news/${news.body.doc.id}`, token)
+    await api.delete(`/api/media/${image.id}`, token)
+  })
+
+  it('REGRESSION T2-13: the events list renders in all three languages without a missing translation', async () => {
+    // The category filter — and with it the "all categories" label — only renders once an event
+    // category exists.
+    const name = uniq('QAPROP-EVENTCAT')
+    const category = await api.post('/api/categories', { name, slug: uniq('qaprop-eventcat'), type: 'event' }, token)
+    expect(category.status, category.text.slice(0, 200)).toBe(201)
+    const paths = ['/de/veranstaltungen', '/ar/events', '/en/events']
+    expect(await settles(paths, (p) => p.status === 200 && p.html.includes(name)), 'category filter rendered').not.toBeNull()
+    for (const p of await Promise.all(paths.map(page))) expect(p.html, 'untranslated message key').not.toContain('events.filterAll')
+    expect(app.output()).not.toMatch(/MISSING_MESSAGE/)
+    await api.delete(`/api/categories/${category.body.doc.id}`, token)
   })
 })

@@ -55,7 +55,33 @@ export const getPageBySlug = unstable_cache(
         depth: 3,
         limit: 1,
       })
-      return (result.docs[0] as unknown as PageDoc) ?? null
+      if (result.docs[0] || locale === 'de') return (result.docs[0] as unknown as PageDoc) ?? null
+
+      // `slug` is localized, so a page that only has its German slug is not found in Arabic or
+      // English — the About page then showed its "content pending" placeholder there although the
+      // German page was published. Find it by its German slug and read it in the requested
+      // locale; untranslated fields fall back to German like everywhere else on the site.
+      const german = await payload.find({
+        collection: 'pages',
+        where: {
+          and: [
+            { slug: { equals: slug } },
+            { reviewStatus: { equals: 'published' } },
+          ],
+        },
+        locale: 'de',
+        depth: 0,
+        limit: 1,
+      })
+      if (!german.docs[0]) return null
+      const page = await payload.findByID({
+        collection: 'pages',
+        id: german.docs[0].id,
+        locale: locale as 'de' | 'ar' | 'en',
+        depth: 3,
+        disableErrors: true,
+      })
+      return (page as unknown as PageDoc) ?? null
     } catch {
       return null
     }
@@ -187,7 +213,7 @@ export const getNewsCategories = unstable_cache(
     }
   },
   ['news-categories'],
-  { revalidate: 3600, tags: ['categories'] },
+  { revalidate: 3600, tags: [tags.categories()] },
 )
 
 export const getEventCategories = unstable_cache(
@@ -207,7 +233,7 @@ export const getEventCategories = unstable_cache(
     }
   },
   ['event-categories'],
-  { revalidate: 3600, tags: ['categories'] },
+  { revalidate: 3600, tags: [tags.categories()] },
 )
 
 export const getUpcomingEventsPaged = unstable_cache(
@@ -648,7 +674,7 @@ export const getExpertCategories = unstable_cache(
     }
   },
   ['expert-categories'],
-  { revalidate: 3600, tags: ['categories'] },
+  { revalidate: 3600, tags: [tags.categories()] },
 )
 
 /** Published + verified experts only, optionally filtered by category slug. */
@@ -876,7 +902,7 @@ export const getPartners = unstable_cache(
     }
   },
   ['partners'],
-  { revalidate: 3600, tags: ['partners'] },
+  { revalidate: 3600, tags: [tags.partners()] },
 )
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────

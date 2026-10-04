@@ -20,4 +20,6 @@ export const tags = {
   pages: (locale?: string) => (locale ? `pages-${locale}` : 'pages'),
   navigation: (locale?: string) => (locale ? `navigation-${locale}` : 'navigation'),
   siteSettings: () => 'site-settings',
+  partners: () => 'partners',
+  categories: () => 'categories',
 }

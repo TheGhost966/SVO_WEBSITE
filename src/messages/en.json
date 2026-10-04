@@ -58,6 +58,7 @@
   },
   "events": {
     "title": "Events",
+    "filterAll": "All categories",
     "upcoming": "Upcoming events",
     "past": "Past events",
     "online": "Online",

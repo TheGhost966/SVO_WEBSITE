@@ -68,6 +68,16 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
         case 'jobs':
           bust(tags.jobs())
           break
+        case 'partners':
+          bust(tags.partners())
+          break
+        case 'categories':
+          // Category names are printed on the news, events and experts pages as well.
+          bust(tags.categories())
+          bust(tags.news())
+          bust(tags.events())
+          bust(tags.experts())
+          break
       }
     } catch {
       // Outside Next.js context (CLI, migrations) — revalidateTag is a no-op

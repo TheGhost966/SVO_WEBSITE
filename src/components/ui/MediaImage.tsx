@@ -26,11 +26,20 @@ const DEFAULT_SIZES: Record<NonNullable<Props['size']>, string> = {
   original: '(max-width: 1200px) 100vw, 1200px',
 }
 
+const SERVER = (process.env.NEXT_PUBLIC_SERVER_URL ?? '').replace(/\/$/, '')
+
+/**
+ * Payload prefixes the URL of a locally stored upload with the server URL. next/image refuses an
+ * absolute URL whose host is not in `images.remotePatterns` (400, broken image), so a URL on this
+ * site's own origin is made relative again. Vercel Blob URLs are allow-listed and pass through.
+ */
+const sameOriginRelative = (url: string) => (SERVER && url.startsWith(`${SERVER}/`) ? url.slice(SERVER.length) : url)
+
 function resolveUrl(media: ResolvedMedia, size: Props['size']): string | null {
   if (size && size !== 'original' && media.sizes?.[size]?.url) {
-    return media.sizes[size]!.url!
+    return sameOriginRelative(media.sizes[size]!.url!)
   }
-  return media.url ?? null
+  return media.url ? sameOriginRelative(media.url) : null
 }
 
 /**

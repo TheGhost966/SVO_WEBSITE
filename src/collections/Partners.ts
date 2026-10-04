@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 export const Partners: CollectionConfig = {
   slug: 'partners',
@@ -46,6 +47,11 @@ export const Partners: CollectionConfig = {
       label: { de: 'Reihenfolge', ar: 'الترتيب', en: 'Display order' },
     },
   ],
+  // Shown on cached public pages: without these a change only appeared when the cache expired.
+  hooks: {
+    afterChange: [makeRevalidateOnPublish('partners')],
+    afterDelete: [makeRevalidateOnDelete('partners')],
+  },
   access: {
     read: () => true,
     create: isEditorOrAbove,

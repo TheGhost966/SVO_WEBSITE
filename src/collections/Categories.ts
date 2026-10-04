@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isEditorOrAbove } from '@/lib/access'
+import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -43,6 +44,11 @@ export const Categories: CollectionConfig = {
       },
     },
   ],
+  // Shown on cached public pages: without these a change only appeared when the cache expired.
+  hooks: {
+    afterChange: [makeRevalidateOnPublish('categories')],
+    afterDelete: [makeRevalidateOnDelete('categories')],
+  },
   access: {
     read: () => true,
     create: isEditorOrAbove,

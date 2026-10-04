@@ -1,4 +1,4 @@
-import type { Access, CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig } from 'payload'
+import type { Access, CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig, Field, SelectField } from 'payload'
 
 /** The roles that work on unpublished content. */
 const EDITOR_PLUS = ['admin', 'board', 'editor']
@@ -82,16 +82,36 @@ export const saveToLiveRow: CollectionBeforeOperationHook = ({ args, operation }
 const NOTHING = '@/components/admin/SingleSave#Nothing'
 
 /**
+ * The Status options a user may pick. An editor cannot publish or archive
+ * ({@link enforceReviewStatusAccess} quietly puts the old value back), so those two are not offered
+ * — except the one the document already has, which the read-only form still has to display.
+ */
+const statusOptionsForRole: NonNullable<SelectField['filterOptions']> = ({ data, options, req }) => {
+  if (req.user?.role !== 'editor') return options
+  return options.filter((option) => {
+    const value = typeof option === 'string' ? option : option.value
+    return !['published', 'archived'].includes(value) || value === data?.reviewStatus
+  })
+}
+
+const withStatusOptions = (fields: Field[]): Field[] =>
+  fields.map((field) =>
+    'name' in field && field.name === 'reviewStatus' && field.type === 'select' ? { ...field, filterOptions: statusOptionsForRole } : field,
+  )
+
+/**
  * Applied to every collection in payload.config.ts: a collection with drafts gets
  * {@link saveToLiveRow} and one "Save" button in place of Payload's "Save Draft" / "Publish
- * changes" pair. Payload's own status line ("Status: Published — Unpublish") is hidden as well: it
- * follows the button that was pressed, and the Status field is the one that counts.
+ * changes" pair. Payload's own status line and its "Unpublish" menu entry are hidden as well: they
+ * act on Payload's draft flag, which follows the Status field and cannot be set on its own, so
+ * "Unpublish" reported success and changed nothing.
  */
 export function withSingleSave(collection: CollectionConfig): CollectionConfig {
   const hasDrafts = typeof collection.versions === 'object' && Boolean(collection.versions.drafts)
   if (!hasDrafts) return collection
   return {
     ...collection,
+    fields: withStatusOptions(collection.fields),
     admin: {
       ...collection.admin,
       components: {
@@ -101,6 +121,7 @@ export function withSingleSave(collection: CollectionConfig): CollectionConfig {
           SaveDraftButton: NOTHING,
           PublishButton: '@payloadcms/ui#SaveButton',
           Status: NOTHING,
+          UnpublishButton: NOTHING,
         },
       },
     },
