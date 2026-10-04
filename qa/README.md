@@ -5,8 +5,8 @@ and results: `../QA_FINDINGS_P0.md`.
 
 ```bash
 npm install        # first time (downloads embedded Postgres binaries)
-npm run test:p0    # S1, S2, S4, S5/S6
-npm run test:s3    # S3 (PAYLOAD_SECRET) + S14 (first admin) — dev variants + a real production build/start
+npm run test:p0    # S1, S2, S4, S5/S6, S7/S8, N3, S13 (headers), S16/S17, S21 (users), harness + query hygiene
+npm run test:s3    # S3 (PAYLOAD_SECRET), S14 (first admin), production-build checks — dev variants + a real production build/start
 npm run test:all
 ```
 

@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01
 **Basis:** `QA_AUDIT.md`, `QA_FINDINGS_P0.md`
-**Status:** nothing is committed. Every change is in the working tree.
+**Status:** S1–S8 and N3 are committed on `master` (57c0058, 02ccab3, f9a85ed). S13, S14, S16 and S17 are committed on the branch `launch-hardening` (see "fourth pass" at the end).
 
 Each fix was proven in two directions:
 1. The new regression tests pass with the fix.
@@ -189,11 +189,11 @@ Unchanged and covered by tests:
 | S10 | Contact form had no rate limit or honeypot | **Addressed by S2** (in-memory limit; see S11) |
 | S11 | In-memory, XFF-keyed rate limiter (expert form and now contact form) | Open |
 | S12 | No app-level length limits | Contact form **addressed**; expert application still relies on Payload's 40,000-char default |
-| S13 | Missing security headers (CSP, HSTS, frame-ancestors) | Open |
-| S14 | Anonymous first-user registration on an empty DB | Open (deployment procedure) |
+| S13 | Missing security headers (CSP, HSTS, frame-ancestors) | **Fixed** (fourth pass, below) |
+| S14 | Anonymous first-user registration on an empty DB | **Fixed** (fourth pass, below) |
 | S15 | Unbounded `limit`/`depth`/`where` on public REST | Open |
-| S16 | Expert `website` URL scheme not validated | Open |
-| S17 | JSON-LD `</script>` break-out (editor-controlled content) | Open |
+| S16 | Expert `website` URL scheme not validated | **Fixed** (fourth pass, below) |
+| S17 | JSON-LD `</script>` break-out (editor-controlled content) | **Fixed** (fourth pass, below) |
 | S18 | `GET /api/media` lists every upload publicly | Open |
 | S19 | GDPR retention settings not enforced | Open |
 | S20 | Unverified experts can be published (by design, warning only) | Open / product decision |
@@ -215,3 +215,64 @@ Unchanged and covered by tests:
 6. **Dev fallback continuity.** The dev-only fallback keeps the old constant's value so existing dev sessions keep working. It is on the production denylist.
 7. **Unchanged semantics outside production:** an explicitly empty `PAYLOAD_SECRET=""` still yields Payload's "missing secret key" error rather than the fallback.
 8. **Failure mode:** "fail clearly and safely" in production is met by Next refusing to prepare the server (logged, all requests 500), not by exiting the process.
+
+## S13, S14, S16, S17 (fourth pass, 2026-10-04)
+
+Branch `launch-hardening`. Each fix was mutation-checked the same way as the earlier passes: the
+fix reverted, the new regression tests run, the failures recorded, the fix restored.
+
+| Finding | Root cause | Fix | Regression test | Mutation check |
+|---|---|---|---|---|
+| **S14:** anonymous first-user registration | Payload's built-in `POST /api/users/first-register` creates the first account, with a caller-chosen role, for whoever calls it on an empty `users` table | `src/lib/firstAdmin.ts`. A custom `/first-register` endpoint on `Users` (custom endpoints are matched before Payload's own): **production → always 403** with a message naming `npm run create-admin`; outside production it stays open, role forced to `admin`. `CREATE_ADMIN_ON_BOOT=1` (`src/instrumentation.node.ts`, set by `npm run create-admin`) creates an admin only when `users` is empty and never logs the password. A `beforeDelete` hook refuses to delete the last remaining admin, also when one bulk request matches several admins | `qa/security/s14-first-admin.test.ts` (15): dev server and a real production build, including six concurrent first-register calls that must leave 0 users. The S3 production test now creates its admin through the boot flag | Endpoint + hook removed: 13 of 15 fail. Hook only removed: the 5 last-admin tests fail |
+| **S16:** expert `website` URL scheme | The value from the public application form was stored and rendered as `href` unchecked | `src/lib/safeUrl.ts`, two layers. **Storage:** `validate` on the `Experts.website` field (http, https, mailto only) — covers REST, admin and the form's Local API call; the form action rejects it first and turns `www.example.org` into an https URL. **Render:** the expert page emits the link only when `safeExternalUrl` accepts the stored value | `qa/security/s16-s17-urls-jsonld.test.ts`: 12 unsafe values × (helper, REST create, rendered page with the value written straight into the database), update as admin/board/editor, the real public form, 4 valid values | Validation, action check and render check reverted: every storage, form and render test fails |
+| **S17:** JSON-LD `</script>` break-out | 16 call sites wrote `JSON.stringify(...)` into `<script type="application/ld+json">` via `dangerouslySetInnerHTML`; a title containing `</script>` ends the data block | One serializer, `serializeJsonLd` (`src/lib/jsonld.ts`), escaping `<`, `>`, `&`, U+2028, U+2029, behind one component, `<JsonLd>` (`src/components/ui/JsonLd.tsx`), used by all eight pages | Same file: documents with the payload in their titles are created through the API and the eight public pages are fetched — no raw break-out anywhere in the HTML, the expected number of JSON-LD blocks, each parses and still carries the exact title. Static tests: the component is the only emitter | Escaping removed: the helper test and all 8 rendered-page tests fail |
+| **S13:** missing security headers | Only `nosniff` and `Referrer-Policy` were set | `next.config.ts`: `X-Frame-Options`, `Permissions-Policy`, HSTS (production only) on everything; an **enforced** CSP on the public site; on `/admin` the full policy as `Content-Security-Policy-Report-Only` plus an enforced `frame-ancestors 'self'`; `/api` and `/media` get `frame-ancestors 'self'` | `qa/security/s13-security-headers.test.ts` (dev server) and `qa/security/prod-build.test.ts` (production build: HSTS, no `unsafe-eval`, and the admin panel still loading, logging in, saving a document and uploading an image) | Dev tests run against the unchanged `next.config.ts` first: see `qa/evidence/run-s13-prefix.txt` |
+
+**Behaviour intentionally changed**
+- A production build answers `POST /api/users/first-register` with 403 whatever the state of the
+  database. `/admin/create-first-user` still renders on an empty production database but cannot
+  create anything; the error names the command.
+- The last remaining administrator cannot be deleted (403).
+- An expert `website` that is not an absolute http, https or mailto URL is rejected on save (400) and
+  in the public form; existing rows with such a value keep it but no longer render a link, and
+  cannot be saved again until it is corrected.
+- JSON-LD output is byte-different (`<` → `<` …) and semantically identical.
+- The public site sends an enforced Content-Security-Policy. Anything loaded from another origin
+  in future (a map, a video embed, analytics) must be added to it in `next.config.ts`.
+
+**QA harness changes** (no test was removed or loosened)
+- Every harness boot compiles into its own `qa/.tmp/next-*` directory; nothing touches `.next`.
+- The embedded Postgres is initialised as UTF-8, like production. It used the Windows code page
+  before, which cannot store U+2028 or Arabic text.
+- One production build per run is shared by the S3, S14 and production-header files.
+
+**Still open from `QA_AUDIT.md`:** S9, S11, S12 (expert form), S15, S18, S19, S20, N1, P1–P10.
+`LAUNCH-CHECKLIST.md` lists which of these block a public launch.
+
+**Test run after the fourth pass**
+
+| Command | Result |
+|---|---|
+| `npm run test:p0` | **Test Files 10 passed (10) · Tests 499 passed (499)** (including S21, below) |
+| `npm run test:s3` | **Test Files 3 passed (3) · Tests 53 passed (53)** (S3, S14 and the production-build file; one shared `next build`) |
+| `npm run typecheck` | exit 0 |
+| `npm run lint` | exit 0 |
+
+Total: **552 tests** (394 before this pass).
+
+## S21: anonymous read and bulk update of `users` (found in the fifth-phase review, 2026-10-04)
+
+Not in `QA_AUDIT.md`; `users` was never part of the role matrix. Found by the independent security
+review against the production build, reproduced on the disposable database, fixed.
+
+| | |
+|---|---|
+| **Root cause** | `isAdminOrSelf` (`src/lib/access.ts`) ended in `req.user?.id === id`. A list or bulk request has no `id`, an anonymous one no user: `undefined === undefined`, so `read` and `update` on `users` were granted to anyone |
+| **Effect on the unfixed code** | `GET /api/users` returned every account with email and role. An anonymous bulk `PATCH /api/users?where[id][equals]=…` with `{ "password": … }` answered 200; afterwards the old password was rejected and the attacker's accepted (`qa/evidence/s21-anonymous-password-overwrite.json` from the pre-fix run: `attackStatus 200, oldPassword 401, attackerPassword 200`) |
+| **Fix** | No user → `false`; admin → `true`; anyone else → the constraint `id = own id`, which holds for by-id, list and bulk operations alike |
+| **Regression test** | `qa/security/s21-users-access.test.ts` (20): six anonymous list/count variants, by-id, the password overwrite, a bulk rename of every admin, and for viewer / editor / board that they see and change only themselves; admin keeps full access |
+| **Mutation check** | Run against the unfixed code first: 11 of 20 fail (`qa/evidence/run-s21-prefix.txt`) |
+| **Behaviour changed** | Anonymous `GET /api/users` and bulk `PATCH` now answer 403. A signed-in non-admin listing users gets their own account (it was 403 before) |
+
+**If any earlier build was ever reachable from the internet, treat the accounts as compromised** —
+see `LAUNCH-CHECKLIST.md` section 0.
