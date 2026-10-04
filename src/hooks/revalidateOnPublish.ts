@@ -12,8 +12,11 @@ function bust(tag: string) {
 
 /**
  * Fires after any change to a publishable collection document.
- * When a document moves into or out of 'published', blows the ISR cache
- * so the public site reflects the change within the next request cycle.
+ * Whenever the document is, or just was, 'published', blows the ISR cache
+ * so the public site reflects the change within the next request cycle:
+ * publishing, unpublishing/archiving, and every edit to a published document.
+ * Only a change that stays unpublished (draft → draft, draft → in review)
+ * has nothing to show and is skipped.
  *
  * Works because Payload 3.x runs inside the same Next.js process,
  * so `revalidateTag` from `next/cache` is available directly.
@@ -25,18 +28,19 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
     // Collections without a reviewStatus field (e.g. service-pillars — no
     // draft/publish workflow, always publicly readable) have nothing to
     // "transition" — always revalidate on any change. Collections that do
-    // have the field only need a cache bust when publish status actually
-    // changes; without this check, `undefined === undefined` would always
-    // be true and the hook would never revalidate at all for those.
+    // have the field are skipped only while the document stays unpublished.
+    // This used to compare the two states and skip when they were equal,
+    // which also skipped published → published: an edit to a live document
+    // never reached the site (qa/security/prod-propagation.test.ts).
     const hasReviewStatus = Boolean(doc && 'reviewStatus' in doc)
     if (hasReviewStatus) {
       const wasPublished = previousDoc?.reviewStatus === 'published'
       const isPublished = doc?.reviewStatus === 'published'
-      if (wasPublished === isPublished) return doc
+      if (!wasPublished && !isPublished) return doc
     }
 
     try {
-      // Blow the collection list cache
+      // One tag per collection covers its lists and its detail pages (src/lib/queries.ts)
       switch (collection) {
         case 'news':
           bust(tags.news())
@@ -64,31 +68,6 @@ export function makeRevalidateOnPublish(collection: string): CollectionAfterChan
         case 'jobs':
           bust(tags.jobs())
           break
-      }
-
-      // Blow per-slug caches across all locales
-      const slugSource = doc?.slug ?? previousDoc?.slug
-      const slugs = new Set<string>()
-
-      if (typeof slugSource === 'string' && slugSource) {
-        slugs.add(slugSource)
-      } else if (slugSource && typeof slugSource === 'object') {
-        Object.values(slugSource as Record<string, unknown>)
-          .filter((v): v is string => typeof v === 'string' && Boolean(v))
-          .forEach((s) => slugs.add(s))
-      }
-
-      for (const slug of slugs) {
-        for (const locale of ['de', 'ar', 'en']) {
-          switch (collection) {
-            case 'news':
-              bust(tags.newsItem(slug, locale))
-              break
-            case 'events':
-              bust(tags.eventsItem(slug, locale))
-              break
-          }
-        }
       }
     } catch {
       // Outside Next.js context (CLI, migrations) — revalidateTag is a no-op

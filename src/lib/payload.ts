@@ -11,9 +11,7 @@ export const getPayloadClient = cache(async () => getPayload({ config }))
 /** Standard ISR revalidation tag helpers — use with Next.js `revalidateTag` */
 export const tags = {
   news: (locale?: string) => (locale ? `news-${locale}` : 'news'),
-  newsItem: (slug: string, locale: string) => `news-${slug}-${locale}`,
   events: (locale?: string) => (locale ? `events-${locale}` : 'events'),
-  eventsItem: (slug: string, locale: string) => `events-${slug}-${locale}`,
   services: (locale?: string) => (locale ? `services-${locale}` : 'services'),
   guide: (locale?: string) => (locale ? `guide-${locale}` : 'guide'),
   roadmaps: (locale?: string) => (locale ? `roadmaps-${locale}` : 'roadmaps'),

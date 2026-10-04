@@ -138,7 +138,7 @@ export const getNewsBySlug = unstable_cache(
     }
   },
   ['news-by-slug'],
-  { revalidate: 60, tags: [tags.newsItem('', '')] },
+  { revalidate: 60, tags: [tags.news()] },
 )
 
 // ─── Events ──────────────────────────────────────────────────────────────────
