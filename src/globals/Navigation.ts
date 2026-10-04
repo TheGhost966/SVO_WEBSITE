@@ -4,6 +4,10 @@ import { isAdminOrBoard } from '@/lib/access'
 export const Navigation: GlobalConfig = {
   slug: 'navigation',
   admin: {
+    // Hidden from the admin panel: the public header and footer are written in code
+    // (src/components/layout) and do not read this global, so editing it changed nothing.
+    // The global and its data stay, in case the menus are wired to it later (DECISIONS.md).
+    hidden: true,
     group: { de: 'Einstellungen', ar: 'الإعدادات', en: 'Settings' },
     description: {
       de: 'Header- und Footer-Navigation. Alle Bezeichnungen sind mehrsprachig editierbar.',

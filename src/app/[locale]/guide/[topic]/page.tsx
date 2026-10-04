@@ -10,7 +10,6 @@ import {
   getGuideTopicBySlug,
   getGuideArticlesByTopic,
 } from '@/lib/queries'
-import { getPayloadClient } from '@/lib/payload'
 import { JsonLd } from '@/components/ui/JsonLd'
 
 const GUIDE_BASE: Record<string, string> = {
@@ -28,29 +27,13 @@ type Props = {
   searchParams: Promise<{ page?: string }>
 }
 
-// ─── Static params ────────────────────────────────────────────────────────────
-
-export async function generateStaticParams() {
-  try {
-    const payload = await getPayloadClient()
-    // slug is unlocalized — one fetch covers every locale variant.
-    const result = await payload.find({
-      collection: 'guide-topics',
-      depth: 0,
-      limit: 50,
-    })
-    const slugs = result.docs
-      .map((doc) => (doc as { slug?: unknown }).slug)
-      .filter((slug): slug is string => typeof slug === 'string')
-    return (['de', 'ar', 'en'] as const).flatMap((locale) =>
-      slugs.map((topic) => ({ locale, topic })),
-    )
-  } catch {
-    return []
-  }
-}
-
-export const dynamicParams = true
+// ─── Rendering ───────────────────────────────────────────────────────────────
+//
+// Rendered per request, like the other paginated lists: the page reads `?page=`. It used to be
+// pre-rendered (generateStaticParams) and relied on a `loading.tsx` to absorb the switch to
+// dynamic rendering — which also meant an unknown topic, and every article below it, answered
+// 200 before the page could say "not found". The queries are cached, so this costs no database
+// round trip per visit.
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
 

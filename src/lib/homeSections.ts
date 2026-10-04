@@ -7,10 +7,12 @@
  * Order matches the client's Figma concept (2026-09-21 re-alignment, superseding the original
  * AMENDMENT-03 §2.1 order): hero (with its search bar and stats strip), then wayfinding content
  * in the Figma's own sequence (help cards, roadmaps, guide, experts, jobs, events), then the
- * volunteer/idea CTA band, then news last, then the app band (Figma 10.png) — which announces
- * an app that does not exist yet and so is rendered as a "in Vorbereitung" notice rather than
- * store-download buttons. §2.2 still makes this order board-editable, and the band can be
- * switched off entirely from SiteSettings like any other section.
+ * volunteer/idea CTA band, then news last. §2.2 still makes this order board-editable.
+ *
+ * `appBand` (Figma 10.png, an app that does not exist) is no longer rendered and no longer offered
+ * in the admin (BRIEF-AMENDMENT-02 §2.4). The value itself stays in this list because it is part
+ * of a database enum and may be stored in an existing section order — removing it would be a
+ * schema change. See REMOVED_HOME_SECTIONS.
  */
 export const HOME_SECTIONS = [
   'hero',
@@ -28,6 +30,9 @@ export const HOME_SECTIONS = [
 
 export type HomeSection = (typeof HOME_SECTIONS)[number]
 
+/** Still valid as stored values, never rendered, not selectable in the admin. */
+export const REMOVED_HOME_SECTIONS: readonly HomeSection[] = ['appBand']
+
 export const HOME_SECTION_LABELS: Record<HomeSection, { de: string; ar: string; en: string }> = {
   hero: { de: 'Hero', ar: 'الصورة الرئيسية', en: 'Hero' },
   stats: { de: 'Statistik-Leiste', ar: 'شريط الإحصائيات', en: 'Stats band' },
@@ -39,13 +44,15 @@ export const HOME_SECTION_LABELS: Record<HomeSection, { de: string; ar: string; 
   experts: { de: 'Expert:innen', ar: 'الخبراء', en: 'Experts' },
   jobs: { de: 'Stellenangebote', ar: 'فرص العمل', en: 'Jobs' },
   ctaBand: { de: 'CTA-Band', ar: 'شريط الدعوة', en: 'CTA band' },
-  appBand: { de: 'App-Band (in Vorbereitung)', ar: 'شريط التطبيق (قيد الإعداد)', en: 'App band (in preparation)' },
+  appBand: { de: 'App-Band (entfernt)', ar: 'شريط التطبيق (أزيل)', en: 'App band (removed)' },
 }
 
 export type HomeSectionOrderRow = { section: HomeSection; enabled: boolean }
 
 /** Used whenever `SiteSettings.homeGroup.sectionOrder` is empty — never a blank homepage. */
-export const DEFAULT_HOME_SECTION_ORDER: HomeSectionOrderRow[] = HOME_SECTIONS.map((section) => ({
+export const DEFAULT_HOME_SECTION_ORDER: HomeSectionOrderRow[] = HOME_SECTIONS.filter(
+  (section) => !REMOVED_HOME_SECTIONS.includes(section),
+).map((section) => ({
   section,
   enabled: true,
 }))

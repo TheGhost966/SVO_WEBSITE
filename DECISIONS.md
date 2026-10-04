@@ -1088,6 +1088,67 @@ run (not one of `BRIEF-AMENDMENT-03.md` §5's seven numbered work items, and add
 feature mid-autonomous-run risks scope creep the Working Agreement explicitly warns against) —
 logged here so it doesn't stay invisible. Also logged under "Known issues" below.
 
+## Admin pass rulings (2026-10-04, phase 3b)
+
+Rulings by the developer on the open items of the admin pass. Each is implemented and tested; the
+tests are named so a later change of mind knows what to edit.
+
+- **One Save button; the Status field decides what is live.** Payload's "Save Draft" / "Publish
+  changes" pair, its status line and its "Unpublish" menu entry are replaced or hidden on the eight
+  reviewed collections (`withSingleSave`, `src/lib/access.ts`). Every save writes the document row
+  (`draft=true` is ignored). Given up with it: parking changes on a live document, and saving a
+  draft that fails required-field validation. *To reverse:* remove `withSingleSave` from
+  `payload.config.ts`. Tests: `qa/security/a1-single-save.test.ts`.
+- **The Navigation global is hidden, not deleted** (`admin.hidden: true`). The public header and
+  footer are written in code (`src/components/layout/Header.tsx`, `Footer.tsx`) and never read
+  the global, so editing it changed nothing on the site. The global, its table and its data stay —
+  no schema change. **Future option:** wire the header and footer to it. That is real work: the
+  header has a "Ressourcen" dropdown and a "Mitglied werden" button the global does not model, and
+  the links are typed, localized pathnames (`src/i18n/routing.ts`), not free text.
+- **Deleting and taxonomy are board work.** `media` and `board-members`: delete is board/admin.
+  `categories`, `guide-topics`, `service-pillars`: create, update and delete are board/admin;
+  editors read them and pick from them. These three have no review workflow, so every change is
+  live at once. Note that the board can now also *delete* them (before: admin only) — that is what
+  the ruling says. Spec: `CURRENT_POLICY` in `qa/security/s5-s6-role-matrix.test.ts`.
+- **What does not exist answers 404.** The cause of "200 with the not-found text" was a
+  `loading.tsx` above the detail routes: Next starts the response (200) before the page can call
+  `notFound()`. The list pages of news, events and experts moved into a `(list)` route group
+  together with their loading skeleton — same URL, but the skeleton no longer covers `[slug]`. The
+  guide topic page lost its `loading.tsx` and its `generateStaticParams`: it reads `?page=` and is
+  now rendered per request like the other paginated lists (its queries are cached). A catch-all
+  `[locale]/[...rest]` renders the localized not-found page for any other unknown path.
+  *Limit:* for a route that is generated on demand, Next sends the 404 with a minimal HTML shell
+  and renders the not-found page in the browser; the status code is right, the text needs
+  JavaScript. Tests: `qa/security/prod-site-rules.test.ts`.
+- **Homepage copy does not fall back to German.** `SiteSettings.homeGroup` is read without locale
+  fallback for Arabic and English (`getSiteSettings`): an empty field means "use the built-in text
+  of this language" (`src/components/home/copy.ts`). The rest of Site Settings keeps the German
+  fallback. A help card or stat label without a text in the current language is not shown.
+- **Restore for editors: a clear message, not a hidden button.** Payload offers no hook to hide
+  "Restore" by role and document state, so the cheaper branch of the ruling was taken: the refusal
+  now reads "Veröffentlichte und archivierte Inhalte kann nur der Vorstand … wiederherstellen"
+  (override of `version:problemRestoringVersion` in `payload.config.ts`, all three admin
+  languages). The same sentence appears for any other restore failure, which is rare and still
+  more helpful than "there was a problem".
+- **Guide articles show their cross-links** (BRIEF-AMENDMENT-01 §3): related roadmaps, services and
+  experts, under "Passend dazu". None of the three was rendered before. Only published targets are
+  linked, and the related documents are reduced to title and slug before they are cached — a
+  populated expert carries private contact data.
+- **The app band is deleted** (BRIEF-AMENDMENT-02 §2.4). Component and copy are gone. The value
+  `appBand` stays in `HOME_SECTIONS` because it is part of a database enum and may be stored in an
+  existing section order; it renders nothing and is no longer offered in the admin
+  (`REMOVED_HOME_SECTIONS`). Removing the enum value would be a schema change.
+- **The quiz is conditional, not removed.** The ruling: keep it only if every outcome links to a
+  real, published page. Whether that holds depends on which roadmaps are published and how they
+  are tagged — with the sample content it does not (no roadmap is tagged family, health or
+  studying, so e.g. "studying / good German / healthcare" finds nothing). Instead of deleting a
+  working feature, the rule is checked at runtime (`quizHasNoDeadEnds`, `src/lib/quiz.ts`): while
+  any combination of answers would find no roadmap, the homepage band is not shown and the quiz URL
+  answers 404; once the board has published and tagged roadmaps for all nine tags, both appear by
+  themselves. **Why hidden today:** dead ends exist with the current content.
+- **Could not be done as asked:** nothing in this list. Not attempted: making Payload's
+  `generate:importmap` CLI work (it crashes on this project); the import map is edited by hand.
+
 ## Known issues
 
 **`generate:types` and `npm run seed` still crash the same way; `db:migrate` no longer does — see

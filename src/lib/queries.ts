@@ -1,7 +1,8 @@
 import { unstable_cache } from 'next/cache'
 import type { Where } from 'payload'
 import { getPayloadClient, tags } from './payload'
-import type { NewsDoc, EventDoc, JobDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc, RoadmapDoc, ExpertDoc } from '@/types/payload'
+import type { NewsDoc, EventDoc, JobDoc, ServicePillarDoc, ServiceDoc, PageDoc, SiteSettingsDoc, PartnerDoc, GuideTopicDoc, GuideArticleDoc,
+  GuideRelatedLink, RoadmapDoc, ExpertDoc } from '@/types/payload'
 
 type PaginatedResult<T> = { docs: T[]; totalDocs: number; hasNextPage: boolean }
 
@@ -590,13 +591,32 @@ export const getGuideArticleBySlug = unstable_cache(
       const doc = result.docs[0] as unknown as GuideArticleDoc | undefined
       if (!doc) return null
       doc._isFallback = await isLocaleFallback('guide-articles', doc.id, locale)
+
+      // Cross-links (BRIEF-AMENDMENT-01 §3). The Local API populates relations regardless of their
+      // review status, and a populated expert carries private contact data — so keep only
+      // published targets, and of those only title and slug.
+      type Rel = { title?: string | null; name?: string | null; slug?: string | null; reviewStatus?: string | null; pillar?: unknown }
+      const published = (list: unknown): Rel[] =>
+        (Array.isArray(list) ? list : []).filter((r): r is Rel => Boolean(r) && typeof r === 'object' && (r as Rel).reviewStatus === 'published' && Boolean((r as Rel).slug))
+      const related: GuideRelatedLink[] = []
+      for (const r of published(doc.relatedRoadmaps)) related.push({ kind: 'roadmap', title: r.title ?? r.slug!, slug: r.slug! })
+      for (const r of published(doc.relatedServices)) {
+        const pillarSlug = r.pillar && typeof r.pillar === 'object' ? (r.pillar as { slug?: string | null }).slug : null
+        if (pillarSlug) related.push({ kind: 'service', title: r.title ?? r.slug!, slug: r.slug!, pillarSlug })
+      }
+      for (const r of published(doc.relatedExperts)) related.push({ kind: 'expert', title: r.name ?? r.slug!, slug: r.slug! })
+      doc._related = related
+      delete doc.relatedRoadmaps
+      delete doc.relatedServices
+      delete doc.relatedExperts
       return doc
     } catch {
       return null
     }
   },
   ['guide-article-by-slug'],
-  { revalidate: 60, tags: [tags.guide()] },
+  // The page prints titles of roadmaps, services and experts, so a change there has to refresh it.
+  { revalidate: 60, tags: [tags.guide(), tags.roadmaps(), tags.services(), tags.experts()] },
 )
 
 // ─── Roadmaps ──────────────────────────────────────────────────────────────────
@@ -872,12 +892,25 @@ export const getSiteSettings = unstable_cache(
   async (locale: string): Promise<SiteSettingsDoc | null> => {
     try {
       const payload = await getPayloadClient()
-      const result = await payload.findGlobal({
+      const result = (await payload.findGlobal({
         slug: 'site-settings',
         locale: locale as 'de' | 'ar' | 'en',
         depth: 2,
-      })
-      return result as unknown as SiteSettingsDoc
+      })) as unknown as SiteSettingsDoc
+      if (locale === 'de') return result
+
+      // Homepage copy has built-in texts in all three languages (components/home/copy.ts). With
+      // Payload's locale fallback an empty Arabic or English field came back holding the German
+      // text, which then replaced the built-in Arabic / English wording. So the homepage group is
+      // read without fallback: an empty field stays empty and the built-in text of THIS locale is
+      // used. Everything else in the global keeps the German fallback.
+      const strict = (await payload.findGlobal({
+        slug: 'site-settings',
+        locale: locale as 'ar' | 'en',
+        fallbackLocale: false,
+        depth: 2,
+      })) as unknown as SiteSettingsDoc
+      return { ...result, homeGroup: strict.homeGroup }
     } catch {
       return null
     }

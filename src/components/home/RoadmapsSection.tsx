@@ -14,10 +14,13 @@ import { homeCopy } from './copy'
 export function RoadmapsSection({
   locale,
   roadmaps,
+  quizReady,
   t,
 }: {
   locale: string
   roadmaps: RoadmapDoc[]
+  /** False while some quiz answers would find no roadmap — the band is then left out. */
+  quizReady: boolean
   t: (key: string) => string
 }) {
   if (roadmaps.length === 0) return null
@@ -88,6 +91,7 @@ export function RoadmapsSection({
       {/* Figma 3.png's green band under the cards. Real, not decorative: it leads to the
           four-question flow at /quiz, which ranks these same roadmaps by the tags the board sets
           on each one. */}
+      {quizReady && (
       <div className="mt-8 flex flex-col items-start gap-5 rounded-[22px] bg-brand-green-lt p-7 md:flex-row md:items-center md:justify-between md:p-8">
         <div>
           <h3 className="text-xl font-bold text-[#1F5E1B] md:text-2xl">{copy.quiz.heading}</h3>
@@ -101,6 +105,7 @@ export function RoadmapsSection({
           <span aria-hidden="true">{forwardArrow(locale)}</span>
         </Link>
       </div>
+      )}
     </HomeSectionShell>
   )
 }

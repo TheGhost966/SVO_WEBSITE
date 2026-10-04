@@ -115,6 +115,28 @@ export default buildConfig({
   i18n: {
     supportedLanguages: { en, de, ar },
     fallbackLanguage: 'de',
+    // Payload shows "Restore" on every version, also to an editor looking at a published or
+    // archived document, which an editor may not change (QA S7). The restore is refused; Payload's
+    // own message for that is a bare "there was a problem", so it says who can do it instead.
+    translations: {
+      de: {
+        version: {
+          problemRestoringVersion:
+            'Diese Version konnte nicht wiederhergestellt werden. Veröffentlichte und archivierte Inhalte kann nur der Vorstand oder ein:e Administrator:in wiederherstellen.',
+        },
+      },
+      en: {
+        version: {
+          problemRestoringVersion:
+            'This version could not be restored. Published and archived content can only be restored by the board or an administrator.',
+        },
+      },
+      ar: {
+        version: {
+          problemRestoringVersion: 'تعذّرت استعادة هذه النسخة. لا يمكن استعادة المحتوى المنشور أو المؤرشف إلا من قبل مجلس الإدارة أو المدير.',
+        },
+      },
+    },
   },
 
   // ─── Collections ───────────────────────────────────────────────────────────

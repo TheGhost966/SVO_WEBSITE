@@ -23,7 +23,7 @@ import { GuideSection } from '@/components/home/GuideSection'
 import { ExpertsSection } from '@/components/home/ExpertsSection'
 import { JobsSection } from '@/components/home/JobsSection'
 import { CtaBandSection } from '@/components/home/CtaBandSection'
-import { AppBandSection } from '@/components/home/AppBandSection'
+import { quizHasNoDeadEnds } from '@/lib/quiz'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -73,6 +73,9 @@ export default async function HomePage({ params }: Props) {
     getJobs(locale, 4),
   ])
 
+  // The quiz band is only offered when no combination of answers ends without a roadmap.
+  const quizReady = quizHasNoDeadEnds(await getRoadmaps(locale, 100))
+
   const configuredOrder = siteSettings?.homeGroup?.sectionOrder
   const sectionOrder = (configuredOrder && configuredOrder.length > 0 ? configuredOrder : DEFAULT_HOME_SECTION_ORDER).filter(
     (row) => row.enabled,
@@ -86,12 +89,13 @@ export default async function HomePage({ params }: Props) {
     news: <NewsSection locale={locale} news={newsResult.docs} t={t} />,
     events: <EventsSection locale={locale} events={eventsResult.docs} t={t} />,
     helpCards: <HelpCardsSection locale={locale} siteSettings={siteSettings} t={t} />,
-    roadmaps: <RoadmapsSection locale={locale} roadmaps={roadmaps} t={t} />,
+    roadmaps: <RoadmapsSection locale={locale} roadmaps={roadmaps} quizReady={quizReady} t={t} />,
     guide: <GuideSection locale={locale} topics={guideTopics} t={t} />,
     experts: <ExpertsSection locale={locale} experts={experts} categories={expertCategories} t={t} />,
     jobs: <JobsSection locale={locale} jobs={jobs} links={jobLinks} t={t} />,
     ctaBand: <CtaBandSection locale={locale} siteSettings={siteSettings} />,
-    appBand: <AppBandSection locale={locale} />,
+    // Removed (BRIEF-AMENDMENT-02 §2.4). The value stays valid so a stored section order still loads.
+    appBand: null,
   }
 
   return (

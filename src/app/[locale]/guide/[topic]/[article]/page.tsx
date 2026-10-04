@@ -33,6 +33,18 @@ const OFFICIAL_SOURCE_LABEL: Record<string, string> = {
   en: 'Official source',
 }
 
+const CROSS_LINKS_HEADING: Record<string, string> = {
+  de: 'Passend dazu',
+  ar: 'ذات صلة',
+  en: 'Related',
+}
+
+const CROSS_LINK_KIND: Record<string, Record<'roadmap' | 'service' | 'expert', string>> = {
+  de: { roadmap: 'Wegweiser', service: 'Leistung', expert: 'Expert:in' },
+  ar: { roadmap: 'خريطة طريق', service: 'خدمة', expert: 'خبير' },
+  en: { roadmap: 'Roadmap', service: 'Service', expert: 'Expert' },
+}
+
 type Props = { params: Promise<{ locale: string; topic: string; article: string }> }
 
 function formatDate(iso: string | null | undefined, locale: string): string {
@@ -123,6 +135,8 @@ export default async function GuideArticlePage({ params }: Props) {
   // Related articles from the same topic, excluding current
   const siblingResult = await getGuideArticlesByTopic(topicSlug, locale, 1)
   const related = siblingResult.docs.filter((a) => a.id !== article.id).slice(0, 3)
+  // Roadmaps, services and experts the board linked to this article (published ones only).
+  const crossLinks = article._related ?? []
 
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = GUIDE_BASE[locale] ?? GUIDE_BASE.de
@@ -207,6 +221,45 @@ export default async function GuideArticlePage({ params }: Props) {
             <LexicalContent content={article.body} />
           </div>
         </div>
+
+        {crossLinks.length > 0 && (
+          <section className="border-t border-border py-10 md:py-12" aria-labelledby="guide-cross-links">
+            <div
+              className="mx-auto max-w-[1200px]"
+              style={{
+                paddingInlineStart: 'clamp(24px, 5vw, 120px)',
+                paddingInlineEnd: 'clamp(24px, 5vw, 120px)',
+              }}
+            >
+              <h2 id="guide-cross-links" className="text-xl font-bold text-ink mb-6">
+                {CROSS_LINKS_HEADING[locale] ?? CROSS_LINKS_HEADING.de}
+              </h2>
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {crossLinks.map((link) => (
+                  <li key={`${link.kind}-${link.slug}`}>
+                    <Link
+                      href={
+                        link.kind === 'roadmap'
+                          ? { pathname: '/roadmaps/[roadmap]', params: { roadmap: link.slug } }
+                          : link.kind === 'service'
+                            ? { pathname: '/services/[pillar]/[service]', params: { pillar: link.pillarSlug, service: link.slug } }
+                            : { pathname: '/experts/[slug]', params: { slug: link.slug } }
+                      }
+                      className="group block h-full bg-surface rounded-card border border-border p-5 hover:border-brand-blue hover:shadow-sm transition-all"
+                    >
+                      <span className="block text-xs font-semibold uppercase tracking-wide text-ink-70">
+                        {(CROSS_LINK_KIND[locale] ?? CROSS_LINK_KIND.de)[link.kind]}
+                      </span>
+                      <span className="mt-1 block font-semibold text-ink group-hover:text-brand-blue transition-colors text-sm">
+                        {link.title}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
 
         {related.length > 0 && (
           <section className="border-t border-border bg-cream py-12 md:py-16">

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { getPathname } from '@/i18n/navigation'
 import { getRoadmaps, getExperts } from '@/lib/queries'
@@ -6,6 +7,7 @@ import { homeCopy } from '@/components/home/copy'
 import { SituationQuiz, type QuizRoadmap, type QuizExpert } from '@/components/ui/SituationQuiz'
 import { SmartLink } from '@/components/ui/SmartLink'
 import { forwardArrow } from '@/i18n/routing'
+import { quizHasNoDeadEnds } from '@/lib/quiz'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -37,6 +39,9 @@ export default async function QuizPage({ params }: Props) {
   const loc = locale as 'de' | 'ar' | 'en'
 
   const [roadmaps, experts] = await Promise.all([getRoadmaps(locale, 100), getExperts(locale, undefined, 100)])
+
+  // Not offered while some answers would end in "nothing matches" (src/lib/quiz.ts).
+  if (!quizHasNoDeadEnds(roadmaps)) notFound()
 
   const quizRoadmaps: QuizRoadmap[] = roadmaps
     .filter((r) => r.slug)

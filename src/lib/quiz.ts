@@ -154,3 +154,19 @@ export function rankByTags<T extends { quizMatches?: string[] | null }>(
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score)
 }
+
+/**
+ * Whether the quiz may be offered at all: every combination of answers has to lead to at least one
+ * roadmap. A visitor who answers four questions and gets "nothing matches" has hit a dead end, and
+ * for this audience a dead end reads as "I did something wrong" (BRIEF-AMENDMENT-02 §2.4). So
+ * until the published roadmaps cover every outcome, the homepage band is not shown and /quiz
+ * answers 404; both come back by themselves once the board has tagged enough roadmaps.
+ */
+export function quizHasNoDeadEnds(roadmaps: Array<{ quizMatches?: string[] | null }>): boolean {
+  const ranking = QUIZ_QUESTIONS.filter((q) => q.options.some((o) => o.tags.length > 0))
+  const combos = ranking.reduce<QuizAnswers[]>(
+    (acc, question) => acc.flatMap((answers) => question.options.map((option) => ({ ...answers, [question.id]: option.value }))),
+    [{}],
+  )
+  return combos.every((answers) => rankByTags(roadmaps, tagsForAnswers(answers)).length > 0)
+}

@@ -21,7 +21,9 @@ export function HelpCardsSection({
   t: (key: string) => string
 }) {
   const copy = homeCopy(locale)
-  const cmsCards = siteSettings?.homeGroup?.helpCards ?? []
+  // A card without a title in this language is not shown (the homepage group is read without
+  // locale fallback); with none left, the built-in cards of this language are used.
+  const cmsCards = (siteSettings?.homeGroup?.helpCards ?? []).filter((c) => c.title)
   const cards =
     cmsCards.length > 0
       ? cmsCards.map((c, i) => ({

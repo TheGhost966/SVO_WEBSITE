@@ -2,7 +2,7 @@ import type { FieldAccess, GlobalAfterReadHook, GlobalConfig } from 'payload'
 import { revalidateTag } from 'next/cache'
 import { isAdminOrBoard } from '@/lib/access'
 import { tags } from '@/lib/payload'
-import { HOME_SECTIONS, HOME_SECTION_LABELS } from '@/lib/homeSections'
+import { HOME_SECTIONS, HOME_SECTION_LABELS, REMOVED_HOME_SECTIONS } from '@/lib/homeSections'
 
 // Internal settings the public site never renders (QA S4): the board's notification addresses and
 // the GDPR retention configuration. Hidden from anonymous/editor/viewer REST responses; the site and
@@ -174,8 +174,8 @@ export const SiteSettings: GlobalConfig = {
           },
           admin: {
             description: {
-              de: 'Reihenfolge per Ziehen ändern, Abschnitte ein-/ausblenden. Leer lassen für die Standardreihenfolge: Hero, Statistik, Neuigkeiten, Veranstaltungen, Hilfe-Karten, Wegweiser, Guide, Expert:innen, Stellenangebote, CTA-Band.',
-              en: 'Drag rows to reorder; toggle sections on/off. Leave empty for the default order: Hero, Stats, News, Events, Help cards, Roadmaps, Guide, Experts, Jobs, CTA band.',
+              de: 'Reihenfolge per Ziehen ändern, Abschnitte ein-/ausblenden. Leer lassen für die Standardreihenfolge: Hero, Statistik, Hilfe-Karten, Wegweiser, Guide, Expert:innen, Stellenangebote, Veranstaltungen, CTA-Band, Neuigkeiten. Achtung: Sobald hier Zeilen stehen, erscheinen nur noch die aufgeführten Abschnitte.',
+              en: 'Drag rows to reorder; toggle sections on/off. Leave empty for the default order: Hero, Stats, Help cards, Roadmaps, Guide, Experts, Jobs, Events, CTA band, News. Note: once there are rows here, only the listed sections are shown.',
             },
           },
           fields: [
@@ -187,6 +187,12 @@ export const SiteSettings: GlobalConfig = {
                   type: 'select',
                   required: true,
                   options: HOME_SECTIONS.map((value) => ({ value, label: HOME_SECTION_LABELS[value] })),
+                  // A removed section stays a valid stored value but is not offered for new rows.
+                  filterOptions: ({ options, siblingData }) =>
+                    options.filter((option) => {
+                      const value = typeof option === 'string' ? option : option.value
+                      return !(REMOVED_HOME_SECTIONS as readonly string[]).includes(value) || value === (siblingData as { section?: string })?.section
+                    }),
                   label: { de: 'Abschnitt', ar: 'القسم', en: 'Section' },
                   admin: { width: '70%' },
                 },

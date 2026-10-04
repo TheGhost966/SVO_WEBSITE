@@ -44,7 +44,7 @@ export function StatsSection({
   const configured = siteSettings?.homeGroup?.statLabels ?? []
   const dynamicTiles = configured
     .map((row) => ({ value: statCounts[row.source], label: row.label }))
-    .filter((tile) => tile.value >= 3)
+    .filter((tile) => tile.label && tile.value >= 3)
 
   const tiles = dynamicTiles.length >= 3 ? dynamicTiles : (STATIC_FALLBACK[locale] ?? STATIC_FALLBACK.de)
 

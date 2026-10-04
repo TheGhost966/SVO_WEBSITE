@@ -75,6 +75,11 @@ export type GuideTopicDoc = {
   order?: number | null
 }
 
+export type GuideRelatedLink =
+  | { kind: 'roadmap'; title: string; slug: string }
+  | { kind: 'service'; title: string; slug: string; pillarSlug: string }
+  | { kind: 'expert'; title: string; slug: string }
+
 export type GuideArticleDoc = {
   id: string
   title?: string | null
@@ -91,6 +96,11 @@ export type GuideArticleDoc = {
   relatedExperts?: Array<ExpertDoc | string> | null
   reviewStatus?: string | null
   seo?: SeoField
+  /**
+   * Set by `getGuideArticleBySlug`: the three `related*` fields reduced to what a link needs, and
+   * to published targets only. The raw relations are removed there.
+   */
+  _related?: GuideRelatedLink[]
   /** Set by `getGuideArticleBySlug` — true when this locale had no translation and fell back to German. */
   _isFallback?: boolean
 }

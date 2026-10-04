@@ -56,7 +56,6 @@ export type HomeCopy = {
    * copy announces one in preparation and the section links to the contact form instead of
    * two dead store badges.
    */
-  appBand: { badge: string; heading: string; body: string; note: string; button: string }
 }
 
 export const HOME_COPY: Record<string, HomeCopy> = {
@@ -131,13 +130,6 @@ export const HOME_COPY: Record<string, HomeCopy> = {
       body: 'Wo leben Sie? Wie sieht Ihre Situation aus? Wie gut sprechen Sie Deutsch? Was möchten Sie erreichen? — wir schlagen Ihnen sofort die passenden Anleitungen vor.',
       button: 'Fragen beantworten',
     },
-    appBand: {
-      badge: 'In Vorbereitung',
-      heading: 'Dieselbe Plattform — in Ihrer Tasche',
-      body: 'Eine SVÖ-App für iOS und Android ist geplant: Anleitungen, Guide, Expert:innen, Veranstaltungen und Hilfeanfragen auf Deutsch und Arabisch.',
-      note: 'Die App ist noch nicht erschienen. Es gibt sie noch in keinem App-Store — wir sagen Ihnen Bescheid, sobald sie verfügbar ist.',
-      button: 'Benachrichtigen Sie mich',
-    },
   },
   ar: {
     heroBadge: 'الاتحاد السوري في النمسا · SVÖ',
@@ -210,13 +202,6 @@ export const HOME_COPY: Record<string, HomeCopy> = {
       body: 'أين تعيش؟ ما وضعك الحالي؟ ما مستوى لغتك الألمانية؟ ما الذي تريد تحقيقه؟ — وسنقترح عليك المسارات المناسبة فوراً.',
       button: 'ابدأ الأسئلة',
     },
-    appBand: {
-      badge: 'قيد الإعداد',
-      heading: 'نفس المنصة — في جيبك',
-      body: 'يُخطَّط لتطبيق SVÖ لـ iOS و Android: المسارات، الدليل، الخبراء، الفعاليات وطلبات المساعدة بالعربية والألمانية.',
-      note: 'لم يصدر التطبيق بعد، وهو غير متوفر في أي متجر تطبيقات — سنخبرك فور توفره.',
-      button: 'أبلغوني عند التوفر',
-    },
   },
   en: {
     heroBadge: 'SVÖ · Syrian Association in Austria',
@@ -288,13 +273,6 @@ export const HOME_COPY: Record<string, HomeCopy> = {
       heading: 'What is my situation? — just four questions',
       body: 'Where do you live? What is your situation? How is your German? What do you want to achieve? — we will suggest the right roadmaps straight away.',
       button: 'Answer the questions',
-    },
-    appBand: {
-      badge: 'In preparation',
-      heading: 'The same platform — in your pocket',
-      body: 'An SVÖ app for iOS and Android is planned: roadmaps, the guide, experts, events and help requests, in German and Arabic.',
-      note: 'The app has not been released. It is not in any app store yet — we will let you know as soon as it is available.',
-      button: 'Notify me',
     },
   },
 }
