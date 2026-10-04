@@ -134,3 +134,16 @@ describe('getGuideTopics: topics with at least one published article (BRIEF-AMEN
     }
   })
 })
+
+describe('RTL: off-screen form fields use a logical offset', () => {
+  // Found by the functional review: the honeypot was hidden with a physical `left: -9999px`, which on
+  // a right-to-left page is scrollable overflow (/ar/contact scrolled sideways by ~10,000px).
+  it.each(['/ar/contact', '/ar/experts/apply', '/de/kontakt', '/de/experten/eintragen'])('%s hides its honeypot with inset-inline-start', async (p) => {
+    const res = await fetch(fx.baseUrl + p, { signal: AbortSignal.timeout(180_000) })
+    expect(res.status).toBe(200)
+    const html = await res.text()
+    expect(html).toContain('name="company"')
+    expect(html).not.toContain('-left-[9999px]')
+    expect(html).toContain('-start-[9999px]')
+  })
+})

@@ -60,7 +60,7 @@ export function ContactForm({ locale, initialCategory }: Props) {
       <input type="hidden" name="locale" value={locale} />
 
       {/* Honeypot — hidden from real users via CSS, not type="hidden" (same as the expert form) */}
-      <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+      <div aria-hidden="true" className="absolute -start-[9999px] w-px h-px overflow-hidden">
         <label htmlFor="contact-company">Company</label>
         <input id="contact-company" name="company" type="text" tabIndex={-1} autoComplete="off" />
       </div>
