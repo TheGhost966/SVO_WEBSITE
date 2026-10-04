@@ -62,6 +62,56 @@ export function withLiveRowReads(collection: CollectionConfig): CollectionConfig
 }
 
 /**
+ * A save always writes the document row: `draft=true` is ignored on create and update (QA A1).
+ *
+ * With `draft: true` Payload stores a version and leaves the row alone. The row is what the public
+ * site reads, and `reviewStatus` — not Payload's draft flag — is what decides whether a document is
+ * live. So a draft save produced three wrong results in the admin panel: an edit to a published
+ * document was reported as saved and the form reloaded with the old text; a document set to
+ * Archived stayed online; an editor's "in review" existed only in a version. With the flag dropped
+ * there is one kind of save, the row is the truth and the versions are its history. Two things go
+ * with it: changes cannot be parked on a live document, and a draft has to pass the required-field
+ * validation like any other save.
+ */
+export const saveToLiveRow: CollectionBeforeOperationHook = ({ args, operation }) => {
+  if (operation !== 'create' && operation !== 'update') return args
+  if ((args as { draft?: boolean }).draft) return { ...args, draft: false }
+  return args
+}
+
+const NOTHING = '@/components/admin/SingleSave#Nothing'
+
+/**
+ * Applied to every collection in payload.config.ts: a collection with drafts gets
+ * {@link saveToLiveRow} and one "Save" button in place of Payload's "Save Draft" / "Publish
+ * changes" pair. Payload's own status line ("Status: Published — Unpublish") is hidden as well: it
+ * follows the button that was pressed, and the Status field is the one that counts.
+ */
+export function withSingleSave(collection: CollectionConfig): CollectionConfig {
+  const hasDrafts = typeof collection.versions === 'object' && Boolean(collection.versions.drafts)
+  if (!hasDrafts) return collection
+  return {
+    ...collection,
+    admin: {
+      ...collection.admin,
+      components: {
+        ...collection.admin?.components,
+        edit: {
+          ...collection.admin?.components?.edit,
+          SaveDraftButton: NOTHING,
+          PublishButton: '@payloadcms/ui#SaveButton',
+          Status: NOTHING,
+        },
+      },
+    },
+    hooks: {
+      ...collection.hooks,
+      beforeOperation: [saveToLiveRow, ...(collection.hooks?.beforeOperation ?? [])],
+    },
+  }
+}
+
+/**
  * Update rule for collections with the review workflow (QA S7). Board/admin may change anything.
  * Editors work on drafts only — documented workflow: draft → in_review → board/admin publishes — so
  * a `published` or `archived` document is not updatable by an editor at all: no content edits that

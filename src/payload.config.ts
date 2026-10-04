@@ -12,7 +12,7 @@ import nodemailer from 'nodemailer'
 import sharp from 'sharp'
 
 import { resolvePayloadSecret } from '@/lib/payloadSecret'
-import { withLiveRowReads } from '@/lib/access'
+import { withLiveRowReads, withSingleSave } from '@/lib/access'
 import { Users } from '@/collections/Users'
 import { Media } from '@/collections/Media'
 import { Categories } from '@/collections/Categories'
@@ -133,7 +133,8 @@ export default buildConfig({
   ],
 
   // `withLiveRowReads`: in every collection with drafts, callers below editor read the live row
-  // even with `?draft=true` (QA C1, src/lib/access.ts).
+  // even with `?draft=true` (QA C1, src/lib/access.ts). `withSingleSave`: the same collections
+  // get one Save button, and every save writes the document row (QA A1).
   collections: [
     Users,
     Media,
@@ -151,7 +152,9 @@ export default buildConfig({
     Partners,
     Pages,
     ContactSubmissions,
-  ].map(withLiveRowReads),
+  ]
+    .map(withLiveRowReads)
+    .map(withSingleSave),
 
   // ─── Globals ───────────────────────────────────────────────────────────────
   globals: [SiteSettings, Navigation],
