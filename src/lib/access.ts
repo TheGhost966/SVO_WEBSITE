@@ -37,11 +37,18 @@ export const updateUnpublishedOrBoardPlus: Access = ({ req }) => {
   return false
 }
 
-/** Admin can do anything to other users; users can update themselves */
-export const isAdminOrSelf: Access = ({ req, id }) => {
-  if (req.user?.role === 'admin') return true
-  if (req.user?.id === id) return true
-  return false
+/**
+ * Admins: every account. Everyone else: only their own. Anonymous: nothing.
+ *
+ * "Own account" is a Where constraint rather than a comparison with the `id` argument, because list
+ * and bulk requests have no `id`: the previous `req.user?.id === id` was `undefined === undefined`
+ * for an anonymous list or bulk call, which let anyone read every account and bulk-update them —
+ * passwords included (QA S21, qa/security/s21-users-access.test.ts).
+ */
+export const isAdminOrSelf: Access = ({ req }) => {
+  if (!req.user) return false
+  if (req.user.role === 'admin') return true
+  return { id: { equals: req.user.id } }
 }
 
 // ─── Workflow hooks ───────────────────────────────────────────────────────────
