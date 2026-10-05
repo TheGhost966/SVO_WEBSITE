@@ -1,6 +1,5 @@
 /**
  * C1 — `?draft=true` let anonymous / viewer callers read the versions tables.
- * (LAUNCH-CHECKLIST.md §1.1 "C1"; the 2026-10-04 admin-pass brief calls the same finding "F1".)
  *
  * With `draft=true`, Payload's `find` does not query the collection table at all: it queries the
  * versions table for rows with `latest = true` (payload/dist/collections/operations/find.js →

@@ -20,7 +20,7 @@ export default async function ExpertApplyPage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('experts')
-  const categories = await getExpertCategories()
+  const categories = await getExpertCategories(locale)
 
   return (
     <div

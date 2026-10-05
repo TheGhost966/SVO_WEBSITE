@@ -7,11 +7,10 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 
 type Props = { locale: string }
 
-// Guide + Roadmaps + Experts combine under one "Ressourcen" dropdown entry
-// per BRIEF-AMENDMENT-01 §2.9 — adding each as its own top-level item would
+// Guide + Roadmaps + Experts combine under one "Ressourcen" dropdown entry —
+// adding each as its own top-level item would
 // overflow the header in German. Renamed from "Wegweiser" (Guide+Roadmaps
-// only, Slice 2) to "Ressourcen" when Experts joined in Slice 3 — see
-// DECISIONS.md.
+// only, Slice 2) to "Ressourcen" when Experts joined in Slice 3.
 const navKeys = ['about', 'news', 'events', 'services', 'contact'] as const
 
 const navHrefs = {
@@ -129,7 +128,7 @@ export function Header({ locale }: Props) {
         style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
       >
         {/* Logo / wordmark */}
-        {/* No logo file exists yet (CONTENT-NEEDED.md) — a wordmark in the Figma's arrangement:
+        {/* No logo file exists yet — a wordmark in the Figma's arrangement:
             bold blue "SVÖ" over the association name in green. Swap for the PNG when it arrives. */}
         <Link href="/" className="flex flex-col leading-none" aria-label="SVÖ">
           <span className="text-[28px] font-bold tracking-tight text-brand-blue">SVÖ</span>
@@ -160,7 +159,7 @@ export function Header({ locale }: Props) {
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* AMENDMENT-02 §2.4: "Join us" is a real link to the contact form with the membership
+          {/* "Join us" is a real link to the contact form with the membership
               category preselected — never a dead account-signup button (no accounts exist). */}
           <Link
             href={{ pathname: '/contact', query: { category: 'membership' } }}

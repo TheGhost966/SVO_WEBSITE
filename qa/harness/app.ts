@@ -5,7 +5,7 @@ import { APP_ROOT, LOG_DIR, TMP_DIR } from './paths'
 import { assertSafeDatabaseUri } from './safety'
 
 /**
- * Every env var the app reads (see .env.example / QA_AUDIT.md §2). All of them are removed from the
+ * Every env var the app reads (see .env.example). All of them are removed from the
  * inherited environment and then set explicitly, so nothing from the developer's shell leaks in.
  */
 const APP_ENV_KEYS = [

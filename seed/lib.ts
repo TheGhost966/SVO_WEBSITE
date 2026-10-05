@@ -237,8 +237,8 @@ export function richText(...blocks: string[]): Record<string, unknown> {
  * Every seeded entry opens with this line.
  *
  * The board must never mistake placeholder text for copy they approved — this project has a
- * standing rule against inventing content (see `DECISIONS.md`, and the refusal to fabricate a
- * "+1,200 members" figure). The notice sits in the body rather than the title so the homepage
+ * standing rule against inventing content (such as a "+1,200 members"
+ * figure). The notice sits in the body rather than the title so the homepage
  * teasers and listings still look like the Figma, while anyone who opens the entry — in the CMS
  * or on the public detail page — sees immediately that it is scaffolding.
  *

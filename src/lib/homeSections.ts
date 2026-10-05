@@ -4,13 +4,12 @@
  * options) and the homepage's own rendering logic, so the two can never drift the way a
  * hand-duplicated list would. Same pattern as `src/lib/contactCategories.ts`.
  *
- * Order matches the client's Figma concept (2026-09-21 re-alignment, superseding the original
- * AMENDMENT-03 §2.1 order): hero (with its search bar and stats strip), then wayfinding content
+ * Order matches the client's Figma concept (2026-09-21 re-alignment): hero (with its search bar and stats strip), then wayfinding content
  * in the Figma's own sequence (help cards, roadmaps, guide, experts, jobs, events), then the
- * volunteer/idea CTA band, then news last. §2.2 still makes this order board-editable.
+ * volunteer/idea CTA band, then news last. The order stays board-editable.
  *
  * `appBand` (Figma 10.png, an app that does not exist) is no longer rendered and no longer offered
- * in the admin (BRIEF-AMENDMENT-02 §2.4). The value itself stays in this list because it is part
+ * in the admin. The value itself stays in this list because it is part
  * of a database enum and may be stored in an existing section order — removing it would be a
  * schema change. See REMOVED_HOME_SECTIONS.
  */

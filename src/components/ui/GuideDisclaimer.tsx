@@ -1,4 +1,4 @@
-// Standing notice per BRIEF-AMENDMENT-01 §2.6 — "Dies ist keine Rechtsberatung" as a
+// Standing notice — "Dies ist keine Rechtsberatung" as a
 // fixed layout element, not per-article rich text an editor could accidentally omit.
 const TEXT: Record<string, string> = {
   de: 'Dies ist keine Rechtsberatung. Die Angaben dienen der Orientierung und ersetzen keine individuelle Beratung durch eine zuständige Behörde oder eine Rechtsanwältin/einen Rechtsanwalt.',

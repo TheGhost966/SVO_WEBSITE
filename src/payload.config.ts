@@ -13,6 +13,7 @@ import sharp from 'sharp'
 
 import { resolvePayloadSecret } from '@/lib/payloadSecret'
 import { withLiveRowReads, withSingleSave } from '@/lib/access'
+import { inAdminOrder, withAdminLayout, withSiteSettingsLayout } from '@/lib/adminLayout'
 import { Users } from '@/collections/Users'
 import { Media } from '@/collections/Media'
 import { Categories } from '@/collections/Categories'
@@ -50,7 +51,7 @@ export default buildConfig({
   // ─── Database ──────────────────────────────────────────────────────────────
   db: postgresAdapter({
     // Dev-mode auto-push is off — a real migration path exists now (see
-    // src/instrumentation.ts, DECISIONS.md "Migration path fix"). Auto-push can silently prompt
+    // src/instrumentation.ts). Auto-push can silently prompt
     // for destructive changes (interactively, which hangs a backgrounded/non-TTY server) and
     // apply them without the review a committed migration file gets. Schema changes now go
     // through PAYLOAD_MIGRATE_CREATE_NAME / PAYLOAD_MIGRATE_ON_BOOT exclusively.
@@ -86,7 +87,7 @@ export default buildConfig({
   localization: {
     locales: [
       { label: 'Deutsch', code: 'de' },
-      { label: 'العربية', code: 'ar' },
+      { label: 'العربية', code: 'ar', rtl: true },
       { label: 'English', code: 'en' },
     ],
     defaultLocale: 'de',
@@ -98,15 +99,24 @@ export default buildConfig({
     user: 'users',
     meta: {
       titleSuffix: '— SVÖ Admin',
+      // The same mark the public site uses (src/app/icon.svg) until the logo file exists.
+      icons: [{ rel: 'icon', type: 'image/svg+xml', url: '/icon.svg' }],
     },
-    dateFormat: 'dd.MM.yyyy',
+    // With the time: several versions of a document saved on one day are otherwise
+    // indistinguishable in the version list.
+    dateFormat: 'dd.MM.yyyy HH:mm',
     components: {
+      // SVÖ wordmark on the login screen and at the top of the sidebar.
+      graphics: {
+        Logo: '@/components/admin/Brand#Logo',
+        Icon: '@/components/admin/Brand#Icon',
+      },
       // Onboarding panel above the collection cards on /admin. The board are volunteers rather
       // than CMS users, and the default dashboard is a bare grid of fifteen cards that says
       // nothing about what the site still needs — this names the empty collections, maps each
       // content type to the public page it fills, and spells out the review workflow.
-      // Path string, not an import: Payload resolves it through the generated importMap
-      // (`npm run generate:importmap` after changing this).
+      // Path string, not an import: Payload resolves it through the importMap
+      // (src/app/(payload)/admin/importMap.js — edited by hand, the CLI generator crashes here).
       beforeDashboard: ['@/components/admin/DashboardGuide#DashboardGuide'],
     },
   },
@@ -156,8 +166,10 @@ export default buildConfig({
 
   // `withLiveRowReads`: in every collection with drafts, callers below editor read the live row
   // even with `?draft=true` (QA C1, src/lib/access.ts). `withSingleSave`: the same collections
-  // get one Save button, and every save writes the document row (QA A1).
-  collections: [
+  // get one Save button, and every save writes the document row (QA A1). `withAdminLayout`:
+  // German labels and help texts, sidebar groups, list columns and tabs (src/lib/adminLayout.ts);
+  // `inAdminOrder` sorts the sidebar by how often a collection is used.
+  collections: inAdminOrder([
     Users,
     Media,
     Categories,
@@ -176,10 +188,11 @@ export default buildConfig({
     ContactSubmissions,
   ]
     .map(withLiveRowReads)
-    .map(withSingleSave),
+    .map(withSingleSave)
+    .map(withAdminLayout)),
 
   // ─── Globals ───────────────────────────────────────────────────────────────
-  globals: [SiteSettings, Navigation],
+  globals: [withSiteSettingsLayout(SiteSettings), Navigation],
 
   // ─── TypeScript output ─────────────────────────────────────────────────────
   typescript: {

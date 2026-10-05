@@ -5,7 +5,7 @@
  * known-placeholder secret throws (called from payload.config.ts and, at boot, from
  * instrumentation.node.ts); outside production an unset secret still falls back to a dev-only value.
  *
- * History: the two static "REPRODUCES S3" tests (QA_FINDINGS_P0.md) are inverted below. The runtime
+ * History: the two static "REPRODUCES S3" tests are inverted below. The runtime
  * block under NODE_ENV=test keeps its assertions unchanged — it now documents the intended
  * non-production fallback — and a production block (real `next build` + `next start`) is added.
  *

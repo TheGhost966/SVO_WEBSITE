@@ -26,10 +26,9 @@ const readableIfShown =
   (args) =>
     editorOrAbove(args) || (args.siblingData ?? args.doc)?.[flag] === true
 
-// BRIEF-AMENDMENT-03 §2.5: professional proof is now "مطلوب إلزامي" (mandatory) per the client
+// Professional proof is now "مطلوب إلزامي" (mandatory) per the client
 // questionnaire. A hard block would stop the board from publishing while verification is still
-// in progress (an editorial/process step, not a system-enforced gate — see DECISIONS.md "Experts
-// slice" § "Verification ownership"), so this only warns, loudly, in the server log — it never
+// in progress (an editorial/process step, not a system-enforced gate), so this only warns, loudly, in the server log — it never
 // throws and never blocks the save. Fires only on the transition into `published`, not on every
 // re-save of an already-published-and-still-unverified listing.
 const warnIfPublishingUnverified: CollectionBeforeChangeHook = ({ data, originalDoc, req }) => {
@@ -38,14 +37,14 @@ const warnIfPublishingUnverified: CollectionBeforeChangeHook = ({ data, original
   if (willBePublished && !wasAlreadyPublished && data.verificationStatus !== 'verified') {
     req.payload.logger.warn(
       `Experts: publishing "${data.name}" with verificationStatus="${data.verificationStatus ?? 'unverified'}" — ` +
-        'confirm this person is actually registered with the relevant chamber/authority before publishing ' +
-        '(BRIEF-AMENDMENT-03 §2.5). This is a warning, not a block — the save will proceed.',
+        'confirm this person is actually registered with the relevant chamber/authority before publishing. ' +
+        'This is a warning, not a block — the save will proceed.',
     )
   }
   return data
 }
 
-// SECURITY (BRIEF-AMENDMENT-01 §2.1): this collection is publicly readable
+// SECURITY: this collection is publicly readable
 // (published records only) but access.create stays isEditorOrAbove — never
 // () => true. The public "apply to be listed" flow goes through
 // src/lib/expertApplicationAction.ts, which uses the Local API with
@@ -54,8 +53,8 @@ const warnIfPublishingUnverified: CollectionBeforeChangeHook = ({ data, original
 //
 // name/slug are intentionally NOT localized — a person's name and their
 // listing URL don't change per language (only `bio` does), which also
-// sidesteps the untranslated-locale-slug-404 issue documented for
-// Guide/Roadmaps/Services in DECISIONS.md.
+// sidesteps the untranslated-locale-slug-404 issue Guide/Roadmaps/Services
+// had before their slugs were unlocalized.
 export const Experts: CollectionConfig = {
   slug: 'experts',
   versions: { drafts: true, maxPerDoc: 20 },
@@ -98,7 +97,7 @@ export const Experts: CollectionConfig = {
     {
       // Added so the situation quiz can point people at experts in their own state, and so the
       // experts index can filter by region — the Figma shows a region dropdown there, which
-      // DECISIONS.md had recorded as unbuildable while only free-text `city` existed.
+      // was not buildable while only free-text `city` existed.
       ...bundeslandField,
     },
     {
@@ -126,9 +125,9 @@ export const Experts: CollectionConfig = {
           label: { de: 'Kontakt-E-Mail', ar: 'البريد الإلكتروني', en: 'Contact email' },
           admin: { width: '70%' },
         },
-        // BRIEF-AMENDMENT-03 §2.5: questionnaire §7.4 (show email/website publicly) and §7.6
-        // (contact only via an admin-mediated request) directly contradict each other — logged
-        // for the board in DECISIONS.md. Both toggles default OFF (admin-mediated by default,
+        // Questionnaire §7.4 (show email/website publicly) and §7.6
+        // (contact only via an admin-mediated request) directly contradict each other — an open
+        // question for the board. Both toggles default OFF (admin-mediated by default,
         // per §7.6) until the board picks a site-wide policy; a board/admin can still opt a
         // specific listing into direct display per §7.4 on a case-by-case basis.
         {
@@ -176,7 +175,7 @@ export const Experts: CollectionConfig = {
       label: { de: 'Foto', ar: 'الصورة', en: 'Photo' },
       admin: { description: 'Added by the board after verification — not part of the public application form.' },
     },
-    // ── Third-party personal data (BRIEF-AMENDMENT-01 §2.7) ─────────────────
+    // ── Third-party personal data ─────────────────
     {
       name: 'consentOnFile',
       type: 'checkbox',

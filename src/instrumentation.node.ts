@@ -6,7 +6,7 @@ import type { PostgresAdapter } from '@payloadcms/db-postgres'
  *
  * Why this exists: every standalone `payload`-CLI migration command (`payload migrate`,
  * `migrate:create`, etc.) crashes in this project from tsx/Node ESM-CJS interop bugs deep in
- * Payload's own dependency chain — see DECISIONS.md "Known issues". `next dev`/`next build` load
+ * Payload's own dependency chain. `next dev`/`next build` load
  * `payload.config.ts` fine (Turbopack/SWC, no tsx involved), and this file runs once inside that
  * same working pipeline before the server starts handling requests, so calling the underlying
  * adapter methods here (the same ones the CLI calls) sidesteps the bug entirely.
@@ -26,7 +26,7 @@ import type { PostgresAdapter } from '@payloadcms/db-postgres'
  *   PAYLOAD_MIGRATE_BASELINE=<name> — mark <name> as already-applied (batch 1) without running its
  *                                     up(), and clear the batch:-1 dev-push sentinel row. Use once,
  *                                     for a database whose schema came from dev-mode push rather
- *                                     than migrations — see DECISIONS.md "Unlocalized slugs".
+ *                                     than migrations.
  */
 /**
  * Dev-only, unconditional (no opt-in env var needed) — the opposite of the gated operations
@@ -57,7 +57,7 @@ async function warnIfHomeGroupSchemaMissing() {
           '\n[schema-warning] SiteSettings.homeGroup is NOT in the database schema yet.\n' +
           'Homepage sections are rendering in-code fallback copy, not real CMS content —\n' +
           'this can look like a working homepage while editing it in /admin does nothing.\n' +
-          'Apply the pending migrations (see DECISIONS.md "Migration path fix") to fix this.\n' +
+          'Apply the pending migrations (PAYLOAD_MIGRATE_ON_BOOT=1, see .env.example) to fix this.\n' +
           '!'.repeat(78) +
           '\n',
       )
@@ -167,8 +167,8 @@ export async function register() {
     }
 
     if (baselineName) {
-      // Marks a migration as already-applied without running its up() — for exactly the situation
-      // documented in DECISIONS.md "Unlocalized slugs": this database's schema came from dev-mode
+      // Marks a migration as already-applied without running its up() — for exactly this situation:
+      // this database's schema came from dev-mode
       // push, not from `initial_schema`, so running that file's up() fails on `relation already
       // exists` (confirmed). Also clears Payload's own `batch: -1` dev-push sentinel row, since
       // adapter.migrate() checks for it on every future call and re-prompts otherwise — leaving it

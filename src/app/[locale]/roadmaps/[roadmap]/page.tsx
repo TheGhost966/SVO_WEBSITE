@@ -77,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = ROADMAPS_BASE[locale] ?? ROADMAPS_BASE.de
 
-  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segment for every locale.
+  // slug is unlocalized — same segment for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = ROADMAPS_BASE[loc]
@@ -154,7 +154,7 @@ export default async function RoadmapPage({ params }: Props) {
             <p className="text-ink-70 text-lg mb-4">{roadmap.description}</p>
           )}
 
-          {/* Content freshness (BRIEF-AMENDMENT-01 §2.6) */}
+          {/* Content freshness */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-50 border-b border-border pb-8 mb-8">
             {roadmap.lastReviewedAt && (
               <span>

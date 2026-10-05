@@ -5,7 +5,7 @@ import { getSiteSettings } from '@/lib/queries'
 
 /**
  * Figma 11.png: navy footer — brand block with icon buttons, four link columns, the nine-Bundesland
- * pill row, and a legal bar. Links are only ones that lead somewhere real (AMENDMENT-02 §2.4):
+ * pill row, and a legal bar. Links are only ones that lead somewhere real:
  * the Figma's "Digital membership", "Annual reports", "Volunteering hours", "Terms" and
  * "Voice of the community" entries have no destination and are not rendered. Contact details come
  * from `SiteSettings.contactGroup` (not the Figma's sample email/phone) and are omitted until set.

@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = SERVICES_BASE[locale] ?? SERVICES_BASE.de
 
-  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segments for every locale.
+  // slug is unlocalized — same segments for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = SERVICES_BASE[loc]

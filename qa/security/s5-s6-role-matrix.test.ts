@@ -16,7 +16,7 @@
  *   3b (ruling of 2026-10-04): media / board-members delete editorPlus → boardPlus; categories,
  *       guide-topics and service-pillars create / update / delete → boardPlus (editors keep read).
  *       These three were not in the matrix before; what they hold goes live without review.
- * History: the S5/S6 "REPRODUCES" blocks (QA_FINDINGS_P0.md) are inverted below on the same requests.
+ * History: the S5/S6 "REPRODUCES" blocks are inverted below on the same requests.
  * The matrix is the spec, not something to edit until green.
  */
 import { afterAll, describe, expect, inject, it } from 'vitest'

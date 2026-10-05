@@ -127,8 +127,8 @@ export const SiteSettings: GlobalConfig = {
       },
       admin: {
         description: {
-          de: 'Kuratierte Links zu AMS, karriere.at usw. — siehe DECISIONS.md, warum es (noch) keine eigene Jobbörse gibt.',
-          en: 'Curated links to AMS, karriere.at, etc. — see DECISIONS.md for why this isn\'t a full job board (yet).',
+          de: 'Kuratierte Links zu AMS, karriere.at usw.',
+          en: 'Curated links to AMS, karriere.at, etc.',
         },
       },
       fields: [

@@ -43,7 +43,7 @@ export default async function ExpertsPage({ params, searchParams }: Props) {
 
   const [experts, categories] = await Promise.all([
     getExperts(locale, cat),
-    getExpertCategories(),
+    getExpertCategories(locale),
   ])
 
   return (

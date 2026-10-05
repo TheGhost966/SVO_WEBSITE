@@ -40,3 +40,6 @@ backups/
 # QA harness artifacts (qa/README.md): embedded Postgres data + per-boot Next dist dirs, evidence dumps
 qa/.tmp/
 qa/evidence/
+
+# Developer-only handover notes — not part of the delivery
+HANDOVER.md

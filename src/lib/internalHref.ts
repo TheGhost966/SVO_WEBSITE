@@ -4,9 +4,8 @@ import { getPathname } from '@/i18n/navigation'
  * Resolves a CMS-authored internal path to the correct locale-specific URL.
  *
  * `SiteSettings.homeGroup`'s href fields (heroCtaHref, ctaBandCtaHref, helpCards[].href) are
- * deliberately unlocalized plain text (one value, not per-locale copy — see DECISIONS.md
- * "Homepage settings + contact deep-link"), which only works site-wide because AR and EN already
- * share the same English-language route segments (DECISIONS.md → i18n) — DE alone has different
+ * deliberately unlocalized plain text (one value, not per-locale copy), which only works site-wide because AR and EN already
+ * share the same English-language route segments — DE alone has different
  * segments (`/contact` → `/kontakt`, `/services` → `/leistungen`, etc., per
  * `src/i18n/routing.ts`'s `pathnames`). A raw `<a href={value}>` (the pattern `CardGridBlock`
  * already uses for its own CMS url field) would 404 on DE for exactly those routes. Board editors

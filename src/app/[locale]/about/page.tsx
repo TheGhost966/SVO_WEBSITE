@@ -7,7 +7,7 @@ import { getPageBySlug } from '@/lib/queries'
 const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
 // The About page is identified by the fixed slug 'about' across all locales.
-// Editors must not change this slug — it's documented in CONTENT-NEEDED.md.
+// Editors must not change this slug (see ADMIN-HANDBUCH.md).
 const ABOUT_SLUG = 'about'
 
 const ABOUT_TITLES: Record<string, string> = {
@@ -60,15 +60,18 @@ export default async function AboutPage({ params }: Props) {
         style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
       >
         <h1 className="text-3xl font-bold text-ink mb-4">
-          {locale === 'ar' ? 'من نحن' : locale === 'en' ? 'About us' : 'Über uns'}
+          {page?.title || (locale === 'ar' ? 'من نحن' : locale === 'en' ? 'About us' : 'Über uns')}
         </h1>
-        <div className="p-6 rounded-card border-2 border-dashed border-brand-blue/30 bg-brand-blue/5">
-          <p className="text-brand-blue font-semibold text-sm mb-1">⚠ Inhalt ausstehend</p>
-          <p className="text-ink-70 text-sm">
-            [{locale.toUpperCase()}] Die Seite &ldquo;Über uns&rdquo; wird über den Admin-Bereich befüllt.
-            Slug: <code className="bg-white px-1 rounded text-xs">{ABOUT_SLUG}</code>
-          </p>
-        </div>
+        {/* No content yet (no page with the slug "about", or one without layout blocks). Visitors
+            get a sentence in their language, not a note addressed to the editors — that is on the
+            admin dashboard ("Was noch fehlt"). */}
+        <p className="text-ink-70">
+          {locale === 'ar'
+            ? 'محتوى هذه الصفحة قيد الإعداد وسيُنشر قريبًا.'
+            : locale === 'en'
+              ? 'This page is being prepared and will be published soon.'
+              : 'Diese Seite wird gerade vorbereitet und folgt in Kürze.'}
+        </p>
       </div>
     )
   }

@@ -45,7 +45,7 @@ export default async function NewsIndexPage({ params, searchParams }: Props) {
   // Parallel fetch: articles + categories
   const [result, categories] = await Promise.all([
     getNewsPage(locale, currentPage, cat),
-    getNewsCategories(),
+    getNewsCategories(locale),
   ])
 
   const articles = result.docs

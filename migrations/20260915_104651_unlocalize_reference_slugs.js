@@ -10,8 +10,7 @@ import { sql } from '@payloadcms/db-postgres'
  * schema-diffing doesn't know "slug moved from a per-locale side table to the base table" is a
  * single semantic change; it just sees an independent ADD and DROP. This version adds each new
  * column nullable, backfills it from the existing German (`de`) locale row — the only locale this
- * project's content has ever had filled in (see DECISIONS.md "Untranslated localized slugs 404" and
- * "Unlocalized slugs") — then sets NOT NULL only where the field actually requires it.
+ * project's content has ever had filled in — then sets NOT NULL only where the field actually requires it.
  *
  * NOT NULL only applies to `service_pillars`/`guide_topics` — confirmed against this migration's
  * own generated .json snapshot (the source of truth for the target schema, derived straight from

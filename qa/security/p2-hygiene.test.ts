@@ -3,7 +3,7 @@
  *
  *  - The harness never compiles into the app's `.next`: every boot gets its own NEXT_DIST_DIR under
  *    qa/.tmp, and the tsconfig / next-env snapshot covers the entries Next adds for such a directory.
- *  - getGuideTopics (BRIEF-AMENDMENT-02 §2.7) asks the database which topics have a published
+ *  - getGuideTopics asks the database which topics have a published
  *    article (DISTINCT + limit) instead of reading every published article — the result must still
  *    be exactly "topics with at least one published article".
  */
@@ -82,7 +82,7 @@ describe('QA harness: its own NEXT_DIST_DIR per boot, never the app’s .next', 
   })
 })
 
-describe('getGuideTopics: topics with at least one published article (BRIEF-AMENDMENT-02 §2.7)', () => {
+describe('getGuideTopics: topics with at least one published article', () => {
   const page = async (p: string) => {
     const res = await fetch(fx.baseUrl + p, { signal: AbortSignal.timeout(180_000) })
     return { status: res.status, html: await res.text() }

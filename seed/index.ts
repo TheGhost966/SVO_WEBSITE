@@ -9,7 +9,7 @@
  * ESM/CJS interop — here it surfaced as `Cannot destructure property 'loadEnvConfig' of
  * 'import_env.default'` from `payload/dist/bin/loadEnv.js`, because tsx's CJS transform resolves
  * `@next/env`'s interop default to undefined. `next dev`/`next build` load the same config fine
- * (Turbopack/SWC, no tsx), so running there sidesteps it. See DECISIONS.md "Known issues".
+ * (Turbopack/SWC, no tsx), so running there sidesteps it.
  *
  * Two parts:
  *   1. Configuration the site genuinely needs (site settings, navigation, service pillars,

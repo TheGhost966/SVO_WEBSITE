@@ -13,7 +13,7 @@ import { QUIZ_TAGS, QUIZ_TAG_LABELS } from '@/lib/quiz'
 
 // Flat collection (no parent topic) — a roadmap is one procedure end-to-end,
 // unlike Guide's topic->article nesting. Same content-freshness fields as
-// GuideArticles (BRIEF-AMENDMENT-01 §2.6) since this is the same category of
+// GuideArticles since this is the same category of
 // procedural content (AMS, ÖGK, Meldezettel, Aufenthaltstitel, ...).
 export const Roadmaps: CollectionConfig = {
   slug: 'roadmaps',
@@ -38,7 +38,7 @@ export const Roadmaps: CollectionConfig = {
       unique: true,
       label: { de: 'Slug (URL)', ar: 'الرابط', en: 'Slug (URL)' },
       admin: {
-        description: 'Not localized — one URL segment shared by all languages (see DECISIONS.md "Unlocalized slugs").',
+        description: 'Not localized — one URL segment shared by all languages.',
       },
     },
     {
@@ -70,7 +70,7 @@ export const Roadmaps: CollectionConfig = {
         },
       },
     },
-    // ── Content freshness (BRIEF-AMENDMENT-01 §2.6) — same as GuideArticles ──
+    // ── Content freshness — same as GuideArticles ──
     {
       name: 'lastReviewedAt',
       type: 'date',
@@ -106,7 +106,7 @@ export const Roadmaps: CollectionConfig = {
         },
       },
     },
-    // ── Steps (BRIEF-AMENDMENT-01 §3) ───────────────────────────────────────
+    // ── Steps ───────────────────────────────────────
     {
       name: 'steps',
       type: 'array',

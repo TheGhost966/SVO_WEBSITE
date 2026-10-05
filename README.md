@@ -8,17 +8,13 @@ a registered association serving the Syrian community across all nine Austrian B
 Next.js (App Router) with Payload CMS running in the same process, trilingual (German default,
 Arabic, English), built so the same content API can serve a mobile app later without a rewrite.
 
-For the full background, locked client decisions, and scope, see
-[`SVOE_PROJECT_BRIEF.md`](./SVOE_PROJECT_BRIEF.md). For the "why" behind non-obvious technical
-choices, see [`DECISIONS.md`](./DECISIONS.md). For what placeholder content still needs to be
-replaced before launch, see [`CONTENT-NEEDED.md`](./CONTENT-NEEDED.md). For features the client
-asked about but that are deliberately not built yet, see [`PHASE-2-SCOPE.md`](./PHASE-2-SCOPE.md).
+The handbook for the people who maintain the content is
+[`ADMIN-HANDBUCH.md`](./ADMIN-HANDBUCH.md) (German).
 
-**Production domain:** `syrischerverband.at`, owned by the association
-(`BRIEF-AMENDMENT-03.md` §2.7). Production deploys need exactly one env var set —
-`NEXT_PUBLIC_SERVER_URL=https://syrischerverband.at` — for canonical URLs and `hreflang`
+**Production domain:** `syrischerverband.at`, owned by the association. Production deploys need
+`NEXT_PUBLIC_SERVER_URL=https://syrischerverband.at` set for canonical URLs and `hreflang`
 alternates to resolve correctly; neither is hardcoded to any other host in the codebase.
-(A `sitemap.xml`/`robots.txt` route does not exist yet — see `DECISIONS.md` "Known issues".)
+(A `sitemap.xml`/`robots.txt` route does not exist yet.)
 
 ## Stack
 
@@ -76,8 +72,7 @@ npm run seed
 
 This seeds `SiteSettings`, `Navigation`, the four service pillars, and news/event categories with
 realistic German content (translated where the seed script provides it). It does **not** seed
-News, Events, Board Members, or Partners — that content needs to come from the SVÖ team; see
-`CONTENT-NEEDED.md`.
+News, Events, Board Members, or Partners — that content needs to come from the SVÖ team.
 
 ## Scripts
 
@@ -145,7 +140,7 @@ each admin user can switch it from their account page.
 
 ## Deployment
 
-Not yet finalised — the app is built deployment-agnostic. Per `SVOE_PROJECT_BRIEF.md`, the two
+Not yet finalised — the app is built deployment-agnostic. The two
 candidates are a small EU VPS (Docker) or Vercel + Neon, both pinned to an EU region for DSGVO
 reasons. Media currently lives on local disk (`public/media/`); switching to S3-compatible
 storage later only requires adding `@payloadcms/storage-s3` and the `MEDIA_S3_*` env vars — no

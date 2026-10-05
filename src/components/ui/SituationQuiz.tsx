@@ -40,6 +40,7 @@ const UI: Record<Lang, Record<string, string>> = {
     expertsNearby: 'Expert:innen in Ihrer Nähe',
     allExperts: 'Alle Expert:innen',
     steps: 'Schritte',
+    stepOne: 'Schritt',
     open: 'Anleitung öffnen',
     matchOne: 'passt zu einer Ihrer Antworten',
     matchMany: 'passt zu mehreren Ihrer Antworten',
@@ -58,6 +59,7 @@ const UI: Record<Lang, Record<string, string>> = {
     expertsNearby: 'خبراء بالقرب منك',
     allExperts: 'جميع الخبراء',
     steps: 'خطوات',
+    stepOne: 'خطوة',
     open: 'افتح المسار',
     matchOne: 'يطابق إحدى إجاباتك',
     matchMany: 'يطابق عدة من إجاباتك',
@@ -76,6 +78,7 @@ const UI: Record<Lang, Record<string, string>> = {
     expertsNearby: 'Experts near you',
     allExperts: 'All experts',
     steps: 'steps',
+    stepOne: 'step',
     open: 'Open roadmap',
     matchOne: 'matches one of your answers',
     matchMany: 'matches several of your answers',
@@ -121,7 +124,12 @@ export function SituationQuiz({
 
   const done = step >= QUIZ_QUESTIONS.length
   const tags = useMemo(() => (done ? tagsForAnswers(answers) : []), [done, answers])
-  const ranked = useMemo(() => rankByTags(roadmaps, tags), [roadmaps, tags])
+  // Every question can be skipped. With no answer that says anything about the situation there is
+  // nothing to rank by — then all roadmaps are listed rather than "nothing matches".
+  const ranked = useMemo(
+    () => (tags.length === 0 ? roadmaps.map((item) => ({ item, score: 0 })) : rankByTags(roadmaps, tags)),
+    [roadmaps, tags],
+  )
 
   const nearbyExperts = useMemo(() => {
     const state = answers.bundesland
@@ -241,15 +249,17 @@ export function SituationQuiz({
                   href={item.href}
                   className="group flex h-full flex-col rounded-2xl border border-border bg-cream p-5 transition-colors hover:border-brand-blue"
                 >
-                  <span className="text-xs font-medium text-brand-green-dk">
-                    {score > 1 ? t.matchMany : t.matchOne}
-                  </span>
+                  {score > 0 && (
+                    <span className="text-xs font-medium text-brand-green-dk">
+                      {score > 1 ? t.matchMany : t.matchOne}
+                    </span>
+                  )}
                   <span className="mt-2 text-lg font-bold text-ink group-hover:text-brand-blue">{item.title}</span>
                   {item.description && (
                     <span className="mt-1 line-clamp-2 text-sm text-ink-70">{item.description}</span>
                   )}
                   <span className="mt-4 text-sm font-semibold text-brand-blue">
-                    {item.stepCount > 0 && `${item.stepCount} ${t.steps} · `}
+                    {item.stepCount > 0 && `${item.stepCount} ${item.stepCount === 1 ? t.stepOne : t.steps} · `}
                     {t.open} {forwardArrow(locale)}
                   </span>
                 </SmartLink>

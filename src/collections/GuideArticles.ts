@@ -36,7 +36,7 @@ export const GuideArticles: CollectionConfig = {
       unique: true,
       label: { de: 'Slug (URL)', ar: 'الرابط', en: 'Slug (URL)' },
       admin: {
-        description: 'Not localized — one URL segment shared by all languages (see DECISIONS.md "Unlocalized slugs").',
+        description: 'Not localized — one URL segment shared by all languages.',
       },
     },
     {
@@ -64,7 +64,7 @@ export const GuideArticles: CollectionConfig = {
       relationTo: 'media',
       label: { de: 'Titelbild', ar: 'صورة الغلاف', en: 'Cover image' },
     },
-    // ── Content freshness (BRIEF-AMENDMENT-01 §2.6) ─────────────────────────
+    // ── Content freshness ─────────────────────────
     // Procedural/legal content about AMS, ÖGK, Meldezettel etc. causes real
     // harm when stale — these three fields make "how current is this" a fact
     // the board can check and sort by, not something left to memory.
@@ -103,7 +103,7 @@ export const GuideArticles: CollectionConfig = {
         },
       },
     },
-    // ── Cross-links (BRIEF-AMENDMENT-01 §3) ─────────────────────────────────
+    // ── Cross-links ─────────────────────────────────
     {
       name: 'relatedServices',
       type: 'relationship',

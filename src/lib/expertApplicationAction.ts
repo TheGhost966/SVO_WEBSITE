@@ -11,7 +11,7 @@ export type ExpertApplicationState = {
   errorKey?: 'required' | 'invalid_email' | 'invalid_website' | 'no_consent' | 'rate_limited' | 'server_error'
 }
 
-// SECURITY (BRIEF-AMENDMENT-01 §2.1): this is the ONLY sanctioned public
+// SECURITY: this is the ONLY sanctioned public
 // write path for Experts. It uses the Local API with overrideAccess: true
 // (Experts.access.create stays isEditorOrAbove — never opened publicly) and
 // whitelists every field explicitly. Never spread formData into payload.create.

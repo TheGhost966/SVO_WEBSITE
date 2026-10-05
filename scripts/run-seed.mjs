@@ -5,8 +5,7 @@
  * The seed can't run as a plain `tsx seed/index.ts` script: every standalone entry point that
  * loads `payload.config.ts` through tsx dies inside Payload's own ESM/CJS interop (here:
  * `Cannot destructure property 'loadEnvConfig' of 'import_env.default'`). The same problem is
- * why this project's migrations moved into `src/instrumentation.node.ts` — see DECISIONS.md
- * "Known issues". Seeding now runs from that same hook, and this launcher exists so the
+ * why this project's migrations moved into `src/instrumentation.node.ts`. Seeding now runs from that same hook, and this launcher exists so the
  * published command stays `npm run seed` instead of a platform-specific env-var incantation
  * that behaves differently in bash, cmd and PowerShell.
  */

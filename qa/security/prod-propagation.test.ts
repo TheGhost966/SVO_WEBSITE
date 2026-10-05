@@ -182,6 +182,17 @@ describe('production: what the board saves reaches the public site', () => {
     expect((await api.patch(`/api/categories/${category.body.doc.id}`, { name: second }, token)).status).toBe(200)
     expect(await settles(paths, (p) => p.html.includes(second) && !p.html.includes(first)), 'renamed category on the news list').not.toBeNull()
 
+    // T3-05: a category translated into Arabic shows its Arabic name on the Arabic list, and the
+    // other languages keep theirs (the list used to print the German name everywhere).
+    const arabic = uniq('QAPROP-CAT-AR')
+    expect((await api.patch(`/api/categories/${category.body.doc.id}?locale=ar`, { name: arabic }, token)).status).toBe(200)
+    expect(await settles(['/ar/news'], (p) => p.html.includes(arabic) && !p.html.includes(second)), 'Arabic category name on /ar/news').not.toBeNull()
+    for (const p of ['/de/nachrichten', '/en/news']) {
+      const html = (await page(p)).html
+      expect(html, `${p} keeps the German name`).toContain(second)
+      expect(html, `${p} does not show the Arabic name`).not.toContain(arabic)
+    }
+
     await api.delete(`/api/news/${news.body.doc.id}`, token)
     await api.delete(`/api/categories/${category.body.doc.id}`, token)
   })

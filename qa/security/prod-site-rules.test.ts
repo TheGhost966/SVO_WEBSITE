@@ -183,6 +183,24 @@ describe('homepage', () => {
     evidence.homepageHeadlines = before
   })
 
+  it('REGRESSION T3-03: a CTA band heading without a button text does not replace the built-in cards', async () => {
+    // Runs after the test above: German heading and button text are set, the band is authored.
+    const authored = (await page('/de')).html
+    const heading = authored.match(/QAHOME-BAND-DE[\w-]*/)?.[0]
+    expect(heading, 'authored band from the previous test').toBeTruthy()
+
+    // Button text removed, heading kept: incomplete, so the built-in cards come back.
+    expect((await api.post('/api/globals/site-settings?locale=de', { homeGroup: { ctaBandCtaLabel: '' } }, token)).status).toBe(200)
+    expect(await settles(['/de'], (p) => !p.html.includes(heading!)), 'incomplete band is not rendered').toBe(true)
+    const de = await page('/de')
+    const ar = await page('/ar')
+    // The built-in cards link to the contact form with a preselected category, in every language.
+    const contactLinks = (html: string) => (html.match(/href="[^"]*category=(volunteering|idea)[^"]*"/g) ?? []).length
+    expect(contactLinks(ar.html), 'Arabic homepage has the two built-in cards').toBeGreaterThanOrEqual(2)
+    expect(contactLinks(de.html), 'German homepage has the two built-in cards again').toBe(contactLinks(ar.html))
+    expect(de.html, 'no link without text').not.toMatch(/<a [^>]*><\/a>/)
+  })
+
   it('REGRESSION 3b-7: the app band is not on the homepage', async () => {
     for (const p of await Promise.all(HOME.map(page))) {
       expect(p.status).toBe(200)
@@ -216,7 +234,7 @@ describe('homepage', () => {
   })
 })
 
-describe('guide article cross-links (BRIEF-AMENDMENT-01 §3)', () => {
+describe('guide article cross-links', () => {
   it('REGRESSION T2-14: related roadmaps, services and experts are linked — published ones only, no private expert data', async () => {
     const privateEmail = `qa-crosslink-${Date.now()}@test.invalid`
     const roadmap = await create('roadmaps', 'published')

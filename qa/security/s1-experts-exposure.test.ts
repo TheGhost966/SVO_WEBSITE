@@ -6,8 +6,8 @@
  *   consentOnFile / consentDate / verificationStatus / verifiedAt → editor/board/admin only
  * Field read access also makes Payload refuse `where` on those paths for callers who can't read them.
  *
- * History: this file previously held "REPRODUCES S1" characterization tests proving the leak (see
- * QA_FINDINGS_P0.md). Each one is replaced here by the inverse assertion on the same probe; the
+ * History: this file previously held "REPRODUCES S1" characterization tests proving the leak.
+ * Each one is replaced here by the inverse assertion on the same probe; the
  * controls are unchanged.
  *
  * Seed (harness/seed.ts): one expert per review status, all with showEmail=false, showPhone=false

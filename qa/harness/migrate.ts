@@ -10,8 +10,8 @@ export const TEMPLATE_DB = 'svo_qa_template'
 
 /**
  * Builds the schema the only way this project supports: booting the app once with
- * PAYLOAD_MIGRATE_ON_BOOT=1 (src/instrumentation.node.ts — the payload CLI can't load the config,
- * see DECISIONS.md "Known issues"). The result is a template database every suite clones from, so
+ * PAYLOAD_MIGRATE_ON_BOOT=1 (src/instrumentation.node.ts — the payload CLI can't load the config).
+ * The result is a template database every suite clones from, so
  * each suite starts from a freshly migrated, empty schema. This doubles as a check that all
  * committed + untracked migrations apply cleanly to an empty database.
  */

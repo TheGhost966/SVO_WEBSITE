@@ -3,7 +3,7 @@
  *
  * Arabic hero headline/subline are lifted verbatim from the Figma frame (`design/figma-homepage-exports/1.png`);
  * every other string — and all of de/en — is agent-authored to fit those frames and is placeholder
- * copy pending board sign-off (CONTENT-NEEDED.md "Home page"). Deliberately omitted from the Figma
+ * copy pending board sign-off. Deliberately omitted from the Figma
  * because nothing real backs them: "+1,200 members", "+250 experts", "reply within 48 h", "+40 articles",
  * QR check-in / seat counts, personalised roadmap progress, login/join buttons, app-store badges.
  */

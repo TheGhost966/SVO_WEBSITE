@@ -2,7 +2,7 @@ import type { SiteSettingsDoc } from '@/types/payload'
 import type { HomeStatSource } from '@/lib/queries'
 
 /**
- * BRIEF-AMENDMENT-02 §2.5: a numeric tile only renders when its count is ≥ 3 (a computed
+ * A numeric tile only renders when its count is ≥ 3 (a computed
  * "1 Expert:in" is worse than no number at all). If fewer than three CMS-configured tiles
  * survive that filter — including when `statLabels` is empty outright — fall back to the
  * static, non-count trust signals §2.5 names as always-safe (9 Bundesländer, 3 Sprachen,

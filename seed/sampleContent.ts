@@ -416,7 +416,7 @@ export async function seedSampleContent(payload: Payload) {
 
   // ─── Experts ───────────────────────────────────────────────────────────────
   // Fictional people. `consentOnFile` stays false and both contact toggles stay off: no real
-  // person consented to anything here, and the collection's whole point (AMENDMENT-01 §2.7) is
+  // person consented to anything here, and the collection's whole point is
   // that third-party personal data only goes public with consent on record.
   console.log('  → Experts')
   const experts: Array<{ slug: string; bundesland: string; name: string; city: string; cat: string; langs: string[]; bio: L10n }> = [

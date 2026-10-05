@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ServerProps } from 'payload'
 import { COPY, resolveLang } from './copy'
 import { CONTENT_MAP, CHECKLIST } from './contentMap'
+import { ReviewQueue } from './ReviewQueue'
 
 /**
  * Rendered above the collection cards on `/admin` via `admin.components.beforeDashboard`
@@ -66,6 +67,9 @@ export async function DashboardGuide({ payload, i18n, user }: ServerProps) {
         <h2>{name ? t.greeting(name) : t.greeting('SVÖ')}</h2>
         <p>{t.intro}</p>
       </header>
+
+      {/* ─── Awaiting review + overdue reviews (the daily work) ────────────── */}
+      <ReviewQueue payload={payload} user={user ?? null} lang={lang} role={role} />
 
       {/* ─── What is still missing ─────────────────────────────────────────── */}
       <section className="svo-guide__card">
@@ -167,10 +171,6 @@ export async function DashboardGuide({ payload, i18n, user }: ServerProps) {
                 <Link href="/admin/globals/site-settings">{t.siteSettings}</Link>
                 <small>{t.siteSettingsBody}</small>
               </li>
-              <li>
-                <Link href="/admin/globals/navigation">{t.navigation}</Link>
-                <small>{t.navigationBody}</small>
-              </li>
             </ul>
             <a className="svo-guide__external" href="/de" target="_blank" rel="noreferrer">
               {t.viewSite} ↗
@@ -205,6 +205,13 @@ const STYLES = `
 .svo-guide__intro p { margin: 0; max-width: 78ch; color: var(--theme-elevation-600); line-height: 1.6; }
 .svo-guide__row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
 @media (min-width: 1100px) { .svo-guide__row { grid-template-columns: 1.15fr .85fr; align-items: start; } }
+@media (min-width: 1100px) { .svo-guide__row--even { grid-template-columns: 1fr 1fr; } }
+.svo-guide__count {
+  display: inline-block; margin-inline-start: .5rem; padding: .05rem .5rem; border-radius: 999px;
+  font-size: .72rem; font-weight: 700; vertical-align: middle;
+  background: var(--theme-warning-100); color: var(--theme-warning-750);
+}
+.svo-guide__count--late { background: var(--theme-error-100); color: var(--theme-error-750); }
 .svo-guide__stack { display: flex; flex-direction: column; gap: 1rem; }
 .svo-guide__card {
   background: var(--theme-elevation-0);

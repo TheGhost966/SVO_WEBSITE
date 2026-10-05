@@ -5,7 +5,7 @@
  * submissionRetentionMonths and expertApplicationRetentionMonths. The rest of the global stays
  * publicly readable. The site and notifyBoardOnReview read via the Local API (overrideAccess).
  *
- * History: the "REPRODUCES S4" tests (QA_FINDINGS_P0.md) are inverted below on the same requests.
+ * History: the "REPRODUCES S4" tests are inverted below on the same requests.
  */
 import { describe, expect, inject, it } from 'vitest'
 import { Api } from '../harness/api'
@@ -17,7 +17,7 @@ const fx = inject('fixtures')
 const api = new Api(fx.baseUrl)
 
 const PRIVATE_SETTINGS_FIELDS = ['boardNotificationEmails', 'submissionRetentionMonths', 'expertApplicationRetentionMonths']
-/** Top-level keys the anonymous response carried before the fix, minus the private ones (QA_FINDINGS_P0 S4). */
+/** Top-level keys the anonymous response carried before the fix, minus the private ones. */
 const PUBLIC_SETTINGS_FIELDS = ['id', 'logo', 'logoAlt', 'orgName', 'tagline', 'contactGroup', 'socialLinks', 'seoGroup', 'jobResourceLinks', 'homeGroup', 'updatedAt', 'createdAt', 'globalType']
 
 const get = (token?: string | null, locale = 'de') => api.get(`/api/globals/site-settings?depth=0&locale=${locale}`, token)

@@ -90,7 +90,7 @@ const BASELINE_SECURITY_HEADERS = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()' },
   // Production only: browsers ignore HSTS over plain HTTP anyway, and pinning `localhost` to HTTPS
   // for two years would break every other local dev server. No includeSubDomains / preload — that
-  // is a decision about the whole domain (see LAUNCH-CHECKLIST.md).
+  // is a decision about the whole domain.
   ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000' }] : []),
 ]
 
@@ -176,7 +176,7 @@ const nextConfig: NextConfig = {
       // the bare specifier straight to the file Node's own `require.resolve('file-type')` picks
       // (index.js, which does have both exports) sidesteps the conditional-exports resolution
       // entirely. Confirmed this build failure pre-dates this change (reproduces on unmodified
-      // `master`) — see DECISIONS.md "Known issues".
+      // `master`).
       'file-type': toTurbopackAliasPath(require.resolve('file-type')),
       // Same conditional-exports issue one dependency deeper: file-type/index.js imports strtok3,
       // which has the identical "node" vs. "default" condition split.

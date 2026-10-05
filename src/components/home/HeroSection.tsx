@@ -11,10 +11,10 @@ import { homeCopy } from './copy'
  * Figma hero (`design/figma-homepage-exports/1.png`): navy→blue gradient, badge pill, large headline,
  * muted subline, a real search bar, situation chips, and a roadmap card opposite the text.
  *
- * Deliberate differences from the Figma (see DECISIONS.md "Figma fidelity pass"):
+ * Deliberate differences from the Figma:
  *  - the card is an *example roadmap* built from the first published roadmap's real steps, not the
  *    Figma's logged-in "3 of 6 steps done" progress card (no accounts, no progress tracking exists);
- *  - no login / join-us buttons (AMENDMENT-02 §2.4 dispositions stand).
+ *  - no login / join-us buttons (no public accounts exist).
  * Headline/subline: CMS (`SiteSettings.homeGroup`) wins; otherwise the Figma's own wording.
  * The search bar is a real `<form>` GET to `/search` (works without JS) — see `searchSite` in
  * `src/lib/queries.ts` and `src/app/[locale]/search/page.tsx`.

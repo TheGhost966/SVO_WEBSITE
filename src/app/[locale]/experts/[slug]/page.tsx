@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: expert.name ?? undefined,
     description: expert.bio ?? undefined,
     // No Person JSON-LD and no rich indexing push for pages carrying contact
-    // details of third parties (BRIEF-AMENDMENT-01 §2.7) — plain metadata only.
+    // details of third parties — plain metadata only.
   }
 }
 
@@ -121,7 +121,7 @@ export default async function ExpertPage({ params }: Props) {
               {expert.contactPhone}
             </a>
           )}
-          {/* BRIEF-AMENDMENT-03 §2.5: showEmail/showPhone default off (admin-mediated contact per
+          {/* showEmail/showPhone default off (admin-mediated contact per
               questionnaire §7.6) — when neither is on, point to the contact form instead of
               rendering an empty-looking contact box. */}
           {!expert.showEmail && !expert.showPhone && (

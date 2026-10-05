@@ -1,7 +1,6 @@
 # QA suite
 
-Black-box security tests that run the real app against a **disposable, local** Postgres. Findings
-and results: `../QA_FINDINGS_P0.md`.
+Black-box security tests that run the real app against a **disposable, local** Postgres.
 
 ```bash
 npm install        # first time (downloads embedded Postgres binaries)
@@ -19,7 +18,7 @@ How it works:
 Ports used: 3100 (P0), 3101/3102 (S3 dev/prod), 2526 (SMTP sink), 54329 (Postgres). Don't run while another `next dev` is running in
 this repo. Evidence (JSON, `role-matrix.md`, server logs) is written to `evidence/` on every run.
 
-`REGRESSION Sx` tests assert the secure behaviour after remediation (`../SECURITY_REMEDIATION.md`);
+`REGRESSION Sx` tests assert the secure behaviour after remediation;
 they replaced the earlier `REPRODUCES Sx` characterization tests on the same requests. If one fails,
 the finding has come back — fix the code, don't loosen the test.
 

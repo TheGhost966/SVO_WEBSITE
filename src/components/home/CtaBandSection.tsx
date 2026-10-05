@@ -8,8 +8,7 @@ import { homeCopy } from './copy'
 
 /**
  * Figma 8.png: two side-by-side cards — a green "Become a volunteer" card and a navy "I have an
- * idea" card. Both link to the contact form with the category pre-selected (AMENDMENT-03 §4:
- * neither feature has its own module, so there is no dead end). If the board has filled in the
+ * idea" card. Both link to the contact form with the category pre-selected (neither feature has its own module, so there is no dead end). If the board has filled in the
  * single `homeGroup.ctaBand*` fields, that authored band is shown instead, as before.
  */
 export function CtaBandSection({
@@ -20,7 +19,9 @@ export function CtaBandSection({
   siteSettings: SiteSettingsDoc | null
 }) {
   const cta = siteSettings?.homeGroup
-  const authored = Boolean(cta?.ctaBandHeading || cta?.ctaBandBody || cta?.ctaBandCtaLabel)
+  // An authored band replaces the two built-in cards, so it has to be complete: a heading alone
+  // used to produce a band with an empty button and no way to get in touch.
+  const authored = Boolean(cta?.ctaBandHeading && cta?.ctaBandCtaLabel)
 
   if (authored) {
     return (

@@ -24,7 +24,7 @@ export const EMPLOYMENT_TYPES = [
  * originally shipped with.
  *
  * On maintenance: this was previously scoped down to a link list precisely because no board
- * member was named to keep postings current (see DECISIONS.md "Jobs slice"). That risk is real
+ * member was named to keep postings current. That risk is real
  * and is answered here structurally rather than by trusting anyone to remember — `expiryDate` is
  * required, `getJobs`/`getJobBySlug` in src/lib/queries.ts filter on it, and both job routes set
  * `revalidate = 300` so the prerendered pages re-render and drop it. A posting therefore stops
@@ -154,7 +154,7 @@ export const Jobs: CollectionConfig = {
         },
         {
           // Required, and actually enforced by the public queries — an unenforced expiry column
-          // is just a note nobody reads (BRIEF-AMENDMENT-01 §2.5).
+          // is just a note nobody reads.
           name: 'expiryDate',
           type: 'date',
           required: true,

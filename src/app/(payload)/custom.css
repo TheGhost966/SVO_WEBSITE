@@ -1,0 +1,49 @@
+/*
+ * SVÖ brand colours in the admin panel. Loaded after Payload's own stylesheet
+ * (src/app/(payload)/layout.tsx). Only colours — no layout, so a Payload update cannot be broken
+ * by it; if a selector below stops matching, the panel simply falls back to Payload's grey.
+ */
+:root {
+  --svo-blue: #0b4ea2;
+  --svo-navy: #062e57;
+  --svo-green: #4fa845;
+  --svo-green-dk: #3b8a33;
+}
+
+/* Primary buttons (Save, Create New, Login) in the brand blue. */
+.btn--style-primary {
+  --bg-color: var(--svo-blue);
+  --hover-bg: var(--svo-navy);
+  --color: #fff;
+  --hover-color: #fff;
+}
+.btn--style-primary.btn--disabled {
+  --bg-color: var(--theme-elevation-200);
+  --color: var(--theme-elevation-500);
+}
+
+/* The current sidebar entry and the active tab carry the brand green. */
+.nav__link.active,
+.nav__link:hover {
+  color: var(--svo-blue);
+}
+.nav__link-indicator {
+  background: var(--svo-green);
+}
+.tabs-field__tab-button--active::after {
+  background: var(--svo-green);
+  opacity: 1;
+}
+
+/* Links inside help texts and the dashboard. */
+.field-description a,
+.svo-guide a:not(.svo-guide__action) {
+  color: var(--svo-blue);
+}
+
+/* Keyboard focus in the brand blue, as on the public site. */
+.btn:focus-visible,
+.nav__link:focus-visible {
+  outline: 2px solid var(--svo-blue);
+  outline-offset: 2px;
+}

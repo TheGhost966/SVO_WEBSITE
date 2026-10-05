@@ -198,11 +198,13 @@ export const getUpcomingEvents = unstable_cache(
 )
 
 export const getNewsCategories = unstable_cache(
-  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+  // `locale`: the name is localized — without it every language got the German names.
+  async (locale: string = 'de'): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
     try {
       const payload = await getPayloadClient()
       const result = await payload.find({
         collection: 'categories',
+        locale: locale as 'de' | 'ar' | 'en',
         where: { type: { equals: 'news' } },
         sort: 'name',
         depth: 0,
@@ -218,11 +220,13 @@ export const getNewsCategories = unstable_cache(
 )
 
 export const getEventCategories = unstable_cache(
-  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+  // `locale`: the name is localized — without it every language got the German names.
+  async (locale: string = 'de'): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
     try {
       const payload = await getPayloadClient()
       const result = await payload.find({
         collection: 'categories',
+        locale: locale as 'de' | 'ar' | 'en',
         where: { type: { equals: 'event' } },
         sort: 'name',
         depth: 0,
@@ -452,7 +456,7 @@ export const getServicePillars = unstable_cache(
 
 /**
  * Topics for the public topic grid — filtered to topics with at least one
- * published article (BRIEF-AMENDMENT-01 §2.8: GuideTopics has no reviewStatus
+ * published article (GuideTopics has no reviewStatus
  * of its own, so without this filter all topics would be publicly "live" the
  * moment they're created, with nothing behind them).
  */
@@ -466,7 +470,7 @@ export const getGuideTopics = unstable_cache(
       // "Which topics have at least one published article?" — a DISTINCT over the join column.
       // The answer is bounded by the number of topics, not the number of articles; the previous
       // version read every published article (`pagination: false`) on each homepage render to get
-      // it, which BRIEF-AMENDMENT-02 §2.7 rules out.
+      // it — never fetch a full collection to read a count.
       const withArticles = await payload.findDistinct({
         collection: 'guide-articles',
         field: 'topic',
@@ -592,7 +596,7 @@ export const getGuideArticleBySlug = unstable_cache(
       if (!doc) return null
       doc._isFallback = await isLocaleFallback('guide-articles', doc.id, locale)
 
-      // Cross-links (BRIEF-AMENDMENT-01 §3). The Local API populates relations regardless of their
+      // Cross-links. The Local API populates relations regardless of their
       // review status, and a populated expert carries private contact data — so keep only
       // published targets, and of those only title and slug.
       type Rel = { title?: string | null; name?: string | null; slug?: string | null; reviewStatus?: string | null; pillar?: unknown }
@@ -621,7 +625,7 @@ export const getGuideArticleBySlug = unstable_cache(
 
 // ─── Roadmaps ──────────────────────────────────────────────────────────────────
 
-/** Published roadmaps only — a flat list, no parent (BRIEF-AMENDMENT-01 §2.8 empty-state principle). */
+/** Published roadmaps only — a flat list, no parent. */
 export const getRoadmaps = unstable_cache(
   async (locale: string, limit = 100): Promise<RoadmapDoc[]> => {
     try {
@@ -674,11 +678,13 @@ export const getRoadmapBySlug = unstable_cache(
 // ─── Experts ───────────────────────────────────────────────────────────────────
 
 export const getExpertCategories = unstable_cache(
-  async (): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
+  // `locale`: the name is localized — without it every language got the German names.
+  async (locale: string = 'de'): Promise<Array<{ id: string; name?: string | null; slug?: string | null }>> => {
     try {
       const payload = await getPayloadClient()
       const result = await payload.find({
         collection: 'categories',
+        locale: locale as 'de' | 'ar' | 'en',
         where: { type: { equals: 'expert' } },
         sort: 'name',
         depth: 0,
@@ -764,7 +770,7 @@ export type HomeStatSource = 'experts' | 'guideArticles' | 'roadmaps' | 'events'
 
 /**
  * Count-only queries (`payload.count`, never a full `find`) for the homepage stats band's
- * dynamic tiles — BRIEF-AMENDMENT-02 §2.7: "never fetch a full collection to read a count."
+ * dynamic tiles — never fetch a full collection to read a count.
  * Not locale-scoped: these are trust-signal totals of the association's work, not per-locale
  * content, and localized fields fall back to German anyway so a count wouldn't meaningfully
  * differ by locale.
@@ -944,7 +950,7 @@ export const getPartners = unstable_cache(
  * Published, unexpired postings only.
  *
  * The expiry filter lives here rather than in a cleanup job because it has to be true of every
- * read: a stored `expiryDate` that nothing checks is just a note (BRIEF-AMENDMENT-01 §2.5), and
+ * read: a stored `expiryDate` that nothing checks is just a note, and
  * the Jobs slice was originally scoped down precisely because nobody was named to prune stale
  * postings by hand. With the filter in the query, a posting stops being public on its expiry date
  * whether or not anyone remembers.

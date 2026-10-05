@@ -47,12 +47,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 /**
- * BRIEF-AMENDMENT-03 §2.1/§2.2: homepage is fully bespoke React sections (no `pages`
- * page-builder/BlockRenderer path — a `pages` record with slug `home` is permanently inert,
- * see DECISIONS.md), rendered in `SiteSettings.homeGroup.sectionOrder`'s board-editable order,
- * falling back to the §2.1 default order when that array is empty.
+ * Homepage is fully bespoke React sections (no `pages`
+ * page-builder/BlockRenderer path — a `pages` record with slug `home` is permanently inert),
+ * rendered in `SiteSettings.homeGroup.sectionOrder`'s board-editable order,
+ * falling back to the default order when that array is empty.
  *
- * BRIEF-AMENDMENT-02 §2.7 query discipline: every section's data is fetched in one `Promise.all`,
+ * Query discipline: every section's data is fetched in one `Promise.all`,
  * teaser queries take an explicit `limit` rather than fetching a full collection to slice
  * client-side, and the stats band reads count-only queries (`payload.count`), never a full find.
  */
@@ -68,7 +68,7 @@ export default async function HomePage({ params }: Props) {
     getRoadmaps(locale, 4),
     getGuideTopics(locale, 12),
     getExperts(locale, undefined, 4),
-    getExpertCategories(),
+    getExpertCategories(locale),
     getHomeStatCounts(),
     getJobs(locale, 4),
   ])
@@ -94,7 +94,7 @@ export default async function HomePage({ params }: Props) {
     experts: <ExpertsSection locale={locale} experts={experts} categories={expertCategories} t={t} />,
     jobs: <JobsSection locale={locale} jobs={jobs} links={jobLinks} t={t} />,
     ctaBand: <CtaBandSection locale={locale} siteSettings={siteSettings} />,
-    // Removed (BRIEF-AMENDMENT-02 §2.4). The value stays valid so a stored section order still loads.
+    // Removed. The value stays valid so a stored section order still loads.
     appBand: null,
   }
 

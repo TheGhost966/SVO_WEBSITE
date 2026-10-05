@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const base = GUIDE_BASE[locale] ?? GUIDE_BASE.de
 
-  // slug is unlocalized (DECISIONS.md "Unlocalized slugs") — same segments for every locale.
+  // slug is unlocalized — same segments for every locale.
   const languages: Record<string, string> = {}
   for (const loc of ['de', 'ar', 'en'] as const) {
     const locBase = GUIDE_BASE[loc]
@@ -197,7 +197,7 @@ export default async function GuideArticlePage({ params }: Props) {
 
             <h1 className="text-3xl md:text-4xl font-bold text-ink leading-tight mb-4">{article.title}</h1>
 
-            {/* Content freshness (BRIEF-AMENDMENT-01 §2.6) */}
+            {/* Content freshness */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-50 border-b border-border pb-8 mb-8">
               {article.lastReviewedAt && (
                 <span>

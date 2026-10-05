@@ -34,8 +34,6 @@ export type Copy = {
   globalsIntro: string
   siteSettings: string
   siteSettingsBody: string
-  navigation: string
-  navigationBody: string
   viewSite: string
 }
 
@@ -88,12 +86,10 @@ const de: Copy = {
   ],
 
   globalsHeading: 'Website-weite Einstellungen',
-  globalsIntro: 'Diese beiden Bereiche wirken sich auf jede Seite aus.',
+  globalsIntro: 'Dieser Bereich wirkt sich auf jede Seite aus. Das Menü in Kopf- und Fußzeile ist fest eingebaut und wird nicht hier bearbeitet.',
   siteSettings: 'Website-Einstellungen',
   siteSettingsBody:
     'Vereinsname, Kontaktdaten, Startseiten-Texte (Hero, Hilfe-Karten, CTA-Band), Reihenfolge der Startseiten-Bereiche, Link-Liste für Stellenangebote und die SEO-Standardtexte.',
-  navigation: 'Navigation',
-  navigationBody: 'Die Menüpunkte in Kopf- und Fußzeile.',
   viewSite: 'Website ansehen',
 }
 
@@ -143,12 +139,10 @@ const en: Copy = {
   ],
 
   globalsHeading: 'Site-wide settings',
-  globalsIntro: 'These two areas affect every page.',
+  globalsIntro: 'This area affects every page. The header and footer menus are built in and are not edited here.',
   siteSettings: 'Website settings',
   siteSettingsBody:
     'Association name, contact details, homepage copy (hero, help cards, CTA band), homepage section order, the jobs link list, and the SEO defaults.',
-  navigation: 'Navigation',
-  navigationBody: 'The menu entries in the header and footer.',
   viewSite: 'View website',
 }
 
@@ -195,12 +189,10 @@ const ar: Copy = {
   ],
 
   globalsHeading: 'إعدادات عامة للموقع',
-  globalsIntro: 'يؤثر هذان القسمان على كل صفحة.',
+  globalsIntro: 'يؤثر هذا القسم على كل صفحة. قوائم الترويسة والتذييل ثابتة ولا تُعدَّل من هنا.',
   siteSettings: 'إعدادات الموقع',
   siteSettingsBody:
     'اسم الجمعية، بيانات الاتصال، نصوص الصفحة الرئيسية (الواجهة، بطاقات المساعدة، شريط الدعوة)، ترتيب أقسام الصفحة الرئيسية، قائمة روابط فرص العمل، وإعدادات SEO الافتراضية.',
-  navigation: 'التنقل',
-  navigationBody: 'عناصر القائمة في الترويسة والتذييل.',
   viewSite: 'عرض الموقع',
 }
 

@@ -155,7 +155,7 @@ export async function seed(api: Api): Promise<Fixtures> {
   // ── Users ─────────────────────────────────────────────────────────────────
   // first-register is the only way to create the first user over HTTP on an empty database. It is
   // open here because this server is non-production (NODE_ENV=test); production answers 403 and
-  // uses `npm run create-admin` instead (QA_AUDIT S14, qa/security/s14-first-admin.test.ts).
+  // uses `npm run create-admin` instead (qa/security/s14-first-admin.test.ts).
   const first = await api.post('/api/users/first-register', {
     email: userEmail('admin'),
     password: PASSWORD,

@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  * vetted and dated, and `getJobs` drops anything past its `expiryDate`, so the list is empty
  * whenever nobody is maintaining it. The portal links below never expire and never need
  * maintenance, so the page still answers "where do I look for work?" on its worst day — which is
- * the concern that got the full job board deferred in the first place (DECISIONS.md "Jobs slice").
+ * the concern that got the full job board deferred in the first place.
  */
 export default async function JobsPage({ params }: Props) {
   const { locale } = await params

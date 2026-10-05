@@ -226,7 +226,7 @@ export function eventSchema({
 
 /**
  * `JobPosting` structured data — the reason each posting gets its own indexable page rather than
- * the listing linking straight out to `applyUrl` (BRIEF-AMENDMENT-01 §2.4).
+ * the listing linking straight out to `applyUrl`.
  *
  * `validThrough` mirrors the posting's own expiry, so search engines retire the listing on the
  * same date the site stops serving it. No salary is emitted: the collection has no salary field,

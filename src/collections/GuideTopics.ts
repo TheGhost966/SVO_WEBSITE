@@ -3,7 +3,7 @@ import { isAdminOrBoard } from '@/lib/access'
 import { makeRevalidateOnPublish, makeRevalidateOnDelete } from '@/hooks/revalidateOnPublish'
 
 // Fixed reference list, same pattern as ServicePillars — no reviewStatus, always
-// public, admin-managed. Per BRIEF-AMENDMENT-01 §2.8, the public topic grid query
+// public, admin-managed. The public topic grid query
 // filters to topics that actually have a published article (see getGuideTopics
 // in src/lib/queries.ts); visiting a topic directly with zero articles still
 // works and shows an empty state, matching the Services/ServicePillar pattern.
@@ -29,7 +29,7 @@ export const GuideTopics: CollectionConfig = {
       unique: true,
       label: { de: 'Slug (URL)', ar: 'الرابط', en: 'Slug (URL)' },
       admin: {
-        description: 'Not localized — one URL segment shared by all languages (see DECISIONS.md "Unlocalized slugs").',
+        description: 'Not localized — one URL segment shared by all languages.',
       },
     },
     {

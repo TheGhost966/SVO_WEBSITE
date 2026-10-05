@@ -59,7 +59,7 @@ export default async function EventsIndexPage({ params, searchParams }: Props) {
     isPast
       ? getPastEvents(locale, currentPage, cat)
       : getUpcomingEventsPaged(locale, currentPage, cat),
-    getEventCategories(),
+    getEventCategories(locale),
   ])
 
   const events = result.docs

@@ -1,13 +1,13 @@
 /**
  * N3 — Jobs delete authorization.
  *
- * Intended model (derived, not assumed — see SECURITY_REMEDIATION.md "N3"):
+ * Intended model (derived, not assumed):
  *   - every other collection with the review workflow (news, events, services, guide-articles,
  *     roadmaps, experts, pages) uses `delete: admin only`; Jobs was modelled on News/Events
  *     (src/collections/Jobs.ts) and records no reason to differ;
  *   - ADMIN-HANDBUCH §2: editors cannot publish, every publication needs board approval — removing
  *     live content without review is the same bypass in reverse;
- *   - BRIEF-AMENDMENT-01 §2.5: expired postings are handled by the expiry filter / archiving, so
+ *   - Expired postings are handled by the expiry filter / archiving, so
  *     editors have no maintenance need to delete.
  *   ⇒ delete: admin only. anonymous / viewer / editor / board → 403. Board takes a job offline by
  *     archiving it (the documented route), which stays possible.

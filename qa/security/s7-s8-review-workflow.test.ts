@@ -1,7 +1,7 @@
 /**
  * S7 — editor publishing bypass, and S8 — partial PATCH overwriting `_status`.
  *
- * Expected behaviour comes from the documented workflow (QA_AUDIT.md §3 item 18, §7):
+ * Expected behaviour comes from the documented workflow:
  *   editor creates/edits a draft → sets in_review → board/admin publishes (or archives).
  * Nothing in it lets an editor change content that is already live, or its publication state.
  * So for an editor, a document that is `published` or `archived` must stay exactly as it is —

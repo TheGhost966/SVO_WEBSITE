@@ -1,6 +1,6 @@
 /**
  * S21 — anonymous access to the Users collection. Found by the independent security review on
- * 2026-10-04; not part of the original audit (QA_AUDIT.md S1–S20), and `users` was never in the
+ * 2026-10-04; not part of the original audit, and `users` was never in the
  * role matrix.
  *
  * Cause: `isAdminOrSelf` (src/lib/access.ts) ended in `req.user?.id === id`. On a list or bulk

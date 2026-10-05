@@ -8,7 +8,7 @@
  *  - src/lib/contactAction.ts: honeypot, per-IP rate limit (5 / 10 min), length / email / category /
  *    locale validation, explicit field whitelist.
  *
- * History: this file previously held "REPRODUCES S2" characterization tests (QA_FINDINGS_P0.md).
+ * History: this file previously held "REPRODUCES S2" characterization tests.
  * Each REST probe is kept and now asserts the secure outcome; form-path tests are new.
  *
  * Form tests submit through the real server action (harness/forms.ts — browser no-JS submission).

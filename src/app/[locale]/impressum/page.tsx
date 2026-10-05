@@ -13,7 +13,7 @@ export default async function ImpressumPage({ params }: Props) {
       style={{ paddingInlineStart: 'clamp(24px, 5vw, 120px)', paddingInlineEnd: 'clamp(24px, 5vw, 120px)' }}
     >
       <h1 className="text-3xl font-bold text-ink mb-8">{t('impressum')}</h1>
-      {/* CONTENT-NEEDED: Legal text must be provided by SVÖ board or their lawyer.
+      {/* Legal text must be provided by SVÖ board or their lawyer.
           Never generate or invent legal text. */}
       <div className="p-6 rounded-card border-2 border-dashed border-brand-blue/30 bg-brand-blue/5">
         <p className="text-brand-blue font-semibold text-sm mb-2">⚠ Inhalt ausstehend</p>

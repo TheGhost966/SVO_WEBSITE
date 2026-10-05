@@ -158,7 +158,7 @@ export function rankByTags<T extends { quizMatches?: string[] | null }>(
 /**
  * Whether the quiz may be offered at all: every combination of answers has to lead to at least one
  * roadmap. A visitor who answers four questions and gets "nothing matches" has hit a dead end, and
- * for this audience a dead end reads as "I did something wrong" (BRIEF-AMENDMENT-02 §2.4). So
+ * for this audience a dead end reads as "I did something wrong". So
  * until the published roadmaps cover every outcome, the homepage band is not shown and /quiz
  * answers 404; both come back by themselves once the board has tagged enough roadmaps.
  */
