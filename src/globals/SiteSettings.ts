@@ -76,6 +76,10 @@ export const SiteSettings: GlobalConfig = {
       name: 'socialLinks',
       type: 'array',
       label: { de: 'Social-Media-Links', ar: 'روابط التواصل الاجتماعي', en: 'Social media links' },
+      labels: {
+        singular: { de: 'Profil', ar: 'حساب', en: 'Profile' },
+        plural: { de: 'Profile', ar: 'الحسابات', en: 'Profiles' },
+      },
       fields: [
         {
           name: 'platform',
@@ -172,9 +176,14 @@ export const SiteSettings: GlobalConfig = {
             ar: 'ترتيب أقسام الصفحة الرئيسية',
             en: 'Homepage section order',
           },
+          labels: {
+            singular: { de: 'Abschnitt', ar: 'قسم', en: 'Section' },
+            plural: { de: 'Abschnitte', ar: 'الأقسام', en: 'Sections' },
+          },
           admin: {
             description: {
               de: 'Reihenfolge per Ziehen ändern, Abschnitte ein-/ausblenden. Leer lassen für die Standardreihenfolge: Hero, Statistik, Hilfe-Karten, Wegweiser, Guide, Expert:innen, Stellenangebote, Veranstaltungen, CTA-Band, Neuigkeiten. Achtung: Sobald hier Zeilen stehen, erscheinen nur noch die aufgeführten Abschnitte.',
+              ar: 'غيّر الترتيب بالسحب، وأظهر الأقسام أو أخفِها. اتركه فارغًا للترتيب الافتراضي: القسم العلوي، الإحصائيات، بطاقات المساعدة، خرائط الطريق، الدليل، الخبراء، فرص العمل، الفعاليات، شريط الدعوة، الأخبار. تنبيه: ما إن توجد صفوف هنا حتى لا يظهر إلا الأقسام المذكورة.',
               en: 'Drag rows to reorder; toggle sections on/off. Leave empty for the default order: Hero, Stats, Help cards, Roadmaps, Guide, Experts, Jobs, Events, CTA band, News. Note: once there are rows here, only the listed sections are shown.',
             },
           },
@@ -251,6 +260,10 @@ export const SiteSettings: GlobalConfig = {
           name: 'statLabels',
           type: 'array',
           label: { de: 'Statistik-Kacheln', ar: 'بطاقات الإحصائيات', en: 'Stat tiles' },
+          labels: {
+            singular: { de: 'Kachel', ar: 'بطاقة', en: 'Tile' },
+            plural: { de: 'Kacheln', ar: 'البطاقات', en: 'Tiles' },
+          },
           admin: {
             description: {
               de: 'Eine Kachel wird nur angezeigt, wenn der zugehörige Wert mindestens 3 beträgt.',
@@ -290,6 +303,10 @@ export const SiteSettings: GlobalConfig = {
           name: 'helpCards',
           type: 'array',
           label: { de: 'Hilfe-Karten', ar: 'بطاقات المساعدة', en: 'Help cards' },
+          labels: {
+            singular: { de: 'Karte', ar: 'بطاقة', en: 'Card' },
+            plural: { de: 'Karten', ar: 'البطاقات', en: 'Cards' },
+          },
           maxRows: 4,
           fields: [
             {
@@ -390,6 +407,10 @@ export const SiteSettings: GlobalConfig = {
       type: 'array',
       access: { read: boardOrAdminOnly },
       label: { de: 'E-Mail-Empfänger für Überprüfungs-Benachrichtigungen', ar: 'مستلمو البريد الإلكتروني للمراجعة', en: 'Review notification email recipients' },
+      labels: {
+        singular: { de: 'Adresse', ar: 'عنوان', en: 'Address' },
+        plural: { de: 'Adressen', ar: 'العناوين', en: 'Addresses' },
+      },
       fields: [
         {
           name: 'email',

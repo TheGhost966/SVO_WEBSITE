@@ -172,7 +172,7 @@ export async function DashboardGuide({ payload, i18n, user }: ServerProps) {
                 <small>{t.siteSettingsBody}</small>
               </li>
             </ul>
-            <a className="svo-guide__external" href="/de" target="_blank" rel="noreferrer">
+            <a className="svo-guide__external" href={`/${lang}`} target="_blank" rel="noreferrer">
               {t.viewSite} ↗
             </a>
           </section>

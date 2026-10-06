@@ -118,6 +118,9 @@ export default buildConfig({
       // Path string, not an import: Payload resolves it through the importMap
       // (src/app/(payload)/admin/importMap.js — edited by hand, the CLI generator crashes here).
       beforeDashboard: ['@/components/admin/DashboardGuide#DashboardGuide'],
+      // Choosing a content language in the header also switches the panel's own language and
+      // reading direction to it.
+      providers: ['@/components/admin/LanguageFollowsLocale#LanguageFollowsLocale'],
     },
   },
 

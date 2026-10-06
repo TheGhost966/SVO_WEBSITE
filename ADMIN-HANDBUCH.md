@@ -12,8 +12,13 @@ Website steht, entscheidet allein das Feld **Status**.
 Admin-Bereich: **`https://[domain]/admin`**
 
 Anmelden mit E-Mail-Adresse und Passwort. Das Passwort ändern Sie unter **Konto** (Kreis oben
-rechts). Dort stellen Sie auch die **Sprache des Admin-Bereichs** ein (Deutsch, Arabisch,
-Englisch) — das ist unabhängig davon, in welcher Sprache Sie gerade Inhalte bearbeiten.
+rechts).
+
+**Sprache des Admin-Bereichs** (Deutsch, Arabisch, Englisch): Der Admin-Bereich folgt dem
+**Sprachumschalter** oben in der Kopfzeile. Wer dort „العربية“ wählt, bearbeitet die arabischen
+Inhalte *und* sieht Schaltflächen, Feldnamen und Hilfetexte auf Arabisch, von rechts nach links.
+Wer die Oberfläche in einer anderen Sprache haben möchte als die Inhalte, stellt sie unter
+**Konto** ein — das gilt, bis der Sprachumschalter das nächste Mal benutzt wird.
 Dieses Handbuch verwendet die deutschen Bezeichnungen.
 
 ### Das erste Administrator-Konto
@@ -287,4 +292,4 @@ setzen. Anfragen werden nach der eingestellten Frist automatisch gelöscht.
 | „Nicht berechtigt“ beim Öffnen einer Seite | Ihre Rolle darf diesen Bereich nicht ändern (siehe 2). |
 
 Technische Probleme, die dieses Handbuch nicht klärt, bitte an die Entwicklung melden:
-**[Kontakt der Entwicklung eintragen]**.
+**+491771816575**.

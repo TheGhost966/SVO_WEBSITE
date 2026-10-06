@@ -23,9 +23,9 @@ export const Hero: Block = {
       defaultValue: 'default',
       label: { de: 'Stil', ar: 'النمط', en: 'Variant' },
       options: [
-        { label: { de: 'Standard (blauer Hintergrund)', en: 'Default (blue bg)' }, value: 'default' },
-        { label: { de: 'Mit Bild', en: 'With image' }, value: 'image' },
-        { label: { de: 'Kompakt', en: 'Compact' }, value: 'compact' },
+        { label: { de: 'Standard (blauer Hintergrund)', ar: 'افتراضي (خلفية زرقاء)', en: 'Default (blue background)' }, value: 'default' },
+        { label: { de: 'Mit Bild', ar: 'مع صورة', en: 'With image' }, value: 'image' },
+        { label: { de: 'Kompakt', ar: 'مضغوط', en: 'Compact' }, value: 'compact' },
       ],
     },
   ],

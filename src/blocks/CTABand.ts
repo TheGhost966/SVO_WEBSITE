@@ -14,8 +14,8 @@ export const CTABand: Block = {
       type: 'group',
       label: { de: 'Primärer Button', ar: 'الزر الرئيسي', en: 'Primary button' },
       fields: [
-        { name: 'label', type: 'text', localized: true, required: true },
-        { name: 'url', type: 'text', required: true },
+        { name: 'label', type: 'text', localized: true, required: true, label: { de: 'Beschriftung', ar: 'النص', en: 'Label' } },
+        { name: 'url', type: 'text', required: true, label: { de: 'URL', ar: 'الرابط', en: 'URL' } },
       ],
     },
     {
@@ -23,8 +23,8 @@ export const CTABand: Block = {
       type: 'group',
       label: { de: 'Sekundärer Button (optional)', ar: 'الزر الثانوي', en: 'Secondary button (optional)' },
       fields: [
-        { name: 'label', type: 'text', localized: true },
-        { name: 'url', type: 'text' },
+        { name: 'label', type: 'text', localized: true, label: { de: 'Beschriftung', ar: 'النص', en: 'Label' } },
+        { name: 'url', type: 'text', label: { de: 'URL', ar: 'الرابط', en: 'URL' } },
       ],
     },
     {
@@ -33,9 +33,9 @@ export const CTABand: Block = {
       defaultValue: 'green',
       label: { de: 'Hintergrundfarbe', ar: 'لون الخلفية', en: 'Background colour' },
       options: [
-        { label: { de: 'Grün', en: 'Green' }, value: 'green' },
-        { label: { de: 'Marineblau', en: 'Navy' }, value: 'navy' },
-        { label: { de: 'Blau', en: 'Blue' }, value: 'blue' },
+        { label: { de: 'Grün', ar: 'أخضر', en: 'Green' }, value: 'green' },
+        { label: { de: 'Marineblau', ar: 'كحلي', en: 'Navy' }, value: 'navy' },
+        { label: { de: 'Blau', ar: 'أزرق', en: 'Blue' }, value: 'blue' },
       ],
     },
   ],

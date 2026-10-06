@@ -64,7 +64,7 @@ export async function runSeed(payload: Payload) {
       },
     },
     submissionRetentionMonths: 12,
-    boardNotificationEmails: [{ email: process.env.BOARD_NOTIFICATION_EMAIL ?? 'alexalexltesgo@gmail.com' }],
+    boardNotificationEmails: [{ email: process.env.BOARD_NOTIFICATION_EMAIL ?? 'vorstand@example.org' }],
   })
 
   // ─── Navigation ────────────────────────────────────────────────────────────

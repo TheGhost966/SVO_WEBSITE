@@ -14,8 +14,8 @@ export const RichTextBlock: Block = {
       defaultValue: 'default',
       label: { de: 'Breite', ar: 'العرض', en: 'Width' },
       options: [
-        { label: { de: 'Standard (Lesebreite)', en: 'Default (reading width)' }, value: 'default' },
-        { label: { de: 'Breit (volle Spaltenbreite)', en: 'Wide (full column)' }, value: 'wide' },
+        { label: { de: 'Standard (Lesebreite)', ar: 'افتراضي (عرض القراءة)', en: 'Default (reading width)' }, value: 'default' },
+        { label: { de: 'Breit (volle Spaltenbreite)', ar: 'عريض (كامل عرض العمود)', en: 'Wide (full column)' }, value: 'wide' },
       ],
     },
   ],

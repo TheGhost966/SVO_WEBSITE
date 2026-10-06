@@ -1,4 +1,4 @@
-import type { Access, CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig, Field, SelectField } from 'payload'
+import type { Access, BaseFilter, CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig, Field, SelectField } from 'payload'
 
 /** The roles that work on unpublished content. */
 const EDITOR_PLUS = ['admin', 'board', 'editor']
@@ -82,6 +82,15 @@ export const saveToLiveRow: CollectionBeforeOperationHook = ({ args, operation }
 const NOTHING = '@/components/admin/SingleSave#Nothing'
 
 /**
+ * The admin lists read the versions tables (the draft view). A version whose document was deleted
+ * directly in the database stays behind with no parent (ON DELETE SET NULL) and was listed as a row
+ * without an id: an entry nobody can open, and React's "two children with the same key" error as
+ * soon as its row number equals the id of a real document. `id` is the parent document here, so
+ * this keeps every such row out of the admin, whatever state the versions tables are in.
+ */
+const hideOrphanedVersions: BaseFilter = () => ({ id: { exists: true } })
+
+/**
  * The Status options a user may pick. An editor cannot publish or archive
  * ({@link enforceReviewStatusAccess} quietly puts the old value back), so those two are not offered
  * — except the one the document already has, which the read-only form still has to display.
@@ -114,6 +123,7 @@ export function withSingleSave(collection: CollectionConfig): CollectionConfig {
     fields: withStatusOptions(collection.fields),
     admin: {
       ...collection.admin,
+      baseFilter: hideOrphanedVersions,
       components: {
         ...collection.admin?.components,
         edit: {

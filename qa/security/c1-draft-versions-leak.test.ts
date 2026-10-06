@@ -223,6 +223,37 @@ describe('C1 — versions whose document was deleted directly in the database', 
   })
 })
 
+describe('admin lists — versions whose document was deleted directly in the database', () => {
+  // Reported 2026-10-06: "Encountered two children with the same key" in the admin. The list
+  // showed each orphaned version as a row without an id; React keys such a row by its position,
+  // which collides with a real document whose id is that number.
+  it.each(REVIEWED_COLLECTIONS)('REGRESSION: %s — the admin list has no row without a document', async (collection) => {
+    const t = table(collection)
+    const doc = await create(collection, 'published')
+    const versionIds = (await queryQaDb(DB, `SELECT id FROM "_${t}_v" WHERE parent_id = $1`, [doc.id])).rows.map((r) => r.id as number)
+    try {
+      await queryQaDb(DB, `DELETE FROM "${t}" WHERE id = $1`, [doc.id])
+      const orphans = await queryQaDb(DB, `SELECT count(*)::int AS n FROM "_${t}_v" WHERE id = ANY($1) AND parent_id IS NULL AND latest = true`, [versionIds])
+      expect(orphans.rows[0].n, 'an orphaned latest version exists').toBeGreaterThan(0)
+
+      for (const actor of ['admin', 'board', 'editor'] as const) {
+        const res = await fetch(`${fx.baseUrl}/admin/collections/${collection}?limit=100`, {
+          headers: { Cookie: `payload-token=${tokenOf(actor)}`, 'Sec-Fetch-Site': 'same-origin' },
+          signal: AbortSignal.timeout(180_000),
+        })
+        const html = await res.text()
+        expect(res.status, `${actor}: list page`).toBe(200)
+        const rows = html.match(/<tr class="row-\d+"[^>]*>/g) ?? []
+        expect(rows.length, `${actor}: the list has rows`).toBeGreaterThan(0)
+        expect(rows.filter((row) => !/data-id="[^"]+"/.test(row)), `${actor}: rows without a document id`).toHaveLength(0)
+        expect(html, `${actor}: deleted document's title`).not.toContain(liveTitle(collection, doc))
+      }
+    } finally {
+      await queryQaDb(DB, `DELETE FROM "_${t}_v" WHERE id = ANY($1)`, [versionIds])
+    }
+  })
+})
+
 describe('C1 — controls', () => {
   it('editor, board and admin still read unpublished work with ?draft=true (the admin panel needs it)', async () => {
     for (const actor of ['editor', 'board', 'admin'] as const) {

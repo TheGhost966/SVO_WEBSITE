@@ -8,7 +8,8 @@ import { homeCopy } from './copy'
 
 /**
  * Figma 8.png: two side-by-side cards — a green "Become a volunteer" card and a navy "I have an
- * idea" card. Both link to the contact form with the category pre-selected (neither feature has its own module, so there is no dead end). If the board has filled in the
+ * idea" card. Both link to the contact form with the category pre-selected (neither feature has
+ * its own module, so there is no dead end). If the board has filled in the
  * single `homeGroup.ctaBand*` fields, that authored band is shown instead, as before.
  */
 export function CtaBandSection({

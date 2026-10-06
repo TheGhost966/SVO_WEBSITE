@@ -12,6 +12,10 @@ export const LogoGrid: Block = {
       name: 'logos',
       type: 'array',
       label: { de: 'Logos', ar: 'الشعارات', en: 'Logos' },
+      labels: {
+        singular: { de: 'Logo', ar: 'شعار', en: 'Logo' },
+        plural: { de: 'Logos', ar: 'الشعارات', en: 'Logos' },
+      },
       fields: [
         { name: 'image', type: 'upload', relationTo: 'media', required: true, label: { de: 'Logo', ar: 'الشعار', en: 'Logo' } },
         { name: 'name', type: 'text', required: true, label: { de: 'Name (für Alt-Text)', ar: 'الاسم', en: 'Name (for alt text)' } },

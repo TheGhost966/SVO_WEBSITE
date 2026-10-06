@@ -13,6 +13,10 @@ export const CardGrid: Block = {
       name: 'cards',
       type: 'array',
       label: { de: 'Karten', ar: 'البطاقات', en: 'Cards' },
+      labels: {
+        singular: { de: 'Karte', ar: 'بطاقة', en: 'Card' },
+        plural: { de: 'Karten', ar: 'البطاقات', en: 'Cards' },
+      },
       fields: [
         { name: 'icon', type: 'text', label: { de: 'Icon (Lucide)', ar: 'أيقونة', en: 'Icon (Lucide)' } },
         { name: 'image', type: 'upload', relationTo: 'media', label: { de: 'Bild', ar: 'الصورة', en: 'Image' } },

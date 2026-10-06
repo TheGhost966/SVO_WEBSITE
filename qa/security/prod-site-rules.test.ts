@@ -176,7 +176,10 @@ describe('homepage', () => {
 
     // An Arabic value, once entered, is used on the Arabic page only.
     const heroAr = uniq('QAHOME-HERO-AR')
-    expect((await api.post('/api/globals/site-settings?locale=ar', { homeGroup: { heroHeadline: heroAr } }, token)).status).toBe(200)
+    // The band fields are sent empty, as the admin form does: Payload fills every field a request
+    // leaves out from the German fallback and would store the German band as the Arabic one.
+    const saveAr = await api.post('/api/globals/site-settings?locale=ar', { homeGroup: { heroHeadline: heroAr, ctaBandHeading: null, ctaBandCtaLabel: null } }, token)
+    expect(saveAr.status, saveAr.text.slice(0, 300)).toBe(200)
     expect(await settles(['/ar'], (p) => p.html.includes(heroAr)), 'Arabic homepage shows the Arabic copy').toBe(true)
     expect((await page('/en')).html).not.toContain(heroAr)
     expect(h1((await page('/en')).html)).toBe(before['/en'])

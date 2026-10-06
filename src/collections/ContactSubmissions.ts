@@ -22,6 +22,8 @@ export const ContactSubmissions: CollectionConfig = {
     defaultColumns: ['name', 'email', 'subject', 'status', 'submittedAt'],
     description: {
       de: 'Eingehende Kontaktformular-Nachrichten. Zugriff nur für Redakteure und höher.',
+      ar: 'الرسائل الواردة من نموذج التواصل. الوصول للمحرّرين ومن فوقهم فقط.',
+      en: 'Incoming contact form messages. Access for editors and above only.',
     },
   },
   fields: [

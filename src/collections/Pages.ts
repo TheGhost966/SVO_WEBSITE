@@ -55,6 +55,10 @@ export const Pages: CollectionConfig = {
       type: 'blocks',
       localized: true,
       label: { de: 'Seiteninhalt (Blöcke)', ar: 'محتوى الصفحة', en: 'Page layout (blocks)' },
+      labels: {
+        singular: { de: 'Block', ar: 'كتلة', en: 'Block' },
+        plural: { de: 'Blöcke', ar: 'كتل', en: 'Blocks' },
+      },
       blocks: [Hero, RichTextBlock, ImageText, CardGrid, Stats, CTABand, FAQBlock, LogoGrid, Timeline, ContactBlock],
     },
     {

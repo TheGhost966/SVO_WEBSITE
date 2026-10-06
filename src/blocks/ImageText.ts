@@ -16,18 +16,24 @@ export const ImageText: Block = {
       defaultValue: 'start',
       label: { de: 'Bildposition', ar: 'موضع الصورة', en: 'Image position' },
       options: [
-        { label: { de: 'Links (Anfang)', en: 'Start' }, value: 'start' },
-        { label: { de: 'Rechts (Ende)', en: 'End' }, value: 'end' },
+        { label: { de: 'Links (Anfang)', ar: 'اليمين (البداية)', en: 'Start' }, value: 'start' },
+        { label: { de: 'Rechts (Ende)', ar: 'اليسار (النهاية)', en: 'End' }, value: 'end' },
       ],
-      admin: { description: { de: 'Wird in RTL-Layouts automatisch gespiegelt.' } },
+      admin: {
+        description: {
+          de: 'Wird in RTL-Layouts automatisch gespiegelt.',
+          ar: 'ينعكس تلقائيًا في الصفحات التي تُكتب من اليمين إلى اليسار.',
+          en: 'Mirrored automatically in right-to-left layouts.',
+        },
+      },
     },
     {
       name: 'cta',
       type: 'group',
       label: { de: 'Optionaler Button', ar: 'زر اختياري', en: 'Optional button' },
       fields: [
-        { name: 'label', type: 'text', localized: true },
-        { name: 'url', type: 'text' },
+        { name: 'label', type: 'text', localized: true, label: { de: 'Beschriftung', ar: 'النص', en: 'Label' } },
+        { name: 'url', type: 'text', label: { de: 'URL', ar: 'الرابط', en: 'URL' } },
       ],
     },
   ],

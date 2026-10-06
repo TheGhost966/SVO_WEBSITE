@@ -25,6 +25,7 @@ import { Nothing as Nothing_singleSave } from '@/components/admin/SingleSave'
 import { Logo as Logo_brand, Icon as Icon_brand } from '@/components/admin/Brand'
 import { SaveButton as SaveButton_payloadUi } from '@payloadcms/ui'
 import { DashboardGuide as DashboardGuide_ce8d6fe811e442d5f2945b6cb70b4c61 } from '@/components/admin/DashboardGuide'
+import { LanguageFollowsLocale as LanguageFollowsLocale_languageFollowsLocale } from '@/components/admin/LanguageFollowsLocale'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
@@ -58,6 +59,7 @@ export const importMap = {
   "@/components/admin/Brand#Icon": Icon_brand,
   "@payloadcms/ui#SaveButton": SaveButton_payloadUi,
   "@/components/admin/DashboardGuide#DashboardGuide": DashboardGuide_ce8d6fe811e442d5f2945b6cb70b4c61,
+  "@/components/admin/LanguageFollowsLocale#LanguageFollowsLocale": LanguageFollowsLocale_languageFollowsLocale,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

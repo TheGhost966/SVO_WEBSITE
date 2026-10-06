@@ -10,12 +10,14 @@
 const BLUE = '#0B4EA2'
 const GREEN = '#3B8A33'
 
-export function Logo() {
+const EDITORIAL_AREA: Record<string, string> = { de: 'Redaktionsbereich', ar: 'لوحة التحرير', en: 'Editorial area' }
+
+export function Logo({ i18n }: { i18n?: { language?: string } }) {
   return (
     <div className="svo-brand svo-brand--logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
       <span style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.02em', color: BLUE }}>SVÖ</span>
       <span style={{ marginTop: 10, fontSize: 14, fontWeight: 500, color: GREEN }}>Syrischer Verband in Österreich</span>
-      <span style={{ marginTop: 6, fontSize: 12, color: 'var(--theme-elevation-500)' }}>Redaktionsbereich</span>
+      <span style={{ marginTop: 6, fontSize: 12, color: 'var(--theme-elevation-500)' }}>{EDITORIAL_AREA[i18n?.language ?? 'de'] ?? EDITORIAL_AREA.de}</span>
     </div>
   )
 }

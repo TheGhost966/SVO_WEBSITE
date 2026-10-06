@@ -1,8 +1,10 @@
 import type { CollectionConfig, Field, GlobalConfig, Tab } from 'payload'
+import { ar } from '@/lib/adminHelp/ar'
+import { en } from '@/lib/adminHelp/en'
 
 /**
  * How the admin panel is laid out for the people who use it: three to five volunteers at
- * intermediate skill, working in German (questionnaire §12.4, §15.2).
+ * intermediate skill, working in German, Arabic or English (questionnaire §12.4, §15.2).
  *
  * Everything here is presentation — labels, help texts, sidebar groups, list columns, tabs. No
  * field is added, removed or renamed, and the tabs are UNNAMED: an unnamed tab groups fields on
@@ -11,6 +13,9 @@ import type { CollectionConfig, Field, GlobalConfig, Tab } from 'payload'
  *
  * It lives in one file, applied in payload.config.ts, rather than in sixteen collection files: the
  * collections stay about data, access and hooks, and a wording or ordering change is made here.
+ *
+ * The help texts below are the German ones. Their Arabic and English versions are in
+ * src/lib/adminHelp/ — the `AdminHelp` type makes a missing translation a type error.
  */
 
 type Trans = { de: string; ar: string; en: string }
@@ -43,7 +48,7 @@ type Layout = {
   settings?: string[]
   /** Only board and admin may change these; for everyone else they are not in the sidebar. */
   boardOnly?: boolean
-  /** German help texts by field path (`steps.title` for a field inside the `steps` array). */
+  /** German help texts by field path (`steps.title` for a field inside the `steps` array). Translations: src/lib/adminHelp/. */
   help: Record<string, string>
 }
 
@@ -56,7 +61,7 @@ const LAST_REVIEWED_HELP = 'Wird auf der Seite als „Stand: TT.MM.JJJJ“ angez
 const INTERVAL_HELP = 'Nach so vielen Monaten erscheint der Eintrag auf der Startseite des Admin-Bereichs unter „Prüfung überfällig“.'
 const SOURCE_HELP = 'Link zur amtlichen Quelle, z. B. oesterreich.gv.at. Wird unter dem Text angezeigt.'
 
-const LAYOUT: Record<string, Layout> = {
+const LAYOUT = {
   news: {
     labels: { singular: { de: 'News-Artikel', ar: 'خبر', en: 'News article' }, plural: { de: 'News', ar: 'الأخبار', en: 'News' } },
     group: GROUPS.content,
@@ -326,7 +331,7 @@ const LAYOUT: Record<string, Layout> = {
       role: 'Redaktion: schreibt Entwürfe und reicht sie ein. Vorstand: veröffentlicht und archiviert. Administration: zusätzlich Benutzer und Löschen. Betrachter:in: nur lesen.',
     },
   },
-}
+} satisfies Record<string, Layout>
 
 // ─── Site settings (global) ──────────────────────────────────────────────────
 
@@ -338,7 +343,7 @@ const SITE_SETTINGS_TABS: Array<{ label: Trans; fields: string[] }> = [
   { label: TAB.settings, fields: ['boardNotificationEmails', 'submissionRetentionMonths', 'expertApplicationRetentionMonths'] },
 ]
 
-const SITE_SETTINGS_HELP: Record<string, string> = {
+const SITE_SETTINGS_HELP = {
   logo: 'Logo für Kopfzeile und Admin-Bereich. Solange keines hochgeladen ist, steht dort der Schriftzug „SVÖ“.',
   logoAlt: 'Helle Fassung des Logos für dunkle Flächen (z. B. die Fußzeile).',
   orgName: 'Name des Vereins, wie er in der Fußzeile und in Suchmaschinen steht.',
@@ -381,14 +386,21 @@ const SITE_SETTINGS_HELP: Record<string, string> = {
   expertApplicationRetentionMonths: 'DSGVO: Anträge von Expert:innen, die nie veröffentlicht wurden, werden nach so vielen Monaten gelöscht.',
   boardNotificationEmails: 'An diese Adressen geht die E-Mail, wenn die Redaktion etwas zur Überprüfung einreicht.',
   'boardNotificationEmails.email': 'Eine Adresse pro Zeile.',
-}
+} satisfies Record<string, string>
 
-const SEO_HELP: Record<string, string> = {
+const SEO_HELP = {
   seo: 'Angaben für Suchmaschinen und geteilte Links. Leer lassen — dann werden Titel und Kurzbeschreibung des Eintrags verwendet.',
   'seo.title': 'Höchstens 60 Zeichen. Leer = Titel des Eintrags.',
   'seo.description': 'Höchstens 160 Zeichen. Leer = Kurzbeschreibung des Eintrags.',
   'seo.ogImage': 'Bild beim Teilen des Links. Leer = Titelbild oder Standardbild.',
   'seo.noIndex': 'Ankreuzen, wenn die Seite nicht in Suchmaschinen erscheinen soll.',
+} satisfies Record<string, string>
+
+/** The shape a translation of the help texts has to have: every German text, no more and no fewer. */
+export type AdminHelp = {
+  collections: { [Slug in keyof typeof LAYOUT]: Record<keyof (typeof LAYOUT)[Slug]['help'], string> }
+  siteSettings: Record<keyof typeof SITE_SETTINGS_HELP, string>
+  seo: Record<keyof typeof SEO_HELP, string>
 }
 
 // ─── Applying it ─────────────────────────────────────────────────────────────
@@ -402,8 +414,16 @@ function namesIn(field: Field): string[] {
   return (f.fields ?? []).flatMap(namesIn)
 }
 
-/** Sets the German help text on every field that has one in `help`; other languages keep theirs. */
-function withHelp(fields: Field[], help: Record<string, string>, prefix = ''): Field[] {
+type Help = Record<string, Trans>
+
+/** One help text per field path in all three languages, from the German texts and their translations. */
+function inAllLanguages(de: Record<string, string>, ...translated: Array<{ ar: Record<string, string>; en: Record<string, string> }>): Help {
+  const ofAll = (lang: 'ar' | 'en', path: string) => translated.map((t) => t[lang][path]).find(Boolean) ?? ''
+  return Object.fromEntries(Object.entries(de).map(([path, text]) => [path, { de: text, ar: ofAll('ar', path), en: ofAll('en', path) }]))
+}
+
+/** Sets the help text on every field that has one in `help`, in all three admin languages. */
+function withHelp(fields: Field[], help: Help, prefix = ''): Field[] {
   return fields.map((field) => {
     const f = field as AnyField
     if (f.type === 'blocks') return field
@@ -411,19 +431,25 @@ function withHelp(fields: Field[], help: Record<string, string>, prefix = ''): F
     const children = f.fields ? { fields: withHelp(f.fields, help, f.name ? `${path}.` : prefix) } : {}
     const text = f.name ? help[path] : undefined
     if (!text) return { ...field, ...children } as Field
-    const existing = f.admin?.description
-    const others = existing && typeof existing === 'object' ? (existing as Record<string, string>) : {}
-    return { ...field, ...children, admin: { ...f.admin, description: { ...others, de: text } } } as Field
+    return { ...field, ...children, admin: { ...f.admin, description: text } } as Field
   })
 }
 
 const inSidebar = (field: Field): Field => ({ ...field, admin: { ...(field as AnyField).admin, position: 'sidebar' } }) as Field
 
 export function withAdminLayout(collection: CollectionConfig): CollectionConfig {
-  const layout = LAYOUT[collection.slug]
+  const slug = collection.slug as keyof typeof LAYOUT
+  const layout: Layout | undefined = LAYOUT[slug]
   if (!layout) return collection
 
-  let fields = withHelp(collection.fields, { ...SEO_HELP, ...layout.help })
+  let fields = withHelp(
+    collection.fields,
+    inAllLanguages(
+      { ...SEO_HELP, ...layout.help },
+      { ar: ar.collections[slug], en: en.collections[slug] },
+      { ar: ar.seo, en: en.seo },
+    ),
+  )
 
   if (layout.settings) {
     const status = fields.filter((f) => namesIn(f).includes('reviewStatus'))
@@ -451,7 +477,7 @@ export function withAdminLayout(collection: CollectionConfig): CollectionConfig 
 }
 
 export function withSiteSettingsLayout(global: GlobalConfig): GlobalConfig {
-  const fields = withHelp(global.fields, SITE_SETTINGS_HELP)
+  const fields = withHelp(global.fields, inAllLanguages(SITE_SETTINGS_HELP, { ar: ar.siteSettings, en: en.siteSettings }))
   const placed = new Set<Field>()
   const tabs: Tab[] = SITE_SETTINGS_TABS.map((tab) => {
     const own = fields.filter((f) => namesIn(f).some((name) => tab.fields.includes(name)))
